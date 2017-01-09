@@ -5,6 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "mqtt": "^2.0.1",
+    "q": "^1.4.1",
     "redis": "^2.6.3",
     "request": "^2.79.0",
     "twilio": "^2.11.0"
