@@ -32,9 +32,7 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
     clientId: fabrick_gateway.id
 });
 
-// fabrick_Broker.onConnect(() => {
-//     console.log('Fabrick Broker connected');
-// });
+
 // fabrick_Broker.onError((err) => {
 //     console.log('error happen with Fabrick broker')
 //     console.log(err)
@@ -123,7 +121,7 @@ function step3ReadPQInfoBySTIdCallback(error, response, body) {
         var promises = results.map(function(d) {
             var dataName = d.Name.replace(/\s+/, "");
             this.message['dataIds'][d.PQId] = dataName;
-            return this.message['data'][dataName] = ["N/A", d.Unit, "N/A"];
+            return this.message['data'][dataName] = ["N/A", d.Unit];
             // return this.message;
         }.bind({ message: this.message })); // run the function over all items.
 
@@ -163,9 +161,12 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
         q.all(promises).then(function(data) {
             var fabrick_client = fabrick_Broker.connect();
             console.log(this.message);
-            fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(this.message), { qos: 1, retain: true });
+            fabrick_Broker.onConnect(() => {
+                fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
+                    process.exit(); // Done deal.
+                });
+            });
 
-            process.exit(); // Done deal.
         }.bind({ message: this.message }));
     } else if (error) {
         console.log(error.code + " : " + error.message);
