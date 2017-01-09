@@ -38,8 +38,8 @@ fabrick_Broker.onOffline(() => {
 fabrick_Broker.onMessage((topic, message, packet) => {
     console.log('Message received from Fabrick');
     console.log('topic: ' + topic);
-    // console.log('message : ')
-    // var json_object = JSON.parse(message);
+    console.log('message : ')
+    console.log(JSON.parse(message));
 
     switch (topic) {
         case 'config/Senslink/Devices':

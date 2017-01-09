@@ -27,7 +27,6 @@ config.twilio.phoneFrom = '+16502579348';
 config.fabrickBroker.host = 'tcp://52.187.41.181'
 config.fabrickBroker.port = 1883
 config.fabrickBroker.keepalive = 120;
-// config.fabrickBroker.clientId = 'FabrickClient00XXX'
 
 config.defaultBroker.keepalive = 120;
 config.defaultBroker.clean = true;
