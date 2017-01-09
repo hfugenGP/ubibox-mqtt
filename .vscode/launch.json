@@ -9,6 +9,9 @@
             "name": "Launch Program",
             "program": "${workspaceRoot}\\fabrickSenslinkScheduleJob.js",
             // "program": "${workspaceRoot}\\fabrickSenslinkClient.js",
+            // "program": "${workspaceRoot}\\fabrickDashboardSubcriber.js",
+            // "program": "${workspaceRoot}\\fabrickGIoTClient.js",
+
             "cwd": "${workspaceRoot}"
         },
         {

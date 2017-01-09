@@ -162,8 +162,8 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
 
         q.all(promises).then(function(data) {
             var fabrick_client = fabrick_Broker.connect();
+            console.log(this.message);
             fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(this.message), { qos: 1, retain: true });
-            fabrick_Broker.end();
 
             process.exit(); // Done deal.
         }.bind({ message: this.message }));
