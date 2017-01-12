@@ -182,8 +182,8 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data["deviceType"] = [rawData.substring(0, 2)];
             var temperature = parseInt('0x' + rawData.substring(2, 6)) / 100;
             data["temperature"] = [temperature, '°C', getDataStatus("temperature", temperature)];
-            var relativeHumidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
-            data["relativeHumidity"] = [relativeHumidity, '%RH', getDataStatus("relativeHumidity", relativeHumidity)];
+            var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
+            data["humidity"] = [humidity, '%RH', getDataStatus("humidity", humidity)];
             // var co2 = "N/A"
             // var co = "N/A"
             // var pm25 = "N/A"
@@ -281,7 +281,7 @@ function getDataStatus(dataType, value) {
                 return "Critical";
             }
 
-        case "relativeHumidity":
+        case "humidity":
             if (value <= 30) {
                 return "Normal";
             } else if (value <= 65) {
