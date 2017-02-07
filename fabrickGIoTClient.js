@@ -178,7 +178,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
     var data = {};
     switch (subcribe_devices['MAC-' + macAddr]) {
-        case '1': //'air_sensor'
+        case 1: //'air_sensor'
             data["deviceType"] = [rawData.substring(0, 2)];
             var temperature = parseInt('0x' + rawData.substring(2, 6)) / 100;
             data["temperature"] = [temperature, '°C', getDataStatus("temperature", temperature)];
@@ -212,21 +212,21 @@ function generateMessage(macAddr, receivedDate, rawData) {
             // data["pm25"] = pm25;
 
             break;
-        case '2': //'flood_sensor'
+        case 2: //'flood_sensor'
             var depth = 31 - parseFloat(rawData.substring(0, 3));
             data["depth"] = [depth, 'cm', getDataStatus("depth", depth)];
 
             break;
-        case '3': //'ph_sensor'
+        case 3: //'ph_sensor'
             data["ph"] = [parseFloat(rawData.substring(0, 2) + '.' + rawData.substring(2, 3))];
 
             break;
-        case '4': //'alarm_sensor'
+        case 4: //'alarm_sensor'
             var common = new Common();
             data['alert'] = [common.hex2a(rawData)];
 
             break;
-        case '5': //'parking_sensor'
+        case 5: //'parking_sensor'
             var common = new Common();
 
             // Don't need to get this for now
