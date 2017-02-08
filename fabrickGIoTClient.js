@@ -144,7 +144,7 @@ fabrick_Broker.onMessage((topic, message, packet) => {
             // console.log(json_object);
             subcribe_devices = [];
             json_object.forEach(function(element) {
-                subcribe_devices['MAC-' + element['device']] = element['deviceType'];
+                subcribe_devices['MAC-' + element['device'].toLowerCase()] = element['deviceType'];
             });
             console.log(subcribe_devices);
             break;
