@@ -212,7 +212,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             // data["pm25"] = pm25;
 
             break;
-        case 2: //'flood_sensor'
+        case 2: //'drainage_sensor'
             var depth = 31 - parseFloat(rawData.substring(0, 3));
             data["depth"] = [depth, 'cm', getDataStatus("depth", depth)];
 
@@ -262,7 +262,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var day = rawData.substring(8, 10);
             var month = rawData.substring(10, 12);
             var year = rawData.substring(12, 14);
-            data['updatedOn'] = new Date(year, month, day, hours);
+            data['updatedOn'] = new Date(year, month, day, hour);
             data['voltage'] = rawData.substring(14, 16);
             data['reading'] = rawData.substring(16, 22);
             break;
