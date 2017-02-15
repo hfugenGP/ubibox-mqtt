@@ -263,7 +263,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var month = rawData.substring(10, 12);
             var year = rawData.substring(12, 14);
             data['updatedOn'] = [new Date(year, month, day, hour)];
-            data['voltage'] = [rawData.substring(14, 16), 'V'];
+            data['voltage'] = [parseInt(rawData.substring(14, 16)) / 10, 'V'];
             data['reading'] = [rawData.substring(16, 22)];
             break;
         default:
