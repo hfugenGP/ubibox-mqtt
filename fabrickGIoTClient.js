@@ -257,14 +257,14 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data["temperature"] = [temperature, '°C', getDataStatus("temperature", temperature)];
             break;
         case 8: //'electric_sensor'
-            data['serialNo'] = rawData.substring(0, 6);
+            data['serialNo'] = [rawData.substring(0, 6)];
             var hour = rawData.substring(6, 8);
             var day = rawData.substring(8, 10);
             var month = rawData.substring(10, 12);
             var year = rawData.substring(12, 14);
-            data['updatedOn'] = new Date(year, month, day, hour);
-            data['voltage'] = rawData.substring(14, 16);
-            data['reading'] = rawData.substring(16, 22);
+            data['updatedOn'] = [new Date(year, month, day, hour)];
+            data['voltage'] = [rawData.substring(14, 16), 'V'];
+            data['reading'] = [rawData.substring(16, 22)];
             break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
