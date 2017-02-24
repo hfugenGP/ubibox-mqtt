@@ -5,6 +5,7 @@ var Redis = require('ioredis');
 var redis = new Redis();
 
 redis.subscribe('notify');
+redis.subscribe('notifyUnread');
 redis.subscribe('application');
 redis.subscribe('device');
 redis.subscribe('event');
