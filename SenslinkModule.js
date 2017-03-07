@@ -121,7 +121,7 @@ function step3ReadPQInfoBySTIdCallback(error, response, body) {
         var promises = results.map(function(d) {
             var dataName = d.Name.replace(/\s+/, "");
             this.message['dataIds'][d.PQId] = dataName;
-            return this.message['data'][dataName] = ["N/A", d.Unit];
+            return this.message['data'][dataName] = ["N/A", d.Unit, "N/A"];
             // return this.message;
         }.bind({ message: this.message })); // run the function over all items.
 
@@ -148,6 +148,7 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
 
         var promises = results.map(function(d) {
             this.message['data'][this.message['dataIds'][d.PQId]][0] = d.Data.Value;
+            this.message['data'][this.message['dataIds'][d.PQId]][2] = getDataStatus(this.message['dataIds'][d.PQId], d.Data.Value);
 
             // var receivedDate = new Date(d.Data.TimeStampIso);
 
@@ -195,6 +196,45 @@ function encryptMessage(keyResponse, actionName) {
         .digest('base64');
 
     return message;
+}
+
+function getDataStatus(dataType, value) {
+    switch (dataType) {
+        case "Temperature":
+            if (value <= 19) {
+                return "Normal";
+            } else if (value <= 24) {
+                return "Caution";
+            } else if (value <= 28) {
+                return "Warning";
+            } else if (value <= 32) {
+                return "Danger";
+            } else {
+                return "Critical";
+            }
+
+        case "Humidity":
+            if (value <= 30) {
+                return "Normal";
+            } else if (value <= 65) {
+                return "Caution";
+            } else if (value <= 75) {
+                return "Warning";
+            } else if (value <= 85) {
+                return "Danger";
+            } else {
+                return "Critical";
+            }
+
+        case "WaterLevel":
+            if (value <= 50) {
+                return "Normal";
+            } else if (value <= 200) {
+                return "Warning";
+            } else {
+                return "Critical";
+            }
+    }
 }
 
 module.exports = SenslinkModule;
