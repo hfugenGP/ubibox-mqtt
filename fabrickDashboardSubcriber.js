@@ -1,7 +1,8 @@
 'use strict'
 
 // const artisanURL = 'D:/fabrick/fabrickgit/artisan';
-const artisanURL = '/var/www/brazn/fabrick/dashboard/artisan';
+// const artisanURL = '/var/www/brazn/fabrick/dashboard/artisan';
+const artisanURL = '/var/www/fabrick/artisan';
 const Broker = require('./broker');
 const Common = require('./common')
 const config = require('./config');
