@@ -148,7 +148,9 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
 
         var promises = results.map(function(d) {
             this.message['data'][this.message['dataIds'][d.PQId]][0] = d.Data.Value;
-            this.message['data'][this.message['dataIds'][d.PQId]][2] = getDataStatus(this.message['dataIds'][d.PQId], d.Data.Value);
+            if (getDataStatus(this.message['dataIds'][d.PQId], d.Data.Value) != "N/A") {
+                this.message['data'][this.message['dataIds'][d.PQId]][2] = getDataStatus(this.message['dataIds'][d.PQId], d.Data.Value);
+            }
 
             // var receivedDate = new Date(d.Data.TimeStampIso);
 
@@ -234,6 +236,8 @@ function getDataStatus(dataType, value) {
             } else {
                 return "Critical";
             }
+        default:
+            return "N/A";
     }
 }
 
