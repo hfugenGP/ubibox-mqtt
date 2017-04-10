@@ -283,10 +283,18 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             data['ACC'] = [statusFlags[0] == '0' ? false : true];
             data['positioned'] = [statusFlags[1] == '0' ? false : true];
-            data['northlatitude'] = [statusFlags[2] == '0' ? true : false];
-            data['southLatitude'] = [statusFlags[2] == '0' ? false : true];
-            data['west'] = [statusFlags[3] == '0' ? false : true];
-            data['east'] = [statusFlags[3] == '0' ? true : false];
+
+            if (statusFlags[2] == '0') {
+                data['latitudeType'] = ['north'];
+            } else {
+                data['latitudeType'] = ['south'];
+            }
+
+            if (statusFlags[2] == '0') {
+                data['longitudeType'] = ['east'];
+            } else {
+                data['longitudeType'] = ['west'];
+            }
 
             break;
         case 10: //'manhole_sensor'
@@ -316,14 +324,34 @@ function generateMessage(macAddr, receivedDate, rawData) {
             }
 
             data['positioned'] = [statusFlags[0] == '0' ? false : true];
-            data['northLatitude'] = [statusFlags[1] == '0' ? true : false];
-            data['southLatitude'] = [statusFlags[1] == '0' ? false : true];
+            if (statusFlags[1] == '0') {
+                data['latitudeType'] = ['north'];
+            } else {
+                data['latitudeType'] = ['south'];
+            }
 
-            data['eastLongitude'] = [statusFlags[2] == '0' ? true : false];
-            data['westLongitude'] = [statusFlags[2] == '0' ? false : true];
+            if (statusFlags[2] == '0') {
+                data['longitudeType'] = ['east'];
+            } else {
+                data['longitudeType'] = ['west'];
+            }
+            // data['northLatitude'] = [statusFlags[1] == '0' ? true : false];
+            // data['southLatitude'] = [statusFlags[1] == '0' ? false : true];
 
-            data['loraPacket'] = [statusFlags[5] == '0' ? true : false];
-            data['mftLoraPacket'] = [statusFlags[5] == '0' ? false : true];
+            // data['eastLongitude'] = [statusFlags[2] == '0' ? true : false];
+            // data['westLongitude'] = [statusFlags[2] == '0' ? false : true];
+
+            if (statusFlags[2] == '0') {
+                data['longitudeType'] = ['east'];
+            } else {
+                data['longitudeType'] = ['west'];
+            }
+
+            if (statusFlags[5] == '0') {
+                data['loraPacketType'] = ['lora'];
+            } else {
+                data['longitudeType'] = ['mftLora'];
+            }
 
             var statusCode = statusFlags[7] + statusFlags[6] + statusFlags[4];
 
