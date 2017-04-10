@@ -1,8 +1,5 @@
 'use strict'
 
-// const artisanURL = 'D:/fabrick/fabrickgit/artisan';
-// const artisanURL = '/var/www/brazn/fabrick/dashboard/artisan';
-const artisanURL = '/var/www/fabrick/artisan';
 const Broker = require('./broker');
 const Common = require('./common')
 const config = require('./config');
@@ -50,7 +47,7 @@ fabrick_Broker.onMessage((topic, message, packet) => {
 
     switch (topic) {
         case 'fabrick.io/device/data':
-            var cmd = 'php ' + artisanURL + ' device ' + buf.toString('base64');
+            var cmd = 'php ' + config.artisanURL + ' device ' + buf.toString('base64');
 
             exec(cmd, function(error, stdout, stderr) {
                 console.log('Command executed !!!');

@@ -6,7 +6,7 @@ const config = require('./config');
 const redis = require("redis");
 
 var fabrick_gateway = {
-    id: "Fabrick Senslink Client XXX",
+    id: "Fabrick Senslink Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
     topics: { 'config/Senslink/Devices': 1 }

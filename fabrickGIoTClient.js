@@ -10,7 +10,7 @@ var subcribe_gateways = new Array();
 var subcribe_brokers = new Array();
 
 var fabrick_gateway = {
-    id: "Fabrick GIoT Client XXX",
+    id: "Fabrick GIoT Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
     topics: { 'config/GIoT/Gateways': 1, 'config/GIoT/Devices': 1 }
@@ -265,6 +265,121 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['updatedOn'] = [new Date(year, month, day, hour)];
             data['voltage'] = [parseInt(rawData.substring(14, 16)) / 10, 'V'];
             data['reading'] = [rawData.substring(16, 22)];
+            break;
+        case 9: //'scooter_sensor'
+            var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+            var statusFlags = Array.from(common.hex2bits(value.substring(1, 2)));
+
+            data['latitude'] = [parseInt('0x' + rawData.substring(2, 6)) * 10];
+            data['longitude'] = [parseInt('0x' + rawData.substring(6, 10)) * 10];
+
+            data['speed'] = [parseInt('0x' + rawData.substring(10, 12)), 'km/h'];
+            data['direction'] = [parseInt('0x' + rawData.substring(12, 14))];
+
+            data['illegalDisplacement'] = [alertFlags[0] == '0' ? false : true];
+            data['vibrationAlarm'] = [alertFlags[1] == '0' ? false : true];
+            data['mainPowerUnderVoltage'] = [alertFlags[2] == '0' ? false : true];
+            data['mainPowerDown'] = [alertFlags[3] == '0' ? false : true];
+
+            data['ACC'] = [statusFlags[0] == '0' ? false : true];
+            data['positioned'] = [statusFlags[1] == '0' ? false : true];
+            data['northlatitude'] = [statusFlags[2] == '0' ? true : false];
+            data['southLatitude'] = [statusFlags[2] == '0' ? false : true];
+            data['west'] = [statusFlags[3] == '0' ? false : true];
+            data['east'] = [statusFlags[3] == '0' ? true : false];
+
+            break;
+        case 10: //'manhole_sensor'
+            var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+
+            data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
+            data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
+            data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(3, 9)) * 1000];
+
+            data['status'] = [alertFlags[0] == '0' ? false : true];
+            data['alert'] = [alertFlags[1] == '0' ? false : true];
+            data['calibration'] = [alertFlags[2] == '0' ? true : false];
+            data['lowBattery'] = [alertFlags[3] == '0' ? false : true];
+
+            break;
+        case 11: //'asset_tracker'
+            var statusFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+
+            data['temperature'] = [parseInt('0x' + rawData.substring(1, 2))];
+            data['batteryLevel'] = [parseInt('0x' + rawData.substring(2, 3))];
+
+            if (statusFlags[0] == '0') {
+                data['latitude'] = [parseInt('0x' + rawData.substring(3, 7)) * 10];
+                data['longitude'] = [parseInt('0x' + rawData.substring(7, 11)) * 10];
+            } else {
+                data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(3, 9))];
+            }
+
+            data['positioned'] = [statusFlags[0] == '0' ? false : true];
+            data['northLatitude'] = [statusFlags[1] == '0' ? true : false];
+            data['southLatitude'] = [statusFlags[1] == '0' ? false : true];
+
+            data['eastLongitude'] = [statusFlags[2] == '0' ? true : false];
+            data['westLongitude'] = [statusFlags[2] == '0' ? false : true];
+
+            data['loraPacket'] = [statusFlags[5] == '0' ? true : false];
+            data['mftLoraPacket'] = [statusFlags[5] == '0' ? false : true];
+
+            var statusCode = statusFlags[7] + statusFlags[6] + statusFlags[4];
+
+            switch (statusCode) {
+                case "000":
+                    data['status'] = "noError";
+                    break;
+                case "001":
+                    data['status'] = "hardFault";
+                    break;
+                case "010":
+                    data['status'] = "memManage";
+                    break;
+                case "011":
+                    data['status'] = "busFault";
+                    break;
+                case "100":
+                    data['status'] = "usageFault";
+                    break;
+                case "101":
+                    data['status'] = "mallocFail";
+                    break;
+                case "110":
+                    data['status'] = "stackOverflow";
+                    break;
+                case "111":
+                    data['status'] = "lowBattery";
+                    break;
+            }
+
+            break;
+        case 12: //'ear_tag'
+            var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+            data['status'] = [alertFlags[0] == '0' ? false : true];
+            data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
+            data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
+
+            break;
+        case 13: //Farm sensors
+            var binaryData = common.hex2bits(value);
+            var ph = binaryData.substring(0, 8);
+            var soilElectrical = binaryData.substring(8, 20);
+            var soilTemperature = binaryData.substring(20, 32);
+            var airTemperature = binaryData.substring(32, 44);
+            var airHumidity = binaryData.substring(44, 56);
+            var soilMoisture = binaryData.substring(56, 68);
+            var batteryLevel = binaryData.substring(68, 76);
+
+            data['ph'] = [ph / 256 * 14, 'pH'];
+            data['soilElectrical'] = [20000 * soilElectrical / 1024, 'us/cm'];
+            data['soilTemperature'] = [(120 * soilTemperature / 1024) - 40, '°C'];
+            data['airTemperature'] = [(90 * airTemperature / 1024) - 10, '°C'];
+            data['airHumidity'] = [100 * airHumidity / 1024, '%RH'];
+            data['soilMoisture'] = [100 * soilMoisture / 1024, '%'];
+            data['batteryLevel'] = [5 * batteryLevel / 256, '%'];
+
             break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
