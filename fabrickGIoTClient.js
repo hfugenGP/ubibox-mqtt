@@ -83,7 +83,7 @@ fabrick_Broker.onMessage((topic, message, packet) => {
                             keepalive: config.defaultBroker.keepalive,
                             port: gateway.port,
                             clean: config.defaultBroker.clean,
-                            clientId: gateway.id,
+                            clientId: config.defaultBroker.idKey + gateway.id,
                             username: gateway.username,
                             password: gateway.password,
                             reconnectPeriod: config.defaultBroker.reconnectPeriod,
