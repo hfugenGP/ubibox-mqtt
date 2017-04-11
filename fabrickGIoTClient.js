@@ -267,6 +267,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['reading'] = [rawData.substring(16, 22)];
             break;
         case 9: //'scooter_sensor'
+            var common = new Common();
             var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
             var statusFlags = Array.from(common.hex2bits(value.substring(1, 2)));
 
@@ -298,6 +299,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 10: //'manhole_sensor'
+            var common = new Common();
             var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
 
             data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
@@ -311,6 +313,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 11: //'asset_tracker'
+            var common = new Common();
             var statusFlags = Array.from(common.hex2bits(value.substring(0, 1)));
 
             data['temperature'] = [parseInt('0x' + rawData.substring(1, 2))];
@@ -391,6 +394,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 12: //'ear_tag'
+            var common = new Common();
             var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
             data['status'] = [alertFlags[0] == '0' ? false : true];
             data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
@@ -398,6 +402,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 13: //Farm sensors
+            var common = new Common();
             var binaryData = common.hex2bits(value);
             var ph = parseInt(binaryData.substring(0, 8), 2);
             var soilElectrical = parseInt(binaryData.substring(8, 20), 2);
