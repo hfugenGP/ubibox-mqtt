@@ -2,7 +2,7 @@
 
 const Broker = require('./broker');
 const Common = require('./common')
-const config = require('./config');
+const config = require('./conf');
 const redis = require("redis");
 
 var fabrick_gateway = {

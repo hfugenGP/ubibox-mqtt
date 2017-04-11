@@ -4,7 +4,7 @@ const request = require('request');
 const fs = require('fs');
 const crypto = require('crypto');
 const q = require('q');
-const config = require('./config');
+const config = require('./conf');
 const Broker = require('./broker');
 
 const authUrl = "http://www2.senslink.net/RestService/Users";

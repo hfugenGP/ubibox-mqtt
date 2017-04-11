@@ -3,7 +3,7 @@
 // const mqtt = require('mqtt');
 const Broker = require('./broker');
 const Common = require('./common')
-const config = require('./config');
+const config = require('./conf');
 
 var subcribe_devices = new Array();
 var subcribe_gateways = new Array();
@@ -314,7 +314,14 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var statusFlags = Array.from(common.hex2bits(value.substring(0, 1)));
 
             data['temperature'] = [parseInt('0x' + rawData.substring(1, 2))];
-            data['batteryLevel'] = [parseInt('0x' + rawData.substring(2, 3))];
+
+            var batt = parseInt('0x' + rawData.substring(2, 3));
+            if (batt == "255" || batt == "0") {
+                data['batteryLevel'] = [0, "%"];
+            } else {
+                data['batteryLevel'] = [batt / 254 * 100, "%"];
+            }
+
 
             if (statusFlags[0] == '0') {
                 data['latitude'] = [parseInt('0x' + rawData.substring(3, 7)) * 10];
@@ -392,13 +399,13 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 13: //Farm sensors
             var binaryData = common.hex2bits(value);
-            var ph = binaryData.substring(0, 8);
-            var soilElectrical = binaryData.substring(8, 20);
-            var soilTemperature = binaryData.substring(20, 32);
-            var airTemperature = binaryData.substring(32, 44);
-            var airHumidity = binaryData.substring(44, 56);
-            var soilMoisture = binaryData.substring(56, 68);
-            var batteryLevel = binaryData.substring(68, 76);
+            var ph = parseInt(binaryData.substring(0, 8), 2);
+            var soilElectrical = parseInt(binaryData.substring(8, 20), 2);
+            var soilTemperature = parseInt(binaryData.substring(20, 32), 2);
+            var airTemperature = parseInt(binaryData.substring(32, 44), 2);
+            var airHumidity = parseInt(binaryData.substring(44, 56), 2);
+            var soilMoisture = parseInt(binaryData.substring(56, 68), 2);
+            var batteryLevel = parseInt(binaryData.substring(68, 76), 2);
 
             data['ph'] = [ph / 256 * 14, 'pH'];
             data['soilElectrical'] = [20000 * soilElectrical / 1024, 'us/cm'];
