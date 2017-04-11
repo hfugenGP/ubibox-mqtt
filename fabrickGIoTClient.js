@@ -268,8 +268,8 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 9: //'scooter_sensor'
             var common = new Common();
-            var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
-            var statusFlags = Array.from(common.hex2bits(value.substring(1, 2)));
+            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
+            var statusFlags = Array.from(common.hex2bits(rawData.substring(1, 2)));
 
             data['latitude'] = [parseInt('0x' + rawData.substring(2, 6)) * 10];
             data['longitude'] = [parseInt('0x' + rawData.substring(6, 10)) * 10];
@@ -300,7 +300,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 10: //'manhole_sensor'
             var common = new Common();
-            var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
 
             data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
             data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
@@ -314,7 +314,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 11: //'asset_tracker'
             var common = new Common();
-            var statusFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+            var statusFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
 
             data['temperature'] = [parseInt('0x' + rawData.substring(1, 2))];
 
@@ -395,7 +395,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 12: //'ear_tag'
             var common = new Common();
-            var alertFlags = Array.from(common.hex2bits(value.substring(0, 1)));
+            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
             data['status'] = [alertFlags[0] == '0' ? false : true];
             data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
             data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
@@ -403,7 +403,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 13: //Farm sensors
             var common = new Common();
-            var binaryData = common.hex2bits(value);
+            var binaryData = common.hex2bits(rawData);
             var ph = parseInt(binaryData.substring(0, 8), 2);
             var soilElectrical = parseInt(binaryData.substring(8, 20), 2);
             var soilTemperature = parseInt(binaryData.substring(20, 32), 2);
