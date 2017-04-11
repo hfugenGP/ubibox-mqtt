@@ -312,13 +312,13 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['lowBattery'] = [alertFlags[3] == '0' ? false : true];
 
             break;
-        case 11: //'asset_tracker'
+        case 11: //'asset_tracker' 0124fd017b8298073676dc
             var common = new Common();
-            var statusFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
+            var statusFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
 
-            data['temperature'] = [parseInt('0x' + rawData.substring(1, 2))];
+            data['temperature'] = [parseInt('0x' + rawData.substring(2, 4))];
 
-            var batt = parseInt('0x' + rawData.substring(2, 3));
+            var batt = parseInt('0x' + rawData.substring(4, 6));
             if (batt == "255" || batt == "0") {
                 data['batteryLevel'] = [0, "%"];
             } else {
@@ -327,10 +327,10 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
 
             if (statusFlags[0] == '0') {
-                data['latitude'] = [parseInt('0x' + rawData.substring(3, 7)) * 10];
-                data['longitude'] = [parseInt('0x' + rawData.substring(7, 11)) * 10];
+                data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * 10];
+                data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * 10];
             } else {
-                data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(3, 9))];
+                data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18))];
             }
 
             data['positioned'] = [statusFlags[0] == '0' ? false : true];
