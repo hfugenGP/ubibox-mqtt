@@ -248,6 +248,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var magneticDisturbanceIntensity = parseInt('0x' + value.substring(6, 8));
             var temperature = parseInt('0x' + value.substring(8, 10));
 
+            data['secondTimeMagneticCorrection'] = [flags[1] == '0' ? false : true]; //Only for new sensors
             data['magneticCorrection'] = [flags[2] == '0' ? false : true];
             data['lowBattery'] = [flags[3] == '0' ? false : true];
             data['keepAlive'] = [flags[6] == '0' ? false : true];
@@ -268,14 +269,14 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 9: //'scooter_sensor'
             var common = new Common();
-            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
-            var statusFlags = Array.from(common.hex2bits(rawData.substring(1, 2)));
+            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
+            var statusFlags = Array.from(common.hex2bits(rawData.substring(2, 4)));
 
-            data['latitude'] = [parseInt('0x' + rawData.substring(2, 6)) * 1000000];
-            data['longitude'] = [parseInt('0x' + rawData.substring(6, 10)) * 1000000];
+            data['latitude'] = [parseInt('0x' + rawData.substring(4, 12)) * 1000000];
+            data['longitude'] = [parseInt('0x' + rawData.substring(12, 20)) * 1000000];
 
-            data['speed'] = [parseInt('0x' + rawData.substring(10, 12)), 'km/h'];
-            data['direction'] = [parseInt('0x' + rawData.substring(12, 14))];
+            data['speed'] = [parseInt('0x' + rawData.substring(20, 24)), 'km/h'];
+            data['direction'] = [parseInt('0x' + rawData.substring(24, 28))];
 
             data['illegalDisplacement'] = [alertFlags[0] == '0' ? false : true];
             data['vibrationAlarm'] = [alertFlags[1] == '0' ? false : true];
@@ -291,7 +292,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
                 data['latitudeType'] = ['south'];
             }
 
-            if (statusFlags[2] == '0') {
+            if (statusFlags[3] == '0') {
                 data['longitudeType'] = ['east'];
             } else {
                 data['longitudeType'] = ['west'];
@@ -300,11 +301,11 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 10: //'manhole_sensor'
             var common = new Common();
-            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
+            var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
 
-            data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
-            data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
-            data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(3, 9)) * 1000];
+            data['batteryVoltage'] = [parseInt('0x' + rawData.substring(2, 4)) / 10, 'V'];
+            data['temperature'] = [parseInt('0x' + rawData.substring(4, 6)), '°C'];
+            data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18)) * 1000];
 
             data['status'] = [alertFlags[0] == '0' ? false : true];
             data['alert'] = [alertFlags[1] == '0' ? false : true];
@@ -316,7 +317,10 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var common = new Common();
             var statusFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
 
-            data['temperature'] = [parseInt('0x' + rawData.substring(2, 4))];
+            var temperatureSet = common.hex2bits(rawData.substring(2, 4));
+            var intergerOffet = temperatureSet.substring(0, 1) == "0" ? 1 : -1;
+            var floatOffet = temperatureSet.substring(1, 2) == "0" ? 0 : 0.5;
+            data['temperature'] = [(parseInt('0x' + temperatureSet.substring(2, 8)) + floatOffet) * intergerOffet, '°C'];
 
             var batt = parseInt('0x' + rawData.substring(4, 6));
             if (batt == "255" || batt == "0") {
@@ -326,7 +330,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             }
 
 
-            if (statusFlags[0] == '0') {
+            if (statusFlags[3] == '0') {
                 data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * 1000000];
                 data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * 1000000];
             } else {
@@ -339,17 +343,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
             } else {
                 data['latitudeType'] = ['south'];
             }
-
-            if (statusFlags[2] == '0') {
-                data['longitudeType'] = ['east'];
-            } else {
-                data['longitudeType'] = ['west'];
-            }
-            // data['northLatitude'] = [statusFlags[1] == '0' ? true : false];
-            // data['southLatitude'] = [statusFlags[1] == '0' ? false : true];
-
-            // data['eastLongitude'] = [statusFlags[2] == '0' ? true : false];
-            // data['westLongitude'] = [statusFlags[2] == '0' ? false : true];
 
             if (statusFlags[2] == '0') {
                 data['longitudeType'] = ['east'];
