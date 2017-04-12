@@ -320,7 +320,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var temperatureSet = common.hex2bits(rawData.substring(2, 4));
             var intergerOffet = temperatureSet.substring(0, 1) == "0" ? 1 : -1;
             var floatOffet = temperatureSet.substring(1, 2) == "0" ? 0 : 0.5;
-            data['temperature'] = [(parseInt('0x' + temperatureSet.substring(2, 8)) + floatOffet) * intergerOffet, '°C'];
+            data['temperature'] = [(parseInt(temperatureSet.substring(2, 8), 2) + floatOffet) * intergerOffet, '°C'];
 
             var batt = parseInt('0x' + rawData.substring(4, 6));
             if (batt == "255" || batt == "0") {
