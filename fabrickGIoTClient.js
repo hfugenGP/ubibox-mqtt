@@ -272,10 +272,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
             var statusFlags = Array.from(common.hex2bits(rawData.substring(2, 4)));
 
-            data['latitude'] = [parseInt('0x' + rawData.substring(4, 12)) * 1000000];
-            data['longitude'] = [parseInt('0x' + rawData.substring(12, 20)) * 1000000];
-            data['latlng'] = [data['latitude'] + ',' + data['longitude']];
-
             data['speed'] = [parseInt('0x' + rawData.substring(20, 24)), 'km/h'];
             data['direction'] = [parseInt('0x' + rawData.substring(24, 28))];
 
@@ -287,17 +283,31 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['ACC'] = [statusFlags[0] == '0' ? false : true];
             data['positioned'] = [statusFlags[1] == '0' ? false : true];
 
+            var latType = -1;
             if (statusFlags[2] == '0') {
-                data['latitudeType'] = ['north'];
-            } else {
-                data['latitudeType'] = ['south'];
+                latType = 1;
             }
+            // if (statusFlags[2] == '0') {
+            //     data['latitudeType'] = ['north'];
+            // } else {
+            //     data['latitudeType'] = ['south'];
+            //     latType = -1;
+            // }
 
+            var lngType = -1;
             if (statusFlags[3] == '0') {
-                data['longitudeType'] = ['east'];
-            } else {
-                data['longitudeType'] = ['west'];
+                lngType = 1;
             }
+            // if (statusFlags[3] == '0') {
+            //     data['longitudeType'] = ['east'];
+            // } else {
+            //     data['longitudeType'] = ['west'];
+            //     lngType = -1;
+            // }
+            // 24871678000000,121009733000000
+            data['latitude'] = [parseInt('0x' + rawData.substring(4, 12)) * latType / 1000000];
+            data['longitude'] = [parseInt('0x' + rawData.substring(12, 20)) * lngType / 1000000];
+            data['latlng'] = [data['latitude'] + ',' + data['longitude']];
 
             break;
         case 10: //'manhole_sensor'
@@ -330,32 +340,41 @@ function generateMessage(macAddr, receivedDate, rawData) {
                 data['batteryLevel'] = [batt / 254 * 100, "%"];
             }
 
-
-            if (statusFlags[3] == '0') {
-                data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * 1000000];
-                data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * 1000000];
-                data['latlng'] = [data['latitude'] + ',' + data['longitude']];
-            } else {
-                data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18))];
-            }
-
             data['positioned'] = [statusFlags[0] == '0' ? false : true];
+            var latType = -1;
             if (statusFlags[1] == '0') {
-                data['latitudeType'] = ['north'];
-            } else {
-                data['latitudeType'] = ['south'];
+                latType = 1;
             }
+            // if (statusFlags[1] == '0') {
+            //     data['latitudeType'] = ['north'];
+            // } else {
+            //     data['latitudeType'] = ['south'];
+            //     latType = -1;
+            // }
 
+            var lngType = -1;
             if (statusFlags[2] == '0') {
-                data['longitudeType'] = ['east'];
-            } else {
-                data['longitudeType'] = ['west'];
+                lngType = 1;
             }
+            // if (statusFlags[2] == '0') {
+            //     data['longitudeType'] = ['east'];
+            // } else {
+            //     data['longitudeType'] = ['west'];
+            //     lngType = -1;
+            // }
 
             if (statusFlags[5] == '0') {
                 data['loraPacketType'] = ['lora'];
             } else {
                 data['longitudeType'] = ['mftLora'];
+            }
+
+            if (statusFlags[3] == '0') {
+                data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * latType / 1000000];
+                data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * lngType / 1000000];
+                data['latlng'] = [data['latitude'] + ',' + data['longitude']];
+            } else {
+                data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18))];
             }
 
             var statusCode = statusFlags[7] + statusFlags[6] + statusFlags[4];
