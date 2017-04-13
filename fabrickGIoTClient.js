@@ -366,7 +366,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             if (statusFlags[5] == '0') {
                 data['loraPacketType'] = ['lora'];
             } else {
-                data['longitudeType'] = ['mftLora'];
+                data['loraPacketType'] = ['mftLora'];
             }
 
             if (statusFlags[3] == '0') {
