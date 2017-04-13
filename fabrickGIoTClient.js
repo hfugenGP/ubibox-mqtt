@@ -267,13 +267,14 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['voltage'] = [parseInt(rawData.substring(14, 16)) / 10, 'V'];
             data['reading'] = [rawData.substring(16, 22)];
             break;
-        case 9: //'scooter_sensor'
+        case 9: //'scooter_sensor' 0003017b827e0736773c
             var common = new Common();
             var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
             var statusFlags = Array.from(common.hex2bits(rawData.substring(2, 4)));
 
             data['latitude'] = [parseInt('0x' + rawData.substring(4, 12)) * 1000000];
             data['longitude'] = [parseInt('0x' + rawData.substring(12, 20)) * 1000000];
+            data['latlng'] = [data['latitude'] + ',' + data['longitude']];
 
             data['speed'] = [parseInt('0x' + rawData.substring(20, 24)), 'km/h'];
             data['direction'] = [parseInt('0x' + rawData.substring(24, 28))];
@@ -333,6 +334,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             if (statusFlags[3] == '0') {
                 data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * 1000000];
                 data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * 1000000];
+                data['latlng'] = [data['latitude'] + ',' + data['longitude']];
             } else {
                 data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18))];
             }
