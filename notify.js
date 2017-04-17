@@ -9,6 +9,7 @@ redis.subscribe('notifyUnread');
 redis.subscribe('application');
 redis.subscribe('device');
 redis.subscribe('event');
+redis.subscribe('manholeAlert');
 redis.on('message', function(channel, message){
 	console.log('Channel: ' + channel + ' message: ' + message);
 	io.emit(channel, message);
