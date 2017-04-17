@@ -41,7 +41,7 @@ fabrick_Broker.onMessage((topic, message, packet) => {
     // console.log('topic: ' + topic);
     // console.log('message : ')
     var json_object = JSON.parse(message);
-    console.log(json_object);
+    // console.log(json_object);
     var b64string = message;
     var buf = Buffer.from(b64string, 'base64');
 
