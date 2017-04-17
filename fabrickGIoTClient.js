@@ -318,10 +318,10 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['temperature'] = [parseInt('0x' + rawData.substring(4, 6)), '°C'];
             data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18)) * 1000];
 
-            data['status'] = [alertFlags[0] == '0' ? false : true];
-            data['alert'] = [alertFlags[1] == '0' ? false : true];
-            data['calibration'] = [alertFlags[2] == '0' ? true : false];
-            data['lowBattery'] = [alertFlags[3] == '0' ? false : true];
+            data['status'] = [alertFlags[7] == '0' ? false : true];
+            data['alert'] = [alertFlags[6] == '0' ? false : true];
+            data['calibration'] = [alertFlags[5] == '0' ? true : false];
+            data['lowBattery'] = [alertFlags[4] == '0' ? false : true];
 
             break;
         case 11: //'asset_tracker' 0124fd017b8298073676dc
