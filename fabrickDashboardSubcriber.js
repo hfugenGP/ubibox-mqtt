@@ -37,8 +37,8 @@ fabrick_Broker.onOffline(() => {
     console.log('Fabrick broker is offline')
 });
 fabrick_Broker.onMessage((topic, message, packet) => {
-    console.log('Message received from Fabrick');
-    console.log('topic: ' + topic);
+    // console.log('Message received from Fabrick');
+    // console.log('topic: ' + topic);
     // console.log('message : ')
     var json_object = JSON.parse(message);
     console.log(json_object);
