@@ -50,7 +50,7 @@ fabrick_Broker.onMessage((topic, message, packet) => {
             var cmd = 'php ' + config.artisanURL + ' device ' + buf.toString('base64');
 
             exec(cmd, function(error, stdout, stderr) {
-                console.log('Command executed !!!');
+                // console.log('Command executed !!!');
                 // console.log(cmd);
                 if (error) {
                     console.log(error);
