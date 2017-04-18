@@ -64,6 +64,8 @@ fabrick_Broker.onMessage((topic, message, packet) => {
 
             });
 
+            console.log(gateways);
+
             for (var id in subcribe_gateways) {
                 if (subcribe_gateways.hasOwnProperty(id) && subcribe_brokers[id] != null && gateways[id] == null) {
                     subcribe_brokers[id].end();
