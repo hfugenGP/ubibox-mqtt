@@ -201,35 +201,35 @@ function encryptMessage(keyResponse, actionName) {
 function getDataStatus(dataType, value) {
     switch (dataType) {
         case "Temperature":
-            if (value <= 19) {
+            if (value < 10) {
                 return "Normal";
-            } else if (value <= 24) {
+            } else if (value < 20) {
                 return "Caution";
-            } else if (value <= 28) {
+            } else if (value < 30) {
                 return "Warning";
-            } else if (value <= 32) {
+            } else if (value < 40) {
                 return "Danger";
             } else {
                 return "Critical";
             }
 
         case "Humidity":
-            if (value <= 30) {
+            if (value < 31) {
                 return "Normal";
-            } else if (value <= 65) {
+            } else if (value < 66) {
                 return "Caution";
-            } else if (value <= 75) {
+            } else if (value < 76) {
                 return "Warning";
-            } else if (value <= 85) {
+            } else if (value < 86) {
                 return "Danger";
             } else {
                 return "Critical";
             }
 
         case "WaterLevel":
-            if (value <= 50) {
+            if (value < 51) {
                 return "Normal";
-            } else if (value <= 200) {
+            } else if (value < 201) {
                 return "Warning";
             } else {
                 return "Critical";
