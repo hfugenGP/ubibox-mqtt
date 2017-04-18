@@ -450,13 +450,13 @@ function generateMessage(macAddr, receivedDate, rawData) {
 function getDataStatus(dataType, value) {
     switch (dataType) {
         case "temperature":
-            if ($value <= 9) {
+            if (value <= 9) {
                 return "Normal";
-            } else if ($value <= 19) {
+            } else if (value <= 19) {
                 return "Caution";
-            } else if ($value <= 29) {
+            } else if (value <= 29) {
                 return "Warning";
-            } else if ($value <= 39) {
+            } else if (value <= 39) {
                 return "Danger";
             } else {
                 return "Critical";
