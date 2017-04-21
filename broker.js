@@ -71,7 +71,7 @@ Broker.prototype.end = function() {
 
 Broker.prototype.onMessage = function(action) {
     this.client.on('message', (topic, message, packet) => {
-        action(topic, message, packet, this.options.username);
+        action(this.name, topic, message, packet, this.options.username);
     });
 }
 

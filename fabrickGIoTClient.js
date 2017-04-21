@@ -155,8 +155,8 @@ fabrick_Broker.onMessage((topic, message, packet) => {
     }
 });
 
-function processGemtekMessage(topic, message, packet, username) {
-    console.log('Message received from sensor');
+function processGemtekMessage(gatewayName, topic, message, packet, username) {
+    console.log('Message received from gateway ' + gatewayName);
     // console.log('topic: ' + topic)
     // console.log('message : ')
     var json_object = JSON.parse(message);
@@ -166,6 +166,7 @@ function processGemtekMessage(topic, message, packet, username) {
     if (publishMessage) {
         // console.log('publish_message : ')
         console.log(publishMessage);
+        console.log("-----------------------------------");
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
         fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
@@ -420,13 +421,15 @@ function generateMessage(macAddr, receivedDate, rawData) {
         case 13: //Farm sensors / 3e 010 000 18c 272 142 000
             var common = new Common();
             var binaryData = common.hex2bits(rawData);
-            var ph = parseInt(binaryData.substring(0, 8), 2);
-            var soilElectrical = parseInt(binaryData.substring(8, 20), 2);
-            var soilTemperature = parseInt(binaryData.substring(20, 32), 2);
-            var airTemperature = parseInt(binaryData.substring(32, 44), 2);
-            var airHumidity = parseInt(binaryData.substring(44, 56), 2);
-            var soilMoisture = parseInt(binaryData.substring(56, 68), 2);
-            var batteryLevel = parseInt(binaryData.substring(68, 76), 2);
+            var ph = parseInt(binaryData.substring(0, 8), 2); // parseInt(common.hex2bits(rawData.substring(0,2)), 2);
+            var soilElectrical = parseInt(binaryData.substring(8, 20), 2); // parseInt(common.hex2bits(rawData.substring(2,5)), 2);
+            var soilTemperature = parseInt(binaryData.substring(20, 32), 2); // parseInt(common.hex2bits(rawData.substring(5,8)), 2);
+            var airTemperature = parseInt(binaryData.substring(32, 44), 2); // parseInt(common.hex2bits(rawData.substring(8,11)), 2);
+            var airHumidity = parseInt(binaryData.substring(44, 56), 2); // parseInt(common.hex2bits(rawData.substring(11,14)), 2);
+            var soilMoisture = parseInt(binaryData.substring(56, 68), 2); // parseInt(common.hex2bits(rawData.substring(14,17)), 2);
+
+            // 4 or 8
+            var batteryLevel = parseInt(binaryData.substring(68, 76), 2); // parseInt(common.hex2bits(rawData.substring(17,19)), 2);
 
             data['ph'] = [ph / 256 * 14, 'pH'];
             data['soilElectrical'] = [20000 * soilElectrical / 1024, 'us/cm'];
