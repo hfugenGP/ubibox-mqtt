@@ -417,7 +417,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
 
             break;
-        case 13: //Farm sensors
+        case 13: //Farm sensors / 3e 010 000 18c 272 142 000
             var common = new Common();
             var binaryData = common.hex2bits(rawData);
             var ph = parseInt(binaryData.substring(0, 8), 2);

@@ -4,14 +4,15 @@
   "description": "A sample application built that shows how MQTT could be used.",
   "main": "main.js",
   "dependencies": {
+    "express": "^4.14.1",
+    "ioredis": "^2.5.0",
     "mqtt": "^2.0.1",
+    "net": "^1.0.2",
     "q": "^1.4.1",
     "redis": "^2.6.3",
     "request": "^2.79.0",
-    "twilio": "^2.11.0",
-    "ioredis": "^2.5.0",
     "socket.io": "^1.7.3",
-    "express": "^4.14.1"
+    "twilio": "^2.11.0"
   },
   "devDependencies": {}
 }
