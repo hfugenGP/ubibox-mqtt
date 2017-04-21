@@ -36,7 +36,7 @@ fabrick_Broker.onReconnect(() => {
 fabrick_Broker.onOffline(() => {
     console.log('Fabrick broker is offline')
 });
-fabrick_Broker.onMessage((topic, message, packet) => {
+fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     // console.log('Message received from Fabrick');
     // console.log('topic: ' + topic);
     // console.log('message : ')
