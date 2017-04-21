@@ -1,6 +1,6 @@
 var net = require('net');
 
-var HOST = '127.0.0.1';
+// var HOST = '127.0.0.1';
 var PORT = 8884;
 
 // Create a server instance, and chain the listen function to it
@@ -16,7 +16,7 @@ net.createServer(function(sock) {
 
         console.log('DATA ' + sock.remoteAddress + ': ' + data);
         // Write the data back to the socket, the client will receive it as data from the server
-        // sock.write('You said "' + data + '"');
+        sock.write('Got your data successfully!!!');
 
     });
 
@@ -25,6 +25,10 @@ net.createServer(function(sock) {
         console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
     });
 
-}).listen(PORT, HOST);
+    sock.on('error', function(data) {
+        console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
+    });
 
-console.log('Server listening on ' + HOST + ':' + PORT);
+}).listen(PORT, () => {
+    console.log('Server listening on ' + ':' + PORT);
+});
