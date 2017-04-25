@@ -1,4 +1,5 @@
 'use strict'
+var _ = require('lodash');
 const redis = require("redis");
 
 const Senslink = require('./SenslinkModule');
@@ -8,10 +9,11 @@ var client = redis.createClient();
 client.get("config/Senslink/Devices", function(err, obj) {
     if (!err) {
         var json_object = JSON.parse(obj);
-        json_object.forEach(function(item) {
+        _.each(json_object, function(item) {
             var senslinkGateway = new Senslink(item);
             senslinkGateway.flexData();
-        })
+        });
     }
+
+    client.quit(); // No further commands will be processed
 });
-// client.end(true); // No further commands will be processed
