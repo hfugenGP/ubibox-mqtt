@@ -56,6 +56,16 @@ function hexChar2bits(hexChar) {
     }
 }
 
+function roundFloat(float, digit) {
+    if (digit == 0) {
+        return Math.round(float);
+    } else if (digit == 1) {
+        return Math.round(float * 10) / 10
+    } else if (digit == 2) {
+        return Math.round(float * 100) / 100;
+    }
+}
+
 // function hex2a(hexx) {
 //     var hex = hexx.toString();//force conversion
 //     var str = '';

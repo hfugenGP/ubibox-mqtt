@@ -415,26 +415,24 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['temperature'] = [parseInt('0x' + rawData.substring(2, 3))];
 
             break;
-        case 13: //Farm sensors / 3e 010 000 18c 272 142 000
+        case 13: //Farm sensors / 3e 010 000 18c 272 142 000 // 40 180 2AE 1F4 0BD 185 AA 0
             var common = new Common();
             var binaryData = common.hex2bits(rawData);
-            var ph = parseInt(common.hex2bits(rawData.substring(0, 2)), 2); //parseInt(binaryData.substring(0, 8), 2);
-            var soilElectrical = parseInt(common.hex2bits(rawData.substring(2, 5)), 2); //parseInt(binaryData.substring(8, 20), 2);
-            var soilTemperature = parseInt(common.hex2bits(rawData.substring(5, 8)), 2); //parseInt(binaryData.substring(20, 32), 2);
-            var airTemperature = parseInt(common.hex2bits(rawData.substring(8, 11)), 2); //parseInt(binaryData.substring(32, 44), 2);
-            var airHumidity = parseInt(common.hex2bits(rawData.substring(11, 14)), 2); //parseInt(binaryData.substring(44, 56), 2);
-            var soilMoisture = parseInt(common.hex2bits(rawData.substring(14, 17)), 2); //parseInt(binaryData.substring(56, 68), 2);
-
-            // 4 or 8
+            var ph = parseInt(common.hex2bits(rawData.substring(0, 2)), 2); //parseInt(binaryData.substring(0, 8), 2); 2d 00101101 45
+            var soilElectrical = parseInt(common.hex2bits(rawData.substring(2, 5)), 2); //parseInt(binaryData.substring(8, 20), 2); 00a 000000001010 10
+            var soilTemperature = parseInt(common.hex2bits(rawData.substring(5, 8)), 2); //parseInt(binaryData.substring(20, 32), 2); 000 000000000000
+            var airTemperature = parseInt(common.hex2bits(rawData.substring(8, 11)), 2); //parseInt(binaryData.substring(32, 44), 2); 164 000101100100 356
+            var airHumidity = parseInt(common.hex2bits(rawData.substring(11, 14)), 2); //parseInt(binaryData.substring(44, 56), 2); 2bc 001010111100 700
+            var soilMoisture = parseInt(common.hex2bits(rawData.substring(14, 17)), 2); //parseInt(binaryData.substring(56, 68), 2); 0f5 000011110101 245
             var batteryLevel = parseInt(common.hex2bits(rawData.substring(17, 19)), 2); //parseInt(binaryData.substring(68, 76), 2);
 
-            data['ph'] = [ph / 256 * 14, 'pH'];
-            data['soilElectrical'] = [20000 * soilElectrical / 1024, 'us/cm'];
-            data['soilTemperature'] = [(120 * soilTemperature / 1024) - 40, '°C'];
-            data['airTemperature'] = [(90 * airTemperature / 1024) - 10, '°C'];
-            data['airHumidity'] = [100 * airHumidity / 1024, '%RH'];
-            data['soilMoisture'] = [100 * soilMoisture / 1024, '%'];
-            data['batteryLevel'] = [5 * batteryLevel / 256, '%'];
+            data['ph'] = [common.roundFloat((14 * ph) / 256, 2), 'pH'];
+            data['soilElectrical'] = [common.roundFloat((20000 * soilElectrical) / 1024, 2), 'us/cm'];
+            data['soilTemperature'] = [common.roundFloat(((120 * soilTemperature) / 1024) - 40, 2), '°C'];
+            data['airTemperature'] = [common.roundFloat(((90 * airTemperature) / 1024) - 10, 2), '°C'];
+            data['airHumidity'] = [common.roundFloat((100 * airHumidity) / 1024, 2), '%RH'];
+            data['soilMoisture'] = [common.roundFloat((100 * soilMoisture) / 1024, 2), '%'];
+            data['batteryLevel'] = [common.roundFloat((5 * batteryLevel) / 256, 2), '%'];
 
             break;
         default:
