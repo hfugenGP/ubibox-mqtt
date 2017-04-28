@@ -144,7 +144,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             // console.log(json_object);
             subcribe_devices = [];
             json_object.forEach(function(element) {
-                subcribe_devices['MAC-' + element['device'].toLowerCase()] = parseInt(element['deviceType']);
+                subcribe_devices['MAC-' + element['device'].toLowerCase()] = element['deviceType'];
             });
             console.log(subcribe_devices);
             break;
@@ -426,13 +426,21 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var soilMoisture = parseInt(common.hex2bits(rawData.substring(14, 17)), 2); //parseInt(binaryData.substring(56, 68), 2); 0f5 000011110101 245
             var batteryLevel = parseInt(common.hex2bits(rawData.substring(17, 19)), 2); //parseInt(binaryData.substring(68, 76), 2);
 
-            data['ph'] = [common.roundFloat((14 * ph) / 256, 2), 'pH'];
-            data['soilElectrical'] = [common.roundFloat((20000 * soilElectrical) / 1024, 2), 'us/cm'];
-            data['soilTemperature'] = [common.roundFloat(((120 * soilTemperature) / 1024) - 40, 2), '°C'];
-            data['airTemperature'] = [common.roundFloat(((90 * airTemperature) / 1024) - 10, 2), '°C'];
-            data['airHumidity'] = [common.roundFloat((100 * airHumidity) / 1024, 2), '%RH'];
-            data['soilMoisture'] = [common.roundFloat((100 * soilMoisture) / 1024, 2), '%'];
-            data['batteryLevel'] = [common.roundFloat((5 * batteryLevel) / 256, 2), '%'];
+            var phValue = (14 * ph) / 256;
+            var soilElectricalValue = (20000 * soilElectrical) / 1024;
+            var soilTemperatureValue = ((120 * soilTemperature) / 1024) - 40;
+            var airTemperatureValue = ((90 * airTemperature) / 1024) - 10;
+            var airHumidityValue = (100 * airHumidity) / 1024;
+            var soilMoistureValue = (100 * soilMoisture) / 1024;
+            var batteryLevelValue = (5 * batteryLevel) / 256;
+
+            data['ph'] = [common.roundFloat(phValue, 2), 'pH'];
+            data['soilElectrical'] = [common.roundFloat(soilElectricalValue, 2), 'us/cm'];
+            data['soilTemperature'] = [common.roundFloat(soilTemperatureValue, 2), '°C'];
+            data['airTemperature'] = [common.roundFloat(airTemperatureValue, 2), '°C'];
+            data['airHumidity'] = [common.roundFloat(airHumidityValue, 2), '%RH'];
+            data['soilMoisture'] = [common.roundFloat(soilMoistureValue, 2), '%'];
+            data['batteryLevel'] = [common.roundFloat(batteryLevelValue, 2), '%'];
 
             break;
         default:
