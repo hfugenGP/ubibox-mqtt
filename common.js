@@ -56,7 +56,7 @@ function hexChar2bits(hexChar) {
     }
 }
 
-function roundFloat(float, digit) {
+Common.prototype.roundFloat = function(float, digit) {
     if (digit == 0) {
         return Math.round(float);
     } else if (digit == 1) {
