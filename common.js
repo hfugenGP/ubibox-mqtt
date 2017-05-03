@@ -42,16 +42,22 @@ function hexChar2bits(hexChar) {
         case "9":
             return "1001";
         case "A":
+        case 'a':
             return "1010";
         case "B":
+        case 'b':
             return "1011";
         case "C":
+        case 'c':
             return "1100";
         case "D":
+        case 'd':
             return "1101";
         case "E":
+        case 'e':
             return "1110";
         case "F":
+        case 'f':
             return "1111";
     }
 }
