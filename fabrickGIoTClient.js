@@ -159,14 +159,14 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
     // console.log(json_object)
     var publishMessage = generateMessage(json_object['macAddr'], json_object['buff'], json_object['data']);
     if (publishMessage) {
-        console.log('Message received from gateway ' + gatewayName);
-        console.log(publishMessage);
-        console.log("-----------------------------------");
-        // if (config.debuggingDevices.indexOf(json_object['macAddr']) != -1) {
-        //     console.log('Message received from gateway ' + gatewayName);
-        //     console.log(publishMessage);
-        //     console.log("-----------------------------------");
-        // }
+        // console.log('Message received from gateway ' + gatewayName);
+        // console.log(publishMessage);
+        // console.log("-----------------------------------");
+        if (config.debuggingDevices.indexOf(json_object['macAddr']) != -1) {
+            console.log('Message received from gateway ' + gatewayName);
+            console.log(publishMessage);
+            console.log("-----------------------------------");
+        }
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
         fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
