@@ -431,7 +431,11 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             var phValue = (14 * ph) / 256;
             var soilElectricalValue = (20000 * soilElectrical) / 1024;
-            var soilTemperatureValue = ((120 * soilTemperature) / 1024) - 40;
+            if (soilTemperature != 0) {
+                var soilTemperatureValue = ((120 * soilTemperature) / 1024) - 40;
+                data['soilTemperature'] = [common.roundFloat(soilTemperatureValue, 2), '°C'];
+            }
+
             var airTemperatureValue = ((90 * airTemperature) / 1024) - 10;
             var airHumidityValue = (100 * airHumidity) / 1024;
             var soilMoistureValue = (100 * soilMoisture) / 1024;
@@ -439,7 +443,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             data['ph'] = [common.roundFloat(phValue, 2), 'pH'];
             data['soilElectrical'] = [common.roundFloat(soilElectricalValue, 2), 'us/cm'];
-            data['soilTemperature'] = [common.roundFloat(soilTemperatureValue, 2), '°C'];
             data['airTemperature'] = [common.roundFloat(airTemperatureValue, 2), '°C'];
             data['airHumidity'] = [common.roundFloat(airHumidityValue, 2), '%RH'];
             data['soilMoisture'] = [common.roundFloat(soilMoistureValue, 2), '%'];
