@@ -72,6 +72,91 @@ Common.prototype.roundFloat = function(float, digit) {
     }
 }
 
+
+Common.prototype.getDataStatus = function(dataType, value) {
+    switch (dataType) {
+        case "temperature":
+        case "Temperature":
+            if (value < 10) {
+                return "Normal";
+            } else if (value < 20) {
+                return "Caution";
+            } else if (value < 30) {
+                return "Warning";
+            } else if (value < 40) {
+                return "Danger";
+            } else {
+                return "Critical";
+            }
+
+        case "humidity":
+        case "Humidity":
+            if (value < 31) {
+                return "Normal";
+            } else if (value < 66) {
+                return "Caution";
+            } else if (value < 76) {
+                return "Warning";
+            } else if (value < 86) {
+                return "Danger";
+            } else {
+                return "Critical";
+            }
+
+        case "pm25":
+            if (value < 51) {
+                return "Normal";
+            } else if (value < 101) {
+                return "Caution";
+            } else if (value < 201) {
+                return "Warning";
+            } else if (value < 301) {
+                return "Danger";
+            } else {
+                return "Critical";
+            }
+
+        case "co":
+            if (value < 7) {
+                return "Normal";
+            } else if (value < 11) {
+                return "Warning";
+            } else {
+                return "Critical";
+            }
+
+        case "co2":
+            if (value < 451) {
+                return "Normal";
+            } else if (value < 601) {
+                return "Warning";
+            } else {
+                return "Critical";
+            }
+
+        case "depth":
+            if (value < 6) {
+                return "Normal";
+            } else if (value < 17) {
+                return "Warning";
+            } else {
+                return "Critical";
+            }
+
+        case "WaterLevel":
+            if (value < 51) {
+                return "Normal";
+            } else if (value < 201) {
+                return "Warning";
+            } else {
+                return "Critical";
+            }
+
+        default:
+            return "N/A";
+    }
+}
+
 // function hex2a(hexx) {
 //     var hex = hexx.toString();//force conversion
 //     var str = '';

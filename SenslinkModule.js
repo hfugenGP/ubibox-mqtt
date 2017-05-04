@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const q = require('q');
 const config = require('./conf');
 const Broker = require('./broker');
+const Common = require('./common');
 
 const authUrl = "http://www2.senslink.net/RestService/Users";
 const actionUrl = "http://www2.senslink.net/RestService/Actions";
@@ -146,9 +147,11 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
     if (!error && response.statusCode == 200) {
         var results = JSON.parse(body);
 
+        var common = new Common();
+
         var promises = results.map(function(d) {
             this.message['data'][this.message['dataIds'][d.PQId]][0] = d.Data.Value;
-            this.message['data'][this.message['dataIds'][d.PQId]][2] = getDataStatus(this.message['dataIds'][d.PQId], d.Data.Value);
+            this.message['data'][this.message['dataIds'][d.PQId]][2] = common.getDataStatus(this.message['dataIds'][d.PQId], d.Data.Value);
 
             // var receivedDate = new Date(d.Data.TimeStampIso);
 
@@ -196,47 +199,6 @@ function encryptMessage(keyResponse, actionName) {
         .digest('base64');
 
     return message;
-}
-
-function getDataStatus(dataType, value) {
-    switch (dataType) {
-        case "Temperature":
-            if (value < 10) {
-                return "Normal";
-            } else if (value < 20) {
-                return "Caution";
-            } else if (value < 30) {
-                return "Warning";
-            } else if (value < 40) {
-                return "Danger";
-            } else {
-                return "Critical";
-            }
-
-        case "Humidity":
-            if (value < 31) {
-                return "Normal";
-            } else if (value < 66) {
-                return "Caution";
-            } else if (value < 76) {
-                return "Warning";
-            } else if (value < 86) {
-                return "Danger";
-            } else {
-                return "Critical";
-            }
-
-        case "WaterLevel":
-            if (value < 51) {
-                return "Normal";
-            } else if (value < 201) {
-                return "Warning";
-            } else {
-                return "Critical";
-            }
-        default:
-            return "N/A";
-    }
 }
 
 module.exports = SenslinkModule;

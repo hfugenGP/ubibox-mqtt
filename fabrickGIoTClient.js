@@ -179,14 +179,16 @@ function generateMessage(macAddr, receivedDate, rawData) {
     message["receivedDate"] = new Date();
     message["receivedDateLoRa"] = receivedDate;
 
+    var common = new Common();
+
     var data = {};
     switch (subcribe_devices['MAC-' + macAddr]) {
         case 1: //'air_sensor'
             data["deviceType"] = [rawData.substring(0, 2)];
             var temperature = parseInt('0x' + rawData.substring(2, 6)) / 100;
-            data["temperature"] = [temperature, '°C', getDataStatus("temperature", temperature)];
+            data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
-            data["humidity"] = [humidity, '%RH', getDataStatus("humidity", humidity)];
+            data["humidity"] = [humidity, '%RH', common.getDataStatus("humidity", humidity)];
             // var co2 = "N/A"
             // var co = "N/A"
             // var pm25 = "N/A"
@@ -194,15 +196,15 @@ function generateMessage(macAddr, receivedDate, rawData) {
             switch (data["deviceType"][0]) {
                 case '01':
                     var co2 = parseInt('0x' + rawData.substring(10, 14));
-                    data["co2"] = [co2, 'ppm', getDataStatus("co2", co2)];
+                    data["co2"] = [co2, 'ppm', common.getDataStatus("co2", co2)];
                     break
                 case '02':
                     var co = parseInt('0x' + rawData.substring(10, 14));
-                    data["co"] = [parseInt('0x' + rawData.substring(10, 14)), 'ppm', getDataStatus("co", co)];
+                    data["co"] = [parseInt('0x' + rawData.substring(10, 14)), 'ppm', common.getDataStatus("co", co)];
                     break
                 case '03':
                     var pm25 = parseInt('0x' + rawData.substring(10, 14));
-                    data["pm25"] = [parseInt('0x' + rawData.substring(10, 14)), 'ug/m3', getDataStatus("pm25", pm25)];
+                    data["pm25"] = [parseInt('0x' + rawData.substring(10, 14)), 'ug/m3', common.getDataStatus("pm25", pm25)];
                     break
                 default:
             }
@@ -217,7 +219,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             break;
         case 2: //'drainage_sensor'
             var depth = 31 - parseFloat(rawData.substring(0, 3));
-            data["depth"] = [depth, 'cm', getDataStatus("depth", depth)];
+            data["depth"] = [depth, 'cm', common.getDataStatus("depth", depth)];
 
             break;
         case 3: //'ph_sensor'
@@ -225,12 +227,11 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 4: //'alarm_sensor'
-            var common = new Common();
+
             data['alert'] = [common.hex2a(rawData)];
 
             break;
         case 5: //'parking_sensor'
-            var common = new Common();
 
             // Don't need to get this for now
             // var header = parseInt('0x' + rawData.substring(0, 2));
@@ -258,7 +259,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['car'] = [flags[7] == '0' ? false : true];
             data["voltage"] = [voltage, 'V'];
             data['magneticDisturbanceIntensity'] = [magneticDisturbanceIntensity];
-            data["temperature"] = [temperature, '°C', getDataStatus("temperature", temperature)];
+            data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             break;
         case 8: //'electric_sensor'
             data['serialNo'] = [rawData.substring(0, 6)];
@@ -271,7 +272,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['reading'] = [rawData.substring(16, 22)];
             break;
         case 9: //'scooter_sensor' 0003017b827e0736773c
-            var common = new Common();
             var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
             var statusFlags = Array.from(common.hex2bits(rawData.substring(2, 4)));
 
@@ -314,7 +314,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 10: //'manhole_sensor'
-            var common = new Common();
             var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
 
             data['batteryVoltage'] = [parseInt('0x' + rawData.substring(2, 4)) / 10, 'V'];
@@ -328,7 +327,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 11: //'asset_tracker' 0124fd017b8298073676dc
-            var common = new Common();
             var statusFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
 
             var temperatureSet = common.hex2bits(rawData.substring(2, 4));
@@ -411,7 +409,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 12: //'ear_tag'
-            var common = new Common();
             var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 1)));
             data['status'] = [alertFlags[0] == '0' ? false : true];
             data['batteryVoltage'] = [parseInt('0x' + rawData.substring(1, 2)) / 10, 'V'];
@@ -419,7 +416,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
 
             break;
         case 13: //Farm sensors / 3e 010 000 18c 272 142 000 // 40 180 2AE 1F4 0BD 185 AA 0
-            var common = new Common();
             var binaryData = common.hex2bits(rawData);
             var ph = parseInt(common.hex2bits(rawData.substring(0, 2)), 2); //parseInt(binaryData.substring(0, 8), 2); 2d 00101101 45
             var soilElectrical = parseInt(common.hex2bits(rawData.substring(2, 5)), 2); //parseInt(binaryData.substring(8, 20), 2); 00a 000000001010 10
@@ -457,74 +453,4 @@ function generateMessage(macAddr, receivedDate, rawData) {
     message["data"] = data;
 
     return message;
-}
-
-function getDataStatus(dataType, value) {
-    switch (dataType) {
-        case "temperature":
-            if (value < 10) {
-                return "Normal";
-            } else if (value < 20) {
-                return "Caution";
-            } else if (value < 30) {
-                return "Warning";
-            } else if (value < 40) {
-                return "Danger";
-            } else {
-                return "Critical";
-            }
-
-        case "humidity":
-            if (value < 31) {
-                return "Normal";
-            } else if (value < 66) {
-                return "Caution";
-            } else if (value < 76) {
-                return "Warning";
-            } else if (value < 86) {
-                return "Danger";
-            } else {
-                return "Critical";
-            }
-
-        case "pm25":
-            if (value < 51) {
-                return "Normal";
-            } else if (value < 101) {
-                return "Caution";
-            } else if (value < 201) {
-                return "Warning";
-            } else if (value < 301) {
-                return "Danger";
-            } else {
-                return "Critical";
-            }
-
-        case "co":
-            if (value < 7) {
-                return "Normal";
-            } else if (value < 11) {
-                return "Warning";
-            } else {
-                return "Critical";
-            }
-
-        case "co2":
-            if (value < 451) {
-                return "Normal";
-            } else if (value < 601) {
-                return "Warning";
-            } else {
-                return "Critical";
-            }
-
-        case "depth":
-            if (value < 6) {
-                return "Normal";
-            } else if (value < 17) {
-                return "Warning";
-            } else {
-                return "Critical";
-            }
-    }
 }
