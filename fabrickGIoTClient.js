@@ -256,7 +256,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['magneticCorrection'] = [flags[2] == '0' ? false : true];
             data['lowBattery'] = [flags[3] == '0' ? false : true];
             data['keepAlive'] = [flags[6] == '0' ? false : true];
-            data['car'] = [flags[7] == '0' ? false : true];
+            data['state'] = [flags[7] == '0' ? false : true];
             data["voltage"] = [voltage, 'V'];
             data['magneticDisturbanceIntensity'] = [magneticDisturbanceIntensity];
             data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
