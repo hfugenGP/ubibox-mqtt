@@ -17,7 +17,7 @@ net.createServer(function(sock) {
     sock.on('data', function(data) {
 
         var common = new Common();
-        var hexData = common.hexEncode(data);
+        var hexData = common.hexEncode(data.toString(16));
 
         console.log('************************New data received************************');
         console.log('Address : ' + sock.remoteAddress);
