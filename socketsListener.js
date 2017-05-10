@@ -16,46 +16,49 @@ net.createServer(function(sock) {
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
 
-        var common = new Common();
-        var hexData = common.hexEncode(data.toString());
+        // var common = new Common();
+        // var hexData = common.hexEncode(data.toString());
+
+        var buff = new Buffer(data, 'utf8'); //no sure about this
+        // console.log('data received: ' + buff.toString(hex));
 
         console.log('************************New data received************************');
         console.log('Address : ' + sock.remoteAddress);
         console.log('Received : ' + new Date());
-        console.log('DATA : ' + hexData);
+        console.log('DATA : ' + buff.toString(hex));
 
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write('Got your data successfully!!!');
 
-        var frameHeader = hexData.substring(0, 4);
-        console.log('frameHeader : ' + frameHeader);
-        var messageLength = hexData.substring(4, 8);
-        console.log('messageLength : ' + messageLength);
-        var deviceId = hexData.substring(8, 24);
-        console.log('deviceId : ' + deviceId);
-        // var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
+        // var frameHeader = hexData.substring(0, 4);
+        // console.log('frameHeader : ' + frameHeader);
+        // var messageLength = hexData.substring(4, 8);
+        // console.log('messageLength : ' + messageLength);
+        // var deviceId = hexData.substring(8, 24);
+        // console.log('deviceId : ' + deviceId);
+        // // var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
 
-        // var header = data.substring(0, 10);
-        // console.log('Header : ' + header);
-        // var deviceId = data.substring(10, 25);
-        // console.log('Device Id : ' + deviceId);
-        // var mainData = data.substring(25, data.length);
-        // console.log('Main Data : ' + mainData);
+        // // var header = data.substring(0, 10);
+        // // console.log('Header : ' + header);
+        // // var deviceId = data.substring(10, 25);
+        // // console.log('Device Id : ' + deviceId);
+        // // var mainData = data.substring(25, data.length);
+        // // console.log('Main Data : ' + mainData);
 
-        // Waiting for ZZTE key
-        var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
+        // // Waiting for ZZTE key
+        // var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
 
-        // Waiting for ZZTE encode
-        var ENCODING = 'hex';
+        // // Waiting for ZZTE encode
+        // var ENCODING = 'hex';
 
-        // Remove frame header (4), message length (4), device id (16) and frame end (4).
-        var cryptedText = hexData.substring(24, hexData.length - 4);
+        // // Remove frame header (4), message length (4), device id (16) and frame end (4).
+        // var cryptedText = hexData.substring(24, hexData.length - 4);
 
-        var decipher = crypto.createDecipher('des-ede3-cbc', SECRET_KEY);
-        var decryptedData = decipher.update(cryptedText, ENCODING, 'utf8');
-        decryptedData += decipher.final('utf8');
+        // var decipher = crypto.createDecipher('des-ede3-cbc', SECRET_KEY);
+        // var decryptedData = decipher.update(cryptedText, ENCODING, 'utf8');
+        // decryptedData += decipher.final('utf8');
 
-        console.log('Decrypted Data : ' + decryptedData);
+        // console.log('Decrypted Data : ' + decryptedData);
 
         // var cipher = crypto.createCipher('des-ede3-cbc', SECRET_KEY)
         // var cryptedPassword = cipher.update(text, 'utf8', ENCODING)
