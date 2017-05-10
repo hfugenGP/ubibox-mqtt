@@ -2,6 +2,29 @@
 
 var Common = function() {};
 
+// Common.prototype.hexDecode = function(hexx) {
+//     var j;
+//     var hexes = hexx.match(/.{1,4}/g) || [];
+//     var back = "";
+//     for (j = 0; j < hexes.length; j++) {
+//         back += String.fromCharCode(parseInt(hexes[j], 16));
+//     }
+
+//     return back;
+// }
+
+Common.prototype.hexEncode = function(str) {
+    var hex, i;
+
+    var result = "";
+    for (i = 0; i < str.length; i++) {
+        hex = str.charCodeAt(i).toString(16);
+        result += ("000" + hex).slice(-4);
+    }
+
+    return result
+}
+
 Common.prototype.hex2a = function(hexx) {
     var hex = hexx.toString(); //force conversion
     var str = '';
