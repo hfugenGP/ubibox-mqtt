@@ -1,4 +1,5 @@
 var net = require('net');
+var crypto = require('crypto');
 
 // var HOST = '127.0.0.1';
 var PORT = 8884;
@@ -18,10 +19,41 @@ net.createServer(function(sock) {
         console.log('Address : ' + sock.remoteAddress);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + data);
-        console.log('*****************************************************************');
+
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write('Got your data successfully!!!');
 
+        // var frameHeader = data.substring(0, 4);
+        // var messageLength = data.substring(4, 8);
+        // var deviceId = data.substring(8, 24);
+        // var frameEnd = data.substring(data.length - 4, data.length);
+
+        var header = data.substring(0, 10);
+        console.log('Header : ' + header);
+        var deviceId = data.substring(10, 25);
+        console.log('Device Id : ' + deviceId);
+        var mainData = data.substring(25, data.length);
+        console.log('Main Data : ' + mainData);
+
+        // Waiting for ZZTE key
+        var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
+
+        // Waiting for ZZTE encode
+        var ENCODING = 'hex';
+
+        // Remove frame header (4), message length (4), device id (16) and frame end (4).
+        var cryptedText = mainData;
+
+        var decipher = crypto.createDecipher('des-ede3-cbc', SECRET_KEY);
+        var decryptedData = decipher.update(cryptedText, ENCODING, 'utf8');
+        decryptedData += decipher.final('utf8');
+
+        console.log('Decrypted Data : ' + decryptedData);
+
+        // var cipher = crypto.createCipher('des-ede3-cbc', SECRET_KEY)
+        // var cryptedPassword = cipher.update(text, 'utf8', ENCODING)
+        // cryptedPassword += cipher.final(ENCODING)
+        console.log('*****************************************************************');
     });
 
     // Add a 'close' event handler to this instance of socket
