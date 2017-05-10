@@ -2,6 +2,17 @@
 
 var Common = function() {};
 
+Common.prototype.chars_from_hex = function(inputstr) {
+    var outputstr = '';
+    inputstr = inputstr.replace(/^(0x)?/g, '');
+    inputstr = inputstr.replace(/[^A-Fa-f0-9]/g, '');
+    inputstr = inputstr.split('');
+    for (var i = 0; i < inputstr.length; i += 2) {
+        outputstr += String.fromCharCode(parseInt(inputstr[i] + '' + inputstr[i + 1], 16));
+    }
+    return outputstr;
+}
+
 // Common.prototype.hexDecode = function(hexx) {
 //     var j;
 //     var hexes = hexx.match(/.{1,4}/g) || [];
