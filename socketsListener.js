@@ -25,7 +25,7 @@ net.createServer(function(sock) {
         console.log('************************New data received************************');
         console.log('Address : ' + sock.remoteAddress);
         console.log('Received : ' + new Date());
-        console.log('DATA : ' + buff.toString(hex));
+        console.log('DATA : ' + buff.toString('hex'));
 
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write('Got your data successfully!!!');
