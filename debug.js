@@ -27,9 +27,12 @@ var ENCODING = 'hex';
 
 // Remove frame header (4), message length (4), device id (16) and frame end (4).
 var cryptedText = hexData.substring(54, hexData.length - 4);
+console.log('cryptedText : ' + cryptedText);
 
+var buffKey = new Buffer(SECRET_KEY, 'hex');
+var buffIV = new Buffer(iv, 'hex');
 var decipher = crypto.createCipheriv('des-ede3-cbc', SECRET_KEY, iv);
-var decryptedData = decipher.update(cryptedText, ENCODING, 'utf8');
-decryptedData += decipher.final('utf8');
+var decryptedData = decipher.update(cryptedText, ENCODING, 'hex');
+decryptedData += decipher.final('hex');
 
 console.log('Decrypted Data : ' + decryptedData);
