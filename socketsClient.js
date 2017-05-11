@@ -1,6 +1,6 @@
 var net = require('net');
 
-var HOST = '52.163.121.189';
+var HOST = '52.163.116.94';
 var PORT = 8884;
 
 var client = new net.Socket();
@@ -8,7 +8,7 @@ client.connect(PORT, HOST, function() {
 
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
     // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-    client.write('I am Chuck Norris!');
+    client.write("55550035d674d8c21a03e8193836313437333033303134393638337a18b6896b42483d61c9de90ac195bf3a1822df2cc09d59daaaa");
 
 });
 

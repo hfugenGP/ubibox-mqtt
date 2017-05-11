@@ -31,7 +31,7 @@ net.createServer(function(sock) {
         // console.log('data received: ' + buff.toString(hex));
 
         console.log('************************New data received************************');
-        console.log('Address : ' + sock.remoteAddress);
+        console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
 
@@ -65,8 +65,26 @@ net.createServer(function(sock) {
         var messageCallback = generateReply(deviceId, decryptedHex);
         console.log('Return data : ' + messageCallback);
 
+        var prefix = 0x0F; // JavaScript allows hex numbers.
+        var suffix = 0x0FC1;
+        var dataSize = Buffer.byteLength(messageCallback);
+        // compute the required buffer length
+        var bufferSize = 1 + dataSize + 2;
+        var buffer = new Buffer(bufferSize);
+
+        // store first byte on index 0;
+        buffer.writeUInt8(prefix, 0);
+
+        // store string starting at index 1;
+        buffer.write(messageCallback, 1, dataSize);
+
+        // stores last two bytes, in big endian format for TCP/IP.
+        buffer.writeUInt16BE(suffix, bufferSize - 2);
+
+        socket.write(buffer);
+
         // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(messageCallback);
+        sock.write(buffer);
 
         console.log('*****************************************************************');
     });
