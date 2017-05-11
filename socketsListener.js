@@ -49,19 +49,15 @@ net.createServer(function(sock) {
 
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
-        console.log('cryptedText : ' + cryptedHex);
+        console.log('Crypted Text : ' + cryptedHex);
 
         var cryptedText = common.chars_from_hex(cryptedHex);
         var ivText = common.chars_from_hex(iv);
 
         var decryptedData = simpleCrypto.des(SECRET_KEY, cryptedText, 0, 1, ivText);
+        var decryptedHex = common.hex_from_chars(decryptedData);
 
-        // var buffKey = new Buffer(SECRET_KEY, 'hex');
-        // var buffIV = new Buffer(iv, 'hex');
-        // var decipher = crypto.createCipheriv('des-ede3-cbc', buffKey, buffIV);
-        // var decryptedData = decipher.update(cryptedText, ENCODING, 'hex');
-        // decryptedData += decipher.final('hex');
-
+        console.log('Decrypted Hex : ' + decryptedHex);
         console.log('Decrypted Data : ' + decryptedData);
         console.log('*****************************************************************');
     });

@@ -13,6 +13,22 @@ Common.prototype.chars_from_hex = function(inputstr) {
     return outputstr;
 }
 
+Common.prototype.hex_from_chars = function(inputstr) {
+    var delimiter = '';
+    var outputstr = '';
+    var hex = "0123456789abcdef";
+    hex = hex.split('');
+    var i, n;
+    var inputarr = inputstr.split('');
+    for (var i = 0; i < inputarr.length; i++) {
+        if (i > 0) outputstr += delimiter;
+        if (!delimiter && i % 32 == 0 && i > 0) outputstr += '\n';
+        n = inputstr.charCodeAt(i);
+        outputstr += hex[(n >> 4) & 0xf] + hex[n & 0xf];
+    }
+    return outputstr;
+}
+
 // Common.prototype.hexDecode = function(hexx) {
 //     var j;
 //     var hexes = hexx.match(/.{1,4}/g) || [];
@@ -26,6 +42,9 @@ Common.prototype.chars_from_hex = function(inputstr) {
 
 Common.prototype.hexEncode = function(str) {
     var hex, i;
+
+    str = str.replace(/^(0x)?/g, '');
+    str = str.replace(/[^A-Za-z0-9]/g, '');
 
     var result = "";
     for (i = 0; i < str.length; i++) {
