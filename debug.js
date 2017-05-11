@@ -1,41 +1,12 @@
-// var rawData = "0563690261ae2c047b0468";
-
-// // 05636e0261ae71047b04bc 39.956081, -75.171004
-// // 05636f0261ae39047b0484 39.956025, -75.170948
-// // 05636a0261ae40047b049b 39.956032, -75.170971
-// // 05636e0261ae21047b0490 39.956001, -75.17096
-// // 05636c0261ae0a047b0470 39.955978, -75.170928
-// // 0563690261ae2c047b0468 39.956012, -75.17092
-
-// var statusFlags = "00000101".split('');
-
-// var data = {};
-
-// var lat = parseInt('0x0261ae71');
-// var lng = parseInt('0x047b04bc');
-
-// data['positioned'] = [statusFlags[7] == '0' ? false : true];
-// var latType = -1;
-// if (statusFlags[6] == '0') {
-//     latType = 1;
-// }
-
-// var lngType = -1;
-// if (statusFlags[5] == '0') {
-//     lngType = 1;
-// }
-
-// var latitude = parseInt('0x' + rawData.substring(6, 14)) * latType / 1000000; //297174138 
-// var longitude = parseInt('0x' + rawData.substring(14, 22)) * lngType / 1000000; //41234214
-// data['latlng'] = latitude + ',' + longitude;
-
-
 var net = require('net');
 var crypto = require('crypto');
 const Common = require('./common');
 const SimpleCrypto = require('./simpleCrypto');
+var CryptoJS = require("crypto-js");
+var ADLER32 = require('adler-32');
 
-// var hexData = "5b6efb5570e19b1ad56b4ab607306625e77f0a72871ceb0ac34bbcdadf0a083106e9f3036f2345f1e002248d7e500d6f667436fcaec0d091cbf82f6f9b0d33b8577a0dc94e641e5c";
+// Different per device
+var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
 
 // DATA : 5555005d34d8437a14a911f13836313437333033303134393638333ce153356246956e033850185d30334440b47ac897a8a939cdee1b2b99693bab92743855641989c7d11afdf6837efc00557d7606662b7abfb33888872f9225a5aaaa
 // frameHeader : 5555
@@ -53,34 +24,90 @@ const SimpleCrypto = require('./simpleCrypto');
 // 55d2a8d232a7451111001c002f11c21101164d43555f4745564d363230305356
 // 302e302e304230331347455f564d363230305356302e302e30423032036e1633
 
-// 3|socketsL | frameHeader : 5555
-// 3|socketsL | messageLength : 0035
-// 3|socketsL | iv : 43b08a87a4d08c05
-// 3|socketsL | deviceId : 383631343733303330313437393335
-// 3|socketsL | frameEnd : aaaa
-// 3|socketsL | cryptedText : 91eb101e6c81b188a15eb1c4741cc594ccb34d48f0c6f86b
-// 3|socketsL | Decrypted Data : ��@�âï>ð!dìÍ�|x�PQ��Cü|
-
+// Response Package for Connack (Unencrypted):
+// 55 55 -> Frame Header
+// 00 00 00 00 00 00 00 00 -> Initialization Vector (Random)
+// 00 00 -> Message Length (not calculated yet)
+// 38 36 31 34 37 33 30 33 30 31 34 39 36 38 33 -> Device ID
+// 55  d2  a8  d2  32  a7  45  11  -> Random Noise
+// 02 -> Message Connack
+// 00  1c -> Frame ID (Use the same message ID that you are replying to)
+// 00  01  -> Data Length (only 1 because it is just acknowledgement message)
+// 01 -> Allow Session Message
+// 03  6e  16  33 - Checksum (not calculated yet)
+// aa  aa -> Frame End
 
 var common = new Common();
 var simpleCrypto = new SimpleCrypto();
 
-// Waiting for ZZTE key
-var SECRET_KEY = common.chars_from_hex("c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465");
+//Header
+var frameHeader = "5555"; //
+var deviceId = "383631343733303330313439363833"; //
 
-var cryptedText = common.chars_from_hex("3ce153356246956e033850185d30334440b47ac897a8a939cdee1b2b99693bab92743855641989c7d11afdf6837efc00557d7606662b7abfb33888872f9225a5");
-var ivText = common.chars_from_hex("34d8437a14a911f1");
+var iv = CryptoJS.lib.WordArray.random(16);
+// var iv = CryptoJS.lib.WordArray.create(64 / 8);
+var ivText = CryptoJS.enc.Utf16.stringify(iv);
+var ivHex = common.hex_from_chars(ivText); //
+var checksum = ivHex;
 
-var simpleDecryptedData = simpleCrypto.des(SECRET_KEY, cryptedText, 0, 1, ivText);
+var randomNoise = CryptoJS.lib.WordArray.random(16);
+var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
+var randomNoiseHex = common.hex_from_chars(randomNoiseText);
+var tobeEncrypted = randomNoiseHex;
+// Message Connack
+var messageType = "02";
+tobeEncrypted += "02";
+checksum += "02";
+
+//Gonna replace with device frame number
+var frameID = "001c";
+tobeEncrypted += "001c";
+checksum += "001c";
+
+// Data length always = 1
+var dataLength = "0001";
+tobeEncrypted += "0001";
+checksum += "0001";
+
+// Data length always = 1
+var mainMessage = "01";
+tobeEncrypted += "01";
+checksum += "01";
+
+var checksumValue = ADLER32.str(checksum);
+var checksumHex = checksumValue.toString(16);
+tobeEncrypted += checksumHex;
+
+var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
+var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
+
+var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
+var crypted = encrypted.toString(CryptoJS.enc.Hex);
+var cryptedHex = common.hex_from_chars(crypted);
+var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
+var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
+var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
+
+// End
+var frameEnd = "aaaa";
+
+var messageLength = frameHeader.length + ivHex.length + 4 + deviceId.length + ciphertext.length + frameEnd.length;
+var messageLengthHex = messageLength.toString(16);
+
+if (messageLengthHex.length == 2) {
+    messageLengthHex = "00" + messageLengthHex;
+}
+
+var finalHex = frameHeader + ivHex + messageLengthHex + deviceId + ciphertext + frameEnd;
+
+var simpleDecryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(ciphertext), 0, 1, common.chars_from_hex(ivHex));
 var hexEncode = common.hex_from_chars(simpleDecryptedData);
 
-var hexText = "3ce153356246956e033850185d30334440b47ac897a8a939cdee1b2b99693bab92743855641989c7d11afdf6837efc00557d7606662b7abfb33888872f9225a5";
+// var hexText = "3ce153356246956e033850185d30334440b47ac897a8a939cdee1b2b99693bab92743855641989c7d11afdf6837efc00557d7606662b7abfb33888872f9225a5";
 
-var buffKey = new Buffer("c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465", 'hex');
-var buffIV = new Buffer("34d8437a14a911f1", 'hex');
-var decipher = crypto.createCipheriv('des-ede3-cbc', buffKey, buffIV);
-var decryptedData = decipher.update(hexText, 'hex', 'hex');
-decryptedData += decipher.final('hex');
-
-
-console.log('Decrypted Data : ' + decryptedData);
+// var buffKey = new Buffer("c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465", 'hex');
+// var buffIV = new Buffer("34d8437a14a911f1", 'hex');
+// var decipher = crypto.createCipheriv('des-ede3-cbc', buffKey, buffIV);
+// var decryptedData = decipher.update(hexText, 'hex', 'hex');
+// decryptedData += decipher.final('hex');
+console.log('Decrypted Data : ' + hexEncode);
