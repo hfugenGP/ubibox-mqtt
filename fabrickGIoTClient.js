@@ -278,16 +278,16 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['speed'] = [parseInt('0x' + rawData.substring(20, 24)), 'km/h'];
             data['direction'] = [parseInt('0x' + rawData.substring(24, 28))];
 
-            data['illegalDisplacement'] = [alertFlags[0] == '0' ? false : true];
-            data['vibrationAlarm'] = [alertFlags[1] == '0' ? false : true];
-            data['mainPowerUnderVoltage'] = [alertFlags[2] == '0' ? false : true];
-            data['mainPowerDown'] = [alertFlags[3] == '0' ? false : true];
+            data['illegalDisplacement'] = [alertFlags[7] == '0' ? false : true];
+            data['vibrationAlarm'] = [alertFlags[6] == '0' ? false : true];
+            data['mainPowerUnderVoltage'] = [alertFlags[5] == '0' ? false : true];
+            data['mainPowerDown'] = [alertFlags[4] == '0' ? false : true];
 
-            data['ACC'] = [statusFlags[0] == '0' ? false : true];
-            data['positioned'] = [statusFlags[1] == '0' ? false : true];
+            data['ACC'] = [statusFlags[7] == '0' ? false : true];
+            data['positioned'] = [statusFlags[6] == '0' ? false : true];
 
             var latType = -1;
-            if (statusFlags[2] == '0') {
+            if (statusFlags[5] == '0') {
                 latType = 1;
             }
             // if (statusFlags[2] == '0') {
@@ -298,7 +298,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             // }
 
             var lngType = -1;
-            if (statusFlags[3] == '0') {
+            if (statusFlags[4] == '0') {
                 lngType = 1;
             }
             // if (statusFlags[3] == '0') {
@@ -326,7 +326,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['lowBattery'] = [alertFlags[4] == '0' ? false : true];
 
             break;
-        case 11: //'asset_tracker' 0124fd017b8298073676dc
+        case 11: //'asset_tracker' 0124fd017b8298073676dc 05 63 70 0261ae8a 297174138 047b04d6 41234214
             var statusFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
 
             var temperatureSet = common.hex2bits(rawData.substring(2, 4));
@@ -341,9 +341,9 @@ function generateMessage(macAddr, receivedDate, rawData) {
                 data['batteryLevel'] = [batt / 254 * 100, "%"];
             }
 
-            data['positioned'] = [statusFlags[0] == '0' ? false : true];
+            data['positioned'] = [statusFlags[7] == '0' ? false : true];
             var latType = -1;
-            if (statusFlags[1] == '0') {
+            if (statusFlags[6] == '0') {
                 latType = 1;
             }
             // if (statusFlags[1] == '0') {
@@ -354,7 +354,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             // }
 
             var lngType = -1;
-            if (statusFlags[2] == '0') {
+            if (statusFlags[5] == '0') {
                 lngType = 1;
             }
             // if (statusFlags[2] == '0') {
@@ -364,21 +364,21 @@ function generateMessage(macAddr, receivedDate, rawData) {
             //     lngType = -1;
             // }
 
-            if (statusFlags[5] == '0') {
+            if (statusFlags[2] == '0') {
                 data['loraPacketType'] = ['lora'];
             } else {
                 data['loraPacketType'] = ['mftLora'];
             }
 
-            if (statusFlags[3] == '0') {
-                data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * latType / 1000000];
-                data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * lngType / 1000000];
+            if (statusFlags[4] == '0') {
+                data['latitude'] = [parseInt('0x' + rawData.substring(6, 14)) * latType / 1000000]; //297174138 
+                data['longitude'] = [parseInt('0x' + rawData.substring(14, 22)) * lngType / 1000000]; //41234214
                 data['latlng'] = [data['latitude'] + ',' + data['longitude']];
             } else {
                 data['gSensor3Axis'] = [parseInt('0x' + rawData.substring(6, 18))];
             }
 
-            var statusCode = statusFlags[7] + statusFlags[6] + statusFlags[4];
+            var statusCode = statusFlags[0] + statusFlags[1] + statusFlags[3];
 
             switch (statusCode) {
                 case "000":
