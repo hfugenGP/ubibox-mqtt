@@ -16,7 +16,10 @@ client.connect(PORT, HOST, function() {
 // data is what the server sent to this socket
 client.on('data', function(data) {
 
-    console.log('DATA: ' + data);
+    var buff = new Buffer(data, 'utf8');
+    var hexData = buff.toString('hex');
+
+    console.log('DATA: ' + hexData);
     // Close the client socket completely
     client.destroy();
 

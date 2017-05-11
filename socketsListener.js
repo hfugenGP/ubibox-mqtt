@@ -69,17 +69,17 @@ net.createServer(function(sock) {
         var suffix = 0x0FC1;
         var dataSize = Buffer.byteLength(messageCallback);
         // compute the required buffer length
-        var bufferSize = 1 + dataSize + 2;
-        var buffer = new Buffer(bufferSize);
+        // var bufferSize = 1 + dataSize + 2;
+        var buffer = new Buffer(dataSize);
 
-        // store first byte on index 0;
-        buffer.writeUInt8(prefix, 0);
+        // // store first byte on index 0;
+        // buffer.writeUInt8(prefix, 0);
 
         // store string starting at index 1;
-        buffer.write(messageCallback, 1, dataSize);
+        buffer.write(messageCallback);
 
-        // stores last two bytes, in big endian format for TCP/IP.
-        buffer.writeUInt16BE(suffix, bufferSize - 2);
+        // // stores last two bytes, in big endian format for TCP/IP.
+        // buffer.writeUInt16BE(suffix, bufferSize - 2);
 
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write(buffer);
