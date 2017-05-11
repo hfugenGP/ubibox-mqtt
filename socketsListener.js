@@ -81,8 +81,6 @@ net.createServer(function(sock) {
         // stores last two bytes, in big endian format for TCP/IP.
         buffer.writeUInt16BE(suffix, bufferSize - 2);
 
-        socket.write(buffer);
-
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write(buffer);
 
