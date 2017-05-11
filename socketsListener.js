@@ -85,6 +85,7 @@ net.createServer(function(sock) {
 });
 
 function generateReply(deviceId, decryptedHex) {
+    var common = new Common();
     //Header
     var frameHeader = "5555"; //
 
