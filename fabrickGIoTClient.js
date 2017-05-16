@@ -442,7 +442,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['airTemperature'] = [common.roundFloat(airTemperatureValue, 2), '°C'];
             data['airHumidity'] = [common.roundFloat(airHumidityValue, 2), '%RH'];
             data['soilMoisture'] = [common.roundFloat(soilMoistureValue, 2), '%'];
-            data['batteryLevel'] = [common.roundFloat(batteryLevelValue, 2), '%'];
+            data['batteryLevel'] = [common.roundFloat(batteryLevelValue, 2), 'V'];
 
             break;
         default:
