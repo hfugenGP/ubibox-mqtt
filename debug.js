@@ -85,7 +85,9 @@ var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
 var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
 var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
-var decrypted = CryptoJS.TripleDES.decrypt(CryptoJS.enc.Hex.parse(ciphertext), SECRET_KEY, { iv: ivHex });
+var ciphertextTrim = ciphertext.substring(0, ciphertext.length - 12)
+
+var decrypted = CryptoJS.TripleDES.decrypt(CryptoJS.enc.Hex.parse(ciphertextTrim), SECRET_KEY, { iv: ivHex });
 var decryptedtext = decrypted.toString();
 
 
@@ -102,7 +104,7 @@ if (messageLengthHex.length == 2) {
 var finalHex = frameHeader + ivHex + messageLengthHex + deviceId + ciphertext + frameEnd;
 // var final = CryptoJS.enc.Hex.stringify(finalHex);
 
-var simpleDecryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex("3ce153356246956e033850185d30334440b47ac897a8a939cdee1b2b99693bab92743855641989c7d11afdf6837efc00557d7606662b7abfb33888872f9225a5"), 0, 1, common.chars_from_hex(ivHex));
+var simpleDecryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(ciphertextTrim), 0, 1, common.chars_from_hex(ivHex));
 var hexEncode = common.hex_from_chars(simpleDecryptedData);
 var newText = common.chars_from_hex(hexEncode.substring(hexEncode.length - 12));
 

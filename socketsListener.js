@@ -131,7 +131,7 @@ function generateReply(deviceId, decryptedHex) {
     var dataLength = "0001";
     tobeEncrypted += "0001";
     checksum += "0001";
-    console.log('dataLength : ' + 0001);
+    console.log('dataLength : ' + dataLength);
 
     // Data length always = 1
     var mainMessage = "01";
