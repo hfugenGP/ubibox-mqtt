@@ -72,7 +72,10 @@ net.createServer(function(sock) {
         buffer.write(messageCallback);
 
         // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(buffer);
+        sock.write(buffer, function(err) {
+            console.log('Sock write error : ' + err);
+            console.log('*****************************************************************');
+        });
         console.log('Return data : ' + messageCallback);
         console.log('Return datasize : ' + dataSize);
         console.log('Return buffer : ' + buffer);
