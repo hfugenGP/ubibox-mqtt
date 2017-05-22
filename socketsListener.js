@@ -65,22 +65,22 @@ net.createServer(function(sock) {
 
         var messageCallback = generateReply(deviceId, decryptedHex) + "\r\n";
 
-        var dataSize = Buffer.byteLength(messageCallback);
-        var buffer = new Buffer(dataSize);
+        // var dataSize = Buffer.byteLength(messageCallback);
+        // var buffer = new Buffer(dataSize);
 
-        // store string starting at index 1;
-        buffer.write(messageCallback);
+        // // store string starting at index 1;
+        // buffer.write(messageCallback);
 
         // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(buffer, function(err) {
+        sock.write(messageCallback, function(err) {
             if (err) {
                 console.log('Sock write error : ' + err);
                 console.log('*****************************************************************');
             }
         });
         console.log('Return data : ' + messageCallback);
-        console.log('Return datasize : ' + dataSize);
-        console.log('Return buffer : ' + buffer);
+        // console.log('Return datasize : ' + dataSize);
+        // console.log('Return buffer : ' + buffer);
 
         console.log('*****************************************************************');
     });
