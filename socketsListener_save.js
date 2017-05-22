@@ -55,7 +55,7 @@ net.createServer(function(sock) {
 
         var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
-        var decryptedData = common.chars_from_hex(decryptedHex.substring(12, decryptedHex.length - 12));
+        var decryptedData = common.chars_from_hex(decryptedHex.substring(0, decryptedHex.length - 12));
 
         console.log('Decrypted Hex : ' + decryptedHex);
         console.log('Decrypted Data : ' + decryptedData);
@@ -64,18 +64,24 @@ net.createServer(function(sock) {
         console.log('*****************************************************************');
 
         var messageCallback = generateReply(deviceId, decryptedHex) + "\n";
+        console.log('Return data : ' + messageCallback);
 
         var dataSize = Buffer.byteLength(messageCallback);
+        // compute the required buffer length
+        // var bufferSize = 1 + dataSize + 2;
         var buffer = new Buffer(dataSize);
+
+        // // store first byte on index 0;
+        // buffer.writeUInt8(prefix, 0);
 
         // store string starting at index 1;
         buffer.write(messageCallback);
 
+        // // stores last two bytes, in big endian format for TCP/IP.
+        // buffer.writeUInt16BE(suffix, bufferSize - 2);
+
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write(buffer);
-        console.log('Return data : ' + messageCallback);
-        console.log('Return datasize : ' + dataSize);
-        console.log('Return buffer : ' + buffer);
 
         console.log('*****************************************************************');
     });
