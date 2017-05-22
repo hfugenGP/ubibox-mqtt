@@ -65,6 +65,8 @@ net.createServer(function(sock) {
 
         var messageCallback = generateReply(deviceId, decryptedHex) + "\r\n";
 
+        console.log('*****************************************************************');
+
         // var dataSize = Buffer.byteLength(messageCallback);
         // var buffer = new Buffer(dataSize);
 
@@ -112,26 +114,30 @@ function generateReply(deviceId, decryptedHex) {
     var randomNoise = CryptoJS.lib.WordArray.random(16);
     var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
     var randomNoiseHex = common.hex_from_chars(randomNoiseText);
+    console.log('randomNoiseHex : ' + randomNoiseHex);
     var tobeEncrypted = randomNoiseHex;
     // Message Connack
     var messageType = "02";
     tobeEncrypted += "02";
-    checksum += "02";
+    console.log('messageType : ' + messageType);
 
     //Gonna replace with device frame number
     var frameID = decryptedHex.substring(18, 22);
     tobeEncrypted += decryptedHex.substring(18, 22);
     checksum += decryptedHex.substring(18, 22);
+    console.log('frameID : ' + frameID);
 
     // Data length always = 1
     var dataLength = "0001";
     tobeEncrypted += "0001";
     checksum += "0001";
+    console.log('dataLength : ' + 0001);
 
     // Data length always = 1
     var mainMessage = "01";
     tobeEncrypted += "01";
     checksum += "01";
+    console.log('message : ' + mainMessage);
 
     var checksumValue = ADLER32.str(checksum);
     var checksumHex = checksumValue.toString(16);
@@ -140,10 +146,14 @@ function generateReply(deviceId, decryptedHex) {
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
+    console.log('tobeEncrypted : ' + tobeEncrypted);
+
     var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
     var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
     var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
+
+    console.log('ciphertext : ' + ciphertext);
 
     // End
     var frameEnd = "aaaa";
@@ -172,29 +182,3 @@ function generateReply(deviceId, decryptedHex) {
 // 01 -> Allow Session Message
 // 03  6e  16  33 - Checksum (not calculated yet)
 // aa  aa -> Frame End
-
-function decryptData(hexData) {
-    var common = new Common();
-    var simpleCrypto = new SimpleCrypto();
-
-    var frameHeader = hexData.substring(0, 4);
-    console.log('frameHeader : ' + frameHeader);
-    var messageLength = hexData.substring(4, 8);
-    console.log('messageLength : ' + messageLength);
-    var iv = hexData.substring(8, 24);
-    console.log('iv : ' + iv);
-    var deviceId = hexData.substring(24, 54);
-    console.log('deviceId : ' + deviceId);
-    var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
-    console.log('frameEnd : ' + frameEnd);
-
-    // Remove frame header (4), message length (4), device id (16) and frame end (4).
-    var cryptedHex = hexData.substring(54, hexData.length - 4);
-    console.log('Crypted Text : ' + cryptedHex);
-
-    var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
-    var decryptedHex = common.hex_from_chars(decryptedData);
-
-    console.log('Decrypted Hex : ' + decryptedHex);
-    console.log('Decrypted Data : ' + decryptedData);
-}
