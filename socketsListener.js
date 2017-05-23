@@ -142,6 +142,9 @@ function generateReply(deviceId, decryptedHex) {
     var checksumHex = checksumValue.toString(16);
     tobeEncrypted += checksumHex;
 
+    // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
+    tobeEncrypted += "ffff";
+
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
