@@ -120,9 +120,9 @@ function generateReply(deviceId, decryptedHex) {
     console.log('randomNoiseHex : ' + randomNoiseHex);
     var tobeEncrypted = randomNoiseHex;
     // Message Connack
-    var messageType = "02";
+    var frameType = "02";
     tobeEncrypted += "02";
-    console.log('messageType : ' + messageType);
+    console.log('frameType : ' + frameType);
 
     //Gonna replace with device frame number
     var frameID = decryptedHex.substring(18, 22);
@@ -167,6 +167,8 @@ function generateReply(deviceId, decryptedHex) {
     if (messageLengthHex.length == 2) {
         messageLengthHex = "00" + messageLengthHex;
     }
+
+    console.log('messageLengthHex : ' + messageLengthHex);
 
     var finalHex = frameHeader + ivHex + messageLengthHex + deviceId + ciphertext + frameEnd;
 
