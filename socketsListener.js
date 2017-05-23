@@ -19,6 +19,8 @@ net.createServer(function(sock) {
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
 
+    sock.setNoDelay(true);
+
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
 
@@ -80,6 +82,8 @@ net.createServer(function(sock) {
                 console.log('*****************************************************************');
             }
         });
+
+        sock.end(messageCallback, 'utf8');
         console.log('Return data : ' + messageCallback);
         // console.log('Return datasize : ' + dataSize);
         // console.log('Return buffer : ' + buffer);
