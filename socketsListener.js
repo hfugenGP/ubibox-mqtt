@@ -153,7 +153,7 @@ function generateReply(deviceId, decryptedHex) {
     // End
     var frameEnd = "aaaa";
 
-    var messageLength = frameHeader.length + ivHex.length + 4 + deviceId.length + ciphertext.length + frameEnd.length;
+    var messageLength = frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length;
     var messageLengthHex = messageLength.toString(16);
 
     if (messageLengthHex.length == 2) {
@@ -169,7 +169,7 @@ function generateReply(deviceId, decryptedHex) {
     // console.log('message : ' + mainMessage);
     // console.log('messageLengthHex : ' + messageLengthHex);
 
-    var finalHex = frameHeader + ivHex + messageLengthHex + deviceId + ciphertext + frameEnd;
+    var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
 
     return finalHex;
 }
