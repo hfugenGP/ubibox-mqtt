@@ -19,7 +19,7 @@ net.createServer(function(sock) {
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
 
-    sock.setEncoding("utf8");
+    // sock.setEncoding("utf8");
     sock.setNoDelay(true);
 
     // Add a 'data' event handler to this instance of socket
@@ -74,14 +74,14 @@ net.createServer(function(sock) {
         // buffer.write(messageCallback);
 
         // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(messageCallback, function(err) {
+        sock.write(messageCallback, "utf8", function(err) {
             if (err) {
                 console.log('Sock write error : ' + err);
                 console.log('*****************************************************************');
             }
         });
 
-        sock.end(messageCallback);
+        sock.end();
         console.log('Return data : ' + messageCallback);
         // console.log('Return datasize : ' + dataSize);
         // console.log('Return buffer : ' + buffer);
