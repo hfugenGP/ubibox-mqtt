@@ -25,9 +25,8 @@ net.createServer(function(sock) {
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
 
-        // var buff = new Buffer(data, 'utf8');
-        // var hexData = buff.toString('hex');
-        var hexData = data;
+        var buff = new Buffer(data, 'utf8');
+        var hexData = buff.toString('hex');
         var common = new Common();
         var simpleCrypto = new SimpleCrypto();
 
@@ -75,12 +74,12 @@ net.createServer(function(sock) {
         // buffer.write(messageCallback);
 
         // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(messageCallback, function(err) {
-            if (err) {
-                console.log('Sock write error : ' + err);
-                console.log('*****************************************************************');
-            }
-        });
+        // sock.write(messageCallback, function(err) {
+        //     if (err) {
+        //         console.log('Sock write error : ' + err);
+        //         console.log('*****************************************************************');
+        //     }
+        // });
 
         sock.end(messageCallback);
         console.log('Return data : ' + messageCallback);
