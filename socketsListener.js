@@ -62,7 +62,7 @@ net.createServer(function(sock) {
 
         // console.log('*****************************************************************');
 
-        var messageCallback = generateReply(deviceId, decryptedHex) + "\r\n";
+        var messageCallback = generateReply(deviceId, decryptedHex) + "0d0a";
 
         // console.log('*****************************************************************');
 
