@@ -80,7 +80,7 @@ net.createServer(function(sock) {
                 console.log('*****************************************************************');
             }
 
-            sock.end();
+            // sock.end();
         });
 
 
