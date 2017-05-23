@@ -79,9 +79,11 @@ net.createServer(function(sock) {
                 console.log('Sock write error : ' + err);
                 console.log('*****************************************************************');
             }
+
+            sock.end();
         });
 
-        sock.end();
+
         console.log('Return data : ' + messageCallback);
         // console.log('Return datasize : ' + dataSize);
         // console.log('Return buffer : ' + buffer);
