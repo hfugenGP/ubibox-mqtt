@@ -9,6 +9,7 @@ var ADLER32 = require('adler-32');
 var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
 
 var common = new Common();
+var simpleCrypto = new SimpleCrypto();
 //Header
 var frameHeader = "5555"; //
 var deviceId = "383634383637303232353131303135";
@@ -48,25 +49,39 @@ var checksumHex = checksumValue.toString(16);
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-// tobeEncrypted += "ffffffffffff";
+tobeEncrypted += "ffffffffffff";
 
-var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
-var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
+// var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
+// var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
-var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
+// var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
+// var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
+// var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
+// var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
+
+// // End
+// var frameEnd = "aaaa";
+
+// var messageLength = frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length;
+// var messageLengthHex = messageLength.toString(16);
+
+// if (messageLengthHex.length == 2) {
+//     messageLengthHex = "00" + messageLengthHex;
+// }
+
+var testEncryption = "7647BA720ED377F70100000006000110C100004E1E0CEC63";
+var key = CryptoJS.enc.Hex.parse("f416835fae648be87dc39bda084bdc8fce6deded47e762e8");
+var ivHexParse = CryptoJS.enc.Hex.parse("CBBB187441A4BEF7");
+
+var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(testEncryption), key, { iv: ivHexParse });
 var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
 var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
 var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
+ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
-// End
-var frameEnd = "aaaa";
-
-var messageLength = frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length;
-var messageLengthHex = messageLength.toString(16);
-
-if (messageLengthHex.length == 2) {
-    messageLengthHex = "00" + messageLengthHex;
-}
+var decryptedData = simpleCrypto.des(common.chars_from_hex("f416835fae648be87dc39bda084bdc8fce6deded47e762e8"), common.chars_from_hex(ciphertext), 0, 1, common.chars_from_hex("CBBB187441A4BEF7"));
+var decryptedHex = common.hex_from_chars(decryptedData);
+var decryptedData = common.chars_from_hex(decryptedHex.substring(12, decryptedHex.length - 12));
 
 // console.log('randomNoiseHex : ' + randomNoiseHex);
 // console.log('frameType : ' + frameType);

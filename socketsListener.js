@@ -49,7 +49,6 @@ net.createServer(function(sock) {
 
         var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
-        // var decryptedData = common.chars_from_hex(decryptedHex.substring(12, decryptedHex.length - 12));
 
         // console.log('frameHeader : ' + frameHeader);
         // console.log('messageLength : ' + messageLength);
@@ -143,7 +142,7 @@ function generateReply(deviceId, decryptedHex) {
     tobeEncrypted += checksumHex;
 
     // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    tobeEncrypted += "ffff";
+    tobeEncrypted += "ffffffffffff";
 
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
@@ -152,6 +151,8 @@ function generateReply(deviceId, decryptedHex) {
     var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
     var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
+
+    ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
     // End
     var frameEnd = "aaaa";
