@@ -31,7 +31,7 @@ net.createServer(function(sock) {
         var simpleCrypto = new SimpleCrypto();
 
         console.log('************************New data received************************');
-        console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
+        // console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
 
@@ -39,33 +39,33 @@ net.createServer(function(sock) {
         var simpleCrypto = new SimpleCrypto();
 
         var frameHeader = hexData.substring(0, 4);
-        console.log('frameHeader : ' + frameHeader);
         var messageLength = hexData.substring(4, 8);
-        console.log('messageLength : ' + messageLength);
         var iv = hexData.substring(8, 24);
-        console.log('iv : ' + iv);
         var deviceId = hexData.substring(24, 54);
-        console.log('deviceId : ' + deviceId);
         var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
-        console.log('frameEnd : ' + frameEnd);
 
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
-        console.log('Crypted Text : ' + cryptedHex);
 
         var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
-        var decryptedData = common.chars_from_hex(decryptedHex.substring(12, decryptedHex.length - 12));
+        // var decryptedData = common.chars_from_hex(decryptedHex.substring(12, decryptedHex.length - 12));
 
-        console.log('Decrypted Hex : ' + decryptedHex);
-        console.log('Decrypted Data : ' + decryptedData);
+        // console.log('frameHeader : ' + frameHeader);
+        // console.log('messageLength : ' + messageLength);
+        // console.log('iv : ' + iv);
+        // console.log('deviceId : ' + deviceId);
+        // console.log('frameEnd : ' + frameEnd);
+        // console.log('Crypted Text : ' + cryptedHex);
+        // console.log('Decrypted Hex : ' + decryptedHex);
+        // console.log('Decrypted Data : ' + decryptedData);
 
 
-        console.log('*****************************************************************');
+        // console.log('*****************************************************************');
 
         var messageCallback = generateReply(deviceId, decryptedHex) + "\r\n";
 
-        console.log('*****************************************************************');
+        // console.log('*****************************************************************');
 
         var dataSize = Buffer.byteLength(messageCallback);
         var buffer = new Buffer(dataSize);
@@ -74,14 +74,14 @@ net.createServer(function(sock) {
         buffer.write(messageCallback);
 
         // Write the data back to the socket, the client will receive it as data from the server
-        // sock.write(messageCallback, "utf8", function(err) {
-        //     if (err) {
-        //         console.log('Sock write error : ' + err);
-        //         console.log('*****************************************************************');
-        //     }
-        // });
+        sock.write(buffer, function(err) {
+            if (err) {
+                console.log('Sock write error : ' + err);
+                console.log('*****************************************************************');
+            }
+        });
 
-        sock.end(buffer);
+        // sock.end(buffer);
 
         console.log('Return data : ' + messageCallback);
         // console.log('Return datasize : ' + dataSize);
@@ -117,30 +117,26 @@ function generateReply(deviceId, decryptedHex) {
     var randomNoise = CryptoJS.lib.WordArray.random(16);
     var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
     var randomNoiseHex = common.hex_from_chars(randomNoiseText);
-    console.log('randomNoiseHex : ' + randomNoiseHex);
+
     var tobeEncrypted = randomNoiseHex;
     // Message Connack
     var frameType = "02";
     tobeEncrypted += "02";
-    console.log('frameType : ' + frameType);
 
     //Gonna replace with device frame number
     var frameID = decryptedHex.substring(18, 22);
     tobeEncrypted += decryptedHex.substring(18, 22);
     checksum += decryptedHex.substring(18, 22);
-    console.log('frameID : ' + frameID);
 
     // Data length always = 1
     var dataLength = "0001";
     tobeEncrypted += "0001";
     checksum += "0001";
-    console.log('dataLength : ' + dataLength);
 
     // Data length always = 1
     var mainMessage = "01";
     tobeEncrypted += "01";
     checksum += "01";
-    console.log('message : ' + mainMessage);
 
     var checksumValue = ADLER32.str(checksum);
     var checksumHex = checksumValue.toString(16);
@@ -149,14 +145,10 @@ function generateReply(deviceId, decryptedHex) {
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
-    console.log('tobeEncrypted : ' + tobeEncrypted);
-
     var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
     var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
     var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-
-    console.log('ciphertext : ' + ciphertext);
 
     // End
     var frameEnd = "aaaa";
@@ -168,7 +160,14 @@ function generateReply(deviceId, decryptedHex) {
         messageLengthHex = "00" + messageLengthHex;
     }
 
-    console.log('messageLengthHex : ' + messageLengthHex);
+    // console.log('randomNoiseHex : ' + randomNoiseHex);
+    // console.log('frameType : ' + frameType);
+    // console.log('frameID : ' + frameID);
+    // console.log('dataLength : ' + dataLength);
+    // console.log('tobeEncrypted : ' + tobeEncrypted);
+    // console.log('ciphertext : ' + ciphertext);
+    // console.log('message : ' + mainMessage);
+    // console.log('messageLengthHex : ' + messageLengthHex);
 
     var finalHex = frameHeader + ivHex + messageLengthHex + deviceId + ciphertext + frameEnd;
 
