@@ -167,7 +167,7 @@ function generateReply(deviceId, decryptedHex) {
     // End
     var frameEnd = "aaaa";
 
-    var messageLength = frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length;
+    var messageLength = (frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length) / 2;
     var messageLengthHex = messageLength.toString(16);
 
     if (messageLengthHex.length == 2) {
