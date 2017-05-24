@@ -184,12 +184,12 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
 
     console.log('randomNoiseHex : ' + randomNoiseHex);
     console.log('returnFrameType : ' + returnFrameType);
-    console.log('frameID : ' + frameID);
+    console.log('frameID : ' + frameId);
     console.log('dataLength : ' + dataLength);
     console.log('checksumHex : ' + checksumHex);
     console.log('tobeEncrypted : ' + tobeEncrypted);
     console.log('ciphertext : ' + ciphertext);
-    // console.log('message : ' + mainMessage);
+    console.log('message : ' + mainMessage);
     console.log('messageLengthHex : ' + messageLengthHex);
 
     var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
