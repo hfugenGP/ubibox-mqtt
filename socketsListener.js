@@ -27,9 +27,7 @@ net.createServer(function(sock) {
 
         console.log('************************New data received************************');
 
-        var mockData = "555538390A0FAAAA";
-
-        const buff = Buffer.from('555538390A0FAAAA', 'utf8');
+        var buff = Buffer.from('555538390A0F7647BA720ED377F70AAAA', 'base64');
 
         sock.write(buff, function(err) {
             if (err) {
