@@ -114,7 +114,9 @@ net.createServer(function(sock) {
 function generateReply(deviceId, decryptedHex) {
     var common = new Common();
     //Header
-    var frameHeader = "5555"; //
+    var frameHeader = "5555";
+    // End
+    var frameEnd = "aaaa";
 
     var iv = CryptoJS.lib.WordArray.random(16);
     // var iv = CryptoJS.lib.WordArray.create(64 / 8);
@@ -166,9 +168,6 @@ function generateReply(deviceId, decryptedHex) {
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
     ciphertext = ciphertext.substring(0, ciphertext.length - 16);
-
-    // End
-    var frameEnd = "aaaa";
 
     console.log('randomNoiseHex : ' + randomNoiseHex);
     // console.log('frameType : ' + frameType);
