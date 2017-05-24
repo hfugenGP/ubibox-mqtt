@@ -36,7 +36,7 @@ net.createServer(function(sock) {
             }
         });
 
-        console.log('Return mock data : ' + buff.toString());
+        console.log('Return mock data : ' + buff.toString("hex"));
         console.log('*****************************************************************');
 
         // var buff = new Buffer(data, 'utf8');
