@@ -52,11 +52,11 @@ net.createServer(function(sock) {
         var common = new Common();
         var simpleCrypto = new SimpleCrypto();
 
-        var frameHeader = hexData.substring(0, 4);
+        // var frameHeader = hexData.substring(0, 4);
         var messageLength = hexData.substring(4, 8);
         var iv = hexData.substring(8, 24);
         var deviceId = hexData.substring(24, 54);
-        var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
+        // var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
 
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
@@ -64,18 +64,21 @@ net.createServer(function(sock) {
         var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
 
-        // console.log('frameHeader : ' + frameHeader);
-        console.log('messageLength : ' + messageLength);
-        console.log('iv : ' + iv);
-        console.log('deviceId : ' + deviceId);
-        // console.log('frameEnd : ' + frameEnd);
+        var frameType = decryptedHex.substring(16, 18);
+        var frameId = decryptedHex.substring(18, 22);
+
         console.log('Crypted Hex : ' + cryptedHex);
         console.log('Decrypted Hex : ' + decryptedHex);
         console.log('Decrypted Data : ' + decryptedData);
+        console.log('messageLength : ' + messageLength);
+        console.log('iv : ' + iv);
+        console.log('deviceId : ' + deviceId);
+        console.log('frameType : ' + frameType);
+        console.log('frameId : ' + frameId);
 
-        // console.log('*****************************************************************');
+        console.log('*****************************************************************');
 
-        var messageCallback = generateReply(deviceId, decryptedHex);
+        var messageCallback = generateReply(deviceId, frameType, frameId, decryptedHex);
 
         // console.log('*****************************************************************');
 
@@ -111,7 +114,7 @@ net.createServer(function(sock) {
     console.log('Server listening on ' + ':' + PORT);
 });
 
-function generateReply(deviceId, decryptedHex) {
+function generateReply(deviceId, frameType, frameId, decryptedHex) {
     var common = new Common();
     //Header
     var frameHeader = "5555";
@@ -128,19 +131,29 @@ function generateReply(deviceId, decryptedHex) {
     var randomNoiseHex = common.hex_from_chars(randomNoiseText);
 
     var tobeEncrypted = randomNoiseHex;
-    // Message Connack
-    var frameType = "02";
-    tobeEncrypted += "02";
 
-    //Gonna replace with device frame number
-    var frameID = decryptedHex.substring(18, 22);
-    tobeEncrypted += decryptedHex.substring(18, 22);
+    var frameType = "0d";
+
+    switch (frameType) {
+        case '11':
+            // Return connect with connack
+            frameType = "02";
+            break;
+
+        case '0c':
+            // Return ping request with ping response
+            frameType = "0d";
+            break;
+    }
+
+    tobeEncrypted += frameType;
+
+    tobeEncrypted += frameID;
 
     // Data length always = 1
     var dataLength = "0001";
     tobeEncrypted += "0001";
 
-    // Data length always = 1
     var mainMessage = "01";
     tobeEncrypted += "01";
 
@@ -170,9 +183,9 @@ function generateReply(deviceId, decryptedHex) {
     ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
     console.log('randomNoiseHex : ' + randomNoiseHex);
-    // console.log('frameType : ' + frameType);
+    console.log('frameType : ' + frameType);
     console.log('frameID : ' + frameID);
-    // console.log('dataLength : ' + dataLength);
+    console.log('dataLength : ' + dataLength);
     console.log('checksumHex : ' + checksumHex);
     console.log('tobeEncrypted : ' + tobeEncrypted);
     console.log('ciphertext : ' + ciphertext);
