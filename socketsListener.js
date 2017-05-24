@@ -73,7 +73,6 @@ net.createServer(function(sock) {
         console.log('Decrypted Hex : ' + decryptedHex);
         console.log('Decrypted Data : ' + decryptedData);
 
-
         // console.log('*****************************************************************');
 
         var messageCallback = generateReply(deviceId, decryptedHex);
@@ -121,7 +120,6 @@ function generateReply(deviceId, decryptedHex) {
     // var iv = CryptoJS.lib.WordArray.create(64 / 8);
     var ivText = CryptoJS.enc.Utf16.stringify(iv);
     var ivHex = common.hex_from_chars(ivText); //
-    var checksum = ivHex;
 
     var randomNoise = CryptoJS.lib.WordArray.random(16);
     var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
@@ -135,18 +133,22 @@ function generateReply(deviceId, decryptedHex) {
     //Gonna replace with device frame number
     var frameID = decryptedHex.substring(18, 22);
     tobeEncrypted += decryptedHex.substring(18, 22);
-    checksum += decryptedHex.substring(18, 22);
 
     // Data length always = 1
     var dataLength = "0001";
     tobeEncrypted += "0001";
-    checksum += "0001";
 
     // Data length always = 1
     var mainMessage = "01";
     tobeEncrypted += "01";
-    checksum += "01";
 
+    var messageLength = (frameHeader.length + 4 + ivHex.length + deviceId.length + tobeEncrypted.length + 8 + frameEnd.length) / 2;
+    var messageLengthHex = messageLength.toString(16);
+    if (messageLengthHex.length == 2) {
+        messageLengthHex = "00" + messageLengthHex;
+    }
+
+    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameID + dataLength + mainMessage;
     var checksumBuffer = Buffer.from(checksum, "hex");
     var checksumValue = ADLER32.buf(checksumBuffer);
     var checksumHex = checksumValue.toString(16);
@@ -167,13 +169,6 @@ function generateReply(deviceId, decryptedHex) {
 
     // End
     var frameEnd = "aaaa";
-
-    var messageLength = (frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length) / 2;
-    var messageLengthHex = messageLength.toString(16);
-
-    if (messageLengthHex.length == 2) {
-        messageLengthHex = "00" + messageLengthHex;
-    }
 
     console.log('randomNoiseHex : ' + randomNoiseHex);
     // console.log('frameType : ' + frameType);
