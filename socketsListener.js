@@ -24,64 +24,81 @@ net.createServer(function(sock) {
 
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
-        var buff = new Buffer(data, 'utf8');
-        var hexData = buff.toString('hex');
-        var common = new Common();
-        var simpleCrypto = new SimpleCrypto();
 
         console.log('************************New data received************************');
-        // console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
-        console.log('Received : ' + new Date());
-        console.log('DATA : ' + hexData);
 
-        var common = new Common();
-        var simpleCrypto = new SimpleCrypto();
+        var mockData = "555538390A0FAAAA";
 
-        var frameHeader = hexData.substring(0, 4);
-        var messageLength = hexData.substring(4, 8);
-        var iv = hexData.substring(8, 24);
-        var deviceId = hexData.substring(24, 54);
-        var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
+        const buff = Buffer.from('555538390A0FAAAA', 'utf8');
 
-        // Remove frame header (4), message length (4), device id (16) and frame end (4).
-        var cryptedHex = hexData.substring(54, hexData.length - 4);
-
-        var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
-        var decryptedHex = common.hex_from_chars(decryptedData);
-
-        // console.log('frameHeader : ' + frameHeader);
-        // console.log('messageLength : ' + messageLength);
-        // console.log('iv : ' + iv);
-        // console.log('deviceId : ' + deviceId);
-        // console.log('frameEnd : ' + frameEnd);
-        // console.log('Crypted Text : ' + cryptedHex);
-        // console.log('Decrypted Hex : ' + decryptedHex);
-        // console.log('Decrypted Data : ' + decryptedData);
-
-
-        // console.log('*****************************************************************');
-
-        var messageCallback = generateReply(deviceId, decryptedHex);
-
-        // console.log('*****************************************************************');
-
-        var buffer = Buffer.from(messageCallback, 'utf8');
-
-        // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(buffer, function(err) {
+        sock.write(buff, function(err) {
             if (err) {
                 console.log('Sock write error : ' + err);
                 console.log('*****************************************************************');
             }
         });
 
-        // sock.end(messageCallback);
-
-        console.log('Return data : ' + buffer.toString());
-        // console.log('Return datasize : ' + dataSize);
-        // console.log('Return buffer : ' + buffer);
-
+        console.log('Return mock data : ' + buff.toString());
         console.log('*****************************************************************');
+
+        // var buff = new Buffer(data, 'utf8');
+        // var hexData = buff.toString('hex');
+        // var common = new Common();
+        // var simpleCrypto = new SimpleCrypto();
+
+        // console.log('************************New data received************************');
+        // // console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
+        // console.log('Received : ' + new Date());
+        // console.log('DATA : ' + hexData);
+
+        // var common = new Common();
+        // var simpleCrypto = new SimpleCrypto();
+
+        // var frameHeader = hexData.substring(0, 4);
+        // var messageLength = hexData.substring(4, 8);
+        // var iv = hexData.substring(8, 24);
+        // var deviceId = hexData.substring(24, 54);
+        // var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
+
+        // // Remove frame header (4), message length (4), device id (16) and frame end (4).
+        // var cryptedHex = hexData.substring(54, hexData.length - 4);
+
+        // var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
+        // var decryptedHex = common.hex_from_chars(decryptedData);
+
+        // // console.log('frameHeader : ' + frameHeader);
+        // // console.log('messageLength : ' + messageLength);
+        // // console.log('iv : ' + iv);
+        // // console.log('deviceId : ' + deviceId);
+        // // console.log('frameEnd : ' + frameEnd);
+        // // console.log('Crypted Text : ' + cryptedHex);
+        // // console.log('Decrypted Hex : ' + decryptedHex);
+        // // console.log('Decrypted Data : ' + decryptedData);
+
+
+        // // console.log('*****************************************************************');
+
+        // var messageCallback = generateReply(deviceId, decryptedHex);
+
+        // // console.log('*****************************************************************');
+
+        // var buffer = Buffer.from(messageCallback, 'utf8');
+
+        // // Write the data back to the socket, the client will receive it as data from the server
+        // sock.write(buffer, function(err) {
+        //     if (err) {
+        //         console.log('Sock write error : ' + err);
+        //         console.log('*****************************************************************');
+        //     }
+        // });
+
+        // // sock.end(messageCallback);
+
+        // console.log('Return data : ' + buffer.toString());
+        // // console.log('Return datasize : ' + dataSize);
+        // // console.log('Return buffer : ' + buffer);
+
+        // console.log('*****************************************************************');
     });
 
     // Add a 'close' event handler to this instance of socket
