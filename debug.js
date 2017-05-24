@@ -4,91 +4,99 @@ const Common = require('./common')
 const SimpleCrypto = require('./simpleCrypto')
 var CryptoJS = require("crypto-js");
 var ADLER32 = require('adler-32');
+var adler32 = require('adler32');
 
 // Different per device
 var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
 
 var common = new Common();
-var simpleCrypto = new SimpleCrypto();
+var frameType = '11';
+var frameId = '0001';
+var deviceId = '383631343733303330313439363833';
+
 //Header
-var frameHeader = "5555"; //
-var deviceId = "383634383637303232353131303135";
+var frameHeader = "5555";
+// End
+var frameEnd = "aaaa";
 
 var iv = CryptoJS.lib.WordArray.random(16);
 // var iv = CryptoJS.lib.WordArray.create(64 / 8);
 var ivText = CryptoJS.enc.Utf16.stringify(iv);
 var ivHex = common.hex_from_chars(ivText); //
-var checksum = ivHex;
 
 var randomNoise = CryptoJS.lib.WordArray.random(16);
 var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
 var randomNoiseHex = common.hex_from_chars(randomNoiseText);
 
 var tobeEncrypted = randomNoiseHex;
-// Message Connack
-var frameType = "02";
-tobeEncrypted += "02";
 
-//Gonna replace with device frame number
-var frameID = "006a";
-tobeEncrypted += "006a";
-checksum += "006a";
+var returnFrameType = "0d";
+
+switch (frameType) {
+    case '11':
+        // Return connect with connack
+        returnFrameType = "02";
+        break;
+
+    case '0c':
+        // Return ping request with ping response
+        returnFrameType = "0d";
+        break;
+
+    case '03':
+        // Return publish request with Publish Acknowledgment
+        returnFrameType = "04";
+        break;
+}
+
+tobeEncrypted += returnFrameType;
+
+tobeEncrypted += frameId;
 
 // Data length always = 1
 var dataLength = "0001";
 tobeEncrypted += "0001";
-checksum += "0001";
 
-// Data length always = 1
 var mainMessage = "01";
 tobeEncrypted += "01";
-checksum += "01";
 
-var buffer = Buffer.from(checksum, "hex");
+// (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
+var messageLength = (frameHeader.length + //4
+    4 + //message length itself
+    ivHex.length + //16
+    deviceId.length + //30
+    randomNoiseHex.length + //16
+    returnFrameType.length + //2
+    frameId.length + //4
+    dataLength.length + //4
+    mainMessage.length + //2
+    8 + //checksum
+    // 4 + // extra for 3des
+    frameEnd.length) / 2; //4
+var messageLengthHex = messageLength.toString(16);
+if (messageLengthHex.length == 2) {
+    messageLengthHex = "00" + messageLengthHex;
+}
 
-var checksumValue = ADLER32.str(checksum);
-var checksumValue1 = ADLER32.buf(buffer);
+var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
+var checksumBuffer = Buffer.from(checksum, "hex");
+var checksumValue = ADLER32.buf(checksumBuffer);
 var checksumHex = checksumValue.toString(16);
-var checksumHex1 = checksumValue1.toString(16);
+var checksumHex1 = adler32.sum(checksumBuffer).toString(16);
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-tobeEncrypted += "ffffffffffff";
+// tobeEncrypted += "ffff";
 
-// var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
-// var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
+var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
+var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
-// var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
-// var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
-// var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
-// var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-
-// // End
-// var frameEnd = "aaaa";
-
-// var messageLength = frameHeader.length + 4 + ivHex.length + deviceId.length + ciphertext.length + frameEnd.length;
-// var messageLengthHex = messageLength.toString(16);
-
-// if (messageLengthHex.length == 2) {
-//     messageLengthHex = "00" + messageLengthHex;
-// }
-
-// 08 74 47 6B 43 81 FA 25 02 01 68 00 01 01 51 5E 05 C4 FF FF FF FF FF FF
-// 5a 2e d4 e7 3a 5b 78 1f 3a c8 23 95 d4 a7 4e 36 04 d1 33 3a aa 97 8c 5d
-
-var testEncryption = "08 74 47 6B 43 81 FA 25 02 01 68 00 01 01 51 5E 05 C4 FF FF FF FF FF FF";
-var key = CryptoJS.enc.Hex.parse("f416835fae648be87dc39bda084bdc8fce6deded47e762e8");
-var ivHexParse = CryptoJS.enc.Hex.parse("CBBB187441A4BEF7");
-
-var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(testEncryption), key, { iv: ivHexParse });
+var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
 var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
 var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
 var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
-var decryptedData = simpleCrypto.des(common.chars_from_hex("f416835fae648be87dc39bda084bdc8fce6deded47e762e8"), common.chars_from_hex(ciphertext), 0, 1, common.chars_from_hex("CBBB187441A4BEF7"));
-var decryptedHex = common.hex_from_chars(decryptedData);
-var decryptedData = common.chars_from_hex(decryptedHex.substring(12, decryptedHex.length - 12));
+ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
 // console.log('randomNoiseHex : ' + randomNoiseHex);
 // console.log('frameType : ' + frameType);

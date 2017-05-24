@@ -3,7 +3,7 @@ var crypto = require('crypto');
 const Common = require('./common')
 const SimpleCrypto = require('./simpleCrypto')
 var CryptoJS = require("crypto-js");
-var ADLER32 = require('adler-32');
+var adler32 = require('adler32');
 
 // var HOST = '127.0.0.1';
 var PORT = 8884;
@@ -169,11 +169,11 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
         deviceId.length + //30
         randomNoiseHex.length + //16
         returnFrameType.length + //2
-        frameId.length + //2
+        frameId.length + //4
         dataLength.length + //4
         mainMessage.length + //2
         8 + //checksum
-        4 + // extra for 3des
+        2 + // extra for 3des
         frameEnd.length) / 2; //4
     var messageLengthHex = messageLength.toString(16);
     if (messageLengthHex.length == 2) {
@@ -182,12 +182,13 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
 
     var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
     var checksumBuffer = Buffer.from(checksum, "hex");
-    var checksumValue = ADLER32.buf(checksumBuffer);
-    var checksumHex = checksumValue.toString(16);
+    // var checksumValue = ADLER32.buf(checksumBuffer);
+    // var checksumHex = checksumValue.toString(16);
+    var checksumHex = adler32.sum(checksumBuffer).toString(16);
     tobeEncrypted += checksumHex;
 
     // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    tobeEncrypted += "ffff";
+    tobeEncrypted += "ff";
 
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
