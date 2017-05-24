@@ -44,8 +44,12 @@ var mainMessage = "01";
 tobeEncrypted += "01";
 checksum += "01";
 
+var buffer = Buffer.from(checksum, "hex");
+
 var checksumValue = ADLER32.str(checksum);
+var checksumValue1 = ADLER32.buf(buffer);
 var checksumHex = checksumValue.toString(16);
+var checksumHex1 = checksumValue1.toString(16);
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
@@ -69,7 +73,10 @@ tobeEncrypted += "ffffffffffff";
 //     messageLengthHex = "00" + messageLengthHex;
 // }
 
-var testEncryption = "7647BA720ED377F70100000006000110C100004E1E0CEC63";
+// 08 74 47 6B 43 81 FA 25 02 01 68 00 01 01 51 5E 05 C4 FF FF FF FF FF FF
+// 5a 2e d4 e7 3a 5b 78 1f 3a c8 23 95 d4 a7 4e 36 04 d1 33 3a aa 97 8c 5d
+
+var testEncryption = "08 74 47 6B 43 81 FA 25 02 01 68 00 01 01 51 5E 05 C4 FF FF FF FF FF FF";
 var key = CryptoJS.enc.Hex.parse("f416835fae648be87dc39bda084bdc8fce6deded47e762e8");
 var ivHexParse = CryptoJS.enc.Hex.parse("CBBB187441A4BEF7");
 

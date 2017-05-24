@@ -45,7 +45,7 @@ net.createServer(function(sock) {
         var simpleCrypto = new SimpleCrypto();
 
         console.log('************************New data received************************');
-        // console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
+        console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
 
@@ -65,13 +65,13 @@ net.createServer(function(sock) {
         var decryptedHex = common.hex_from_chars(decryptedData);
 
         // console.log('frameHeader : ' + frameHeader);
-        // console.log('messageLength : ' + messageLength);
-        // console.log('iv : ' + iv);
-        // console.log('deviceId : ' + deviceId);
+        console.log('messageLength : ' + messageLength);
+        console.log('iv : ' + iv);
+        console.log('deviceId : ' + deviceId);
         // console.log('frameEnd : ' + frameEnd);
-        // console.log('Crypted Text : ' + cryptedHex);
-        // console.log('Decrypted Hex : ' + decryptedHex);
-        // console.log('Decrypted Data : ' + decryptedData);
+        console.log('Crypted Hex : ' + cryptedHex);
+        console.log('Decrypted Hex : ' + decryptedHex);
+        console.log('Decrypted Data : ' + decryptedData);
 
 
         // console.log('*****************************************************************');
@@ -147,7 +147,8 @@ function generateReply(deviceId, decryptedHex) {
     tobeEncrypted += "01";
     checksum += "01";
 
-    var checksumValue = ADLER32.str(checksum);
+    var checksumBuffer = Buffer.from(checksum, "hex");
+    var checksumValue = ADLER32.buf(checksumBuffer);
     var checksumHex = checksumValue.toString(16);
     tobeEncrypted += checksumHex;
 
@@ -174,18 +175,19 @@ function generateReply(deviceId, decryptedHex) {
         messageLengthHex = "00" + messageLengthHex;
     }
 
-    // console.log('randomNoiseHex : ' + randomNoiseHex);
+    console.log('randomNoiseHex : ' + randomNoiseHex);
     // console.log('frameType : ' + frameType);
-    // console.log('frameID : ' + frameID);
+    console.log('frameID : ' + frameID);
     // console.log('dataLength : ' + dataLength);
-    // console.log('tobeEncrypted : ' + tobeEncrypted);
-    // console.log('ciphertext : ' + ciphertext);
+    console.log('checksumHex : ' + checksumHex);
+    console.log('tobeEncrypted : ' + tobeEncrypted);
+    console.log('ciphertext : ' + ciphertext);
     // console.log('message : ' + mainMessage);
-    // console.log('messageLengthHex : ' + messageLengthHex);
+    console.log('messageLengthHex : ' + messageLengthHex);
 
     var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
 
-    return finalHex.toUpperCase();
+    return finalHex;
 }
 
 // Response Package for Connack (Unencrypted):
