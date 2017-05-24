@@ -27,7 +27,7 @@ net.createServer(function(sock) {
 
         console.log('************************New data received************************');
 
-        var buff = Buffer.from('555538390A0F7647BA720ED377F70AAAA', 'hex');
+        var buff = Buffer.from("555538390A0F7647BA720ED377F7AAAA", "hex");
 
         sock.write(buff, function(err) {
             if (err) {
