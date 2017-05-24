@@ -144,7 +144,7 @@ function generateReply(deviceId, decryptedHex) {
     var mainMessage = "01";
     tobeEncrypted += "01";
 
-    var messageLength = (frameHeader.length + 4 + ivHex.length + deviceId.length + tobeEncrypted.length + 8 + frameEnd.length) / 2;
+    var messageLength = (frameHeader.length + 4 + ivHex.length + deviceId.length + tobeEncrypted.length + 8 + 12 + frameEnd.length) / 2;
     var messageLengthHex = messageLength.toString(16);
     if (messageLengthHex.length == 2) {
         messageLengthHex = "00" + messageLengthHex;
