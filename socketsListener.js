@@ -162,7 +162,19 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     var mainMessage = "01";
     tobeEncrypted += "01";
 
-    var messageLength = (frameHeader.length + 4 + ivHex.length + deviceId.length + tobeEncrypted.length + 8 + 12 + frameEnd.length) / 2;
+    // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
+    var messageLength = (frameHeader.length + //4
+        4 + //message length itself
+        ivHex.length + //16
+        deviceId.length + //30
+        randomNoiseHex.length + //16
+        returnFrameType.length + //2
+        frameId.length + //2
+        dataLength.length + //4
+        mainMessage.length + //2
+        8 + //checksum
+        4 + // extra for 3des
+        frameEnd.length) / 2; //4
     var messageLengthHex = messageLength.toString(16);
     if (messageLengthHex.length == 2) {
         messageLengthHex = "00" + messageLengthHex;
@@ -175,7 +187,7 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     tobeEncrypted += checksumHex;
 
     // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    tobeEncrypted += "ffffffffffff";
+    tobeEncrypted += "ffff";
 
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
