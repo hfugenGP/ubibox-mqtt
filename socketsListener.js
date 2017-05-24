@@ -62,7 +62,7 @@ net.createServer(function(sock) {
 
         // console.log('*****************************************************************');
 
-        var messageCallback = generateReply(deviceId, decryptedHex) + "0d0a";
+        var messageCallback = generateReply(deviceId, decryptedHex);
 
         // console.log('*****************************************************************');
 
@@ -175,7 +175,7 @@ function generateReply(deviceId, decryptedHex) {
 
     var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
 
-    return finalHex;
+    return finalHex.toUpperCase();
 }
 
 // Response Package for Connack (Unencrypted):
