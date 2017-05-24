@@ -144,6 +144,11 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
             // Return ping request with ping response
             returnFrameType = "0d";
             break;
+
+        case '03':
+            // Return publish request with Publish Acknowledgment
+            returnFrameType = "04";
+            break;
     }
 
     tobeEncrypted += returnFrameType;
