@@ -132,23 +132,23 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
 
     var tobeEncrypted = randomNoiseHex;
 
-    var frameType = "0d";
+    var returnFrameType = "0d";
 
     switch (frameType) {
         case '11':
             // Return connect with connack
-            frameType = "02";
+            returnFrameType = "02";
             break;
 
         case '0c':
             // Return ping request with ping response
-            frameType = "0d";
+            returnFrameType = "0d";
             break;
     }
 
-    tobeEncrypted += frameType;
+    tobeEncrypted += returnFrameType;
 
-    tobeEncrypted += frameID;
+    tobeEncrypted += frameId;
 
     // Data length always = 1
     var dataLength = "0001";
@@ -163,7 +163,7 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
         messageLengthHex = "00" + messageLengthHex;
     }
 
-    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameID + dataLength + mainMessage;
+    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameID + dataLength + mainMessage;
     var checksumBuffer = Buffer.from(checksum, "hex");
     var checksumValue = ADLER32.buf(checksumBuffer);
     var checksumHex = checksumValue.toString(16);
@@ -183,7 +183,7 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
     console.log('randomNoiseHex : ' + randomNoiseHex);
-    console.log('frameType : ' + frameType);
+    console.log('returnFrameType : ' + returnFrameType);
     console.log('frameID : ' + frameID);
     console.log('dataLength : ' + dataLength);
     console.log('checksumHex : ' + checksumHex);
