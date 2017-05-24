@@ -29,14 +29,16 @@ net.createServer(function(sock) {
 
         var mockData = "555538390A0FAAAA";
 
-        sock.write(mockData, function(err) {
+        const buff = Buffer.from('555538390A0FAAAA', 'hex');
+
+        sock.write(buff, function(err) {
             if (err) {
                 console.log('Sock write error : ' + err);
                 console.log('*****************************************************************');
             }
         });
 
-        console.log('Return mock data : ' + mockData);
+        console.log('Return mock data : ' + buff.toString());
         console.log('*****************************************************************');
 
         // var buff = new Buffer(data, 'utf8');
