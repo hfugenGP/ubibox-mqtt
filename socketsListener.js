@@ -163,7 +163,7 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
         messageLengthHex = "00" + messageLengthHex;
     }
 
-    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameID + dataLength + mainMessage;
+    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
     var checksumBuffer = Buffer.from(checksum, "hex");
     var checksumValue = ADLER32.buf(checksumBuffer);
     var checksumHex = checksumValue.toString(16);
