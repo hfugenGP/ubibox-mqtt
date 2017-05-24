@@ -29,7 +29,7 @@ net.createServer(function(sock) {
 
         var mockData = "555538390A0FAAAA";
 
-        const buff = Buffer.from('555538390A0FAAAA', 'hex');
+        const buff = Buffer.from('555538390A0FAAAA', 'utf8');
 
         sock.write(buff, function(err) {
             if (err) {
