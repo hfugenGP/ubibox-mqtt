@@ -209,9 +209,9 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     tobeEncrypted += checksumHex;
 
     // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    for (var i = 0; i < bufferBytes; i++) {
-        tobeEncrypted += "ff";
-    }
+    // for (var i = 0; i < bufferBytes; i++) {
+    //     tobeEncrypted += "ff";
+    // }
     // if (dataLength == "0001") {
     //     tobeEncrypted += "ffffffffffff";
     // } else if (dataLength == "0000") {
