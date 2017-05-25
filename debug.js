@@ -10,6 +10,7 @@ var adler32 = require('adler32');
 var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
 
 var common = new Common();
+var simpleCrypto = new SimpleCrypto();
 var frameType = '11';
 var frameId = '0001';
 var deviceId = '383631343733303330313439363833';
@@ -71,7 +72,7 @@ var messageLength = (frameHeader.length + //4
     dataLength.length + //4
     mainMessage.length + //2
     8 + //checksum
-    // 4 + // extra for 3des
+    12 + // extra for 3des
     frameEnd.length) / 2; //4
 var messageLengthHex = messageLength.toString(16);
 if (messageLengthHex.length == 2) {
@@ -80,13 +81,18 @@ if (messageLengthHex.length == 2) {
 
 var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
 var checksumBuffer = Buffer.from(checksum, "hex");
-var checksumValue = ADLER32.buf(checksumBuffer);
-var checksumHex = checksumValue.toString(16);
-var checksumHex1 = adler32.sum(checksumBuffer).toString(16);
+// var checksumValue = ADLER32.buf(checksumBuffer);
+var checksumHex = adler32.sum(checksumBuffer).toString(16);
+// var checksumHex1 = adler32.sum(checksumBuffer).toString(16);
+if (checksumHex.length == 6) {
+    checksumHex = '00' + checksumHex;
+} else if (checksumHex.length == 7) {
+    checksumHex = '0' + checksumHex;
+}
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-// tobeEncrypted += "ffff";
+tobeEncrypted += "ffffffffffff";
 
 var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
 var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
@@ -98,13 +104,8 @@ var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
 ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
-// console.log('randomNoiseHex : ' + randomNoiseHex);
-// console.log('frameType : ' + frameType);
-// console.log('frameID : ' + frameID);
-// console.log('dataLength : ' + dataLength);
-// console.log('tobeEncrypted : ' + tobeEncrypted);
-// console.log('ciphertext : ' + ciphertext);
-// console.log('message : ' + mainMessage);
-// console.log('messageLengthHex : ' + messageLengthHex);
+var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(ciphertext), 0, 1, common.chars_from_hex(ivHex));
+var decryptedHex = common.hex_from_chars(decryptedData);
+
 
 var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
