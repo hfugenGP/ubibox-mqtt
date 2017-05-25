@@ -132,6 +132,12 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
 
     var tobeEncrypted = randomNoiseHex;
 
+    // Data length always = 1
+    var dataLength = "0001";
+
+    var mainMessage = "01";
+
+
     var returnFrameType = "0d";
 
     switch (frameType) {
@@ -143,6 +149,8 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
         case '0c':
             // Return ping request with ping response
             returnFrameType = "0d";
+            dataLength = "0000";
+            mainMessage = "";
             break;
 
         case '03':
@@ -153,14 +161,11 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
 
     tobeEncrypted += returnFrameType;
 
+    tobeEncrypted += dataLength;
+
+    tobeEncrypted += mainMessage;
+
     tobeEncrypted += frameId;
-
-    // Data length always = 1
-    var dataLength = "0001";
-    tobeEncrypted += "0001";
-
-    var mainMessage = "01";
-    tobeEncrypted += "01";
 
     // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
     var messageLength = (frameHeader.length + //4
@@ -173,8 +178,15 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
         dataLength.length + //4
         mainMessage.length + //2
         8 + //checksum
-        12 + // extra for 3des
         frameEnd.length) / 2; //4
+
+    // extra for 3des
+    if (dataLength == "0001") {
+        messageLength += 12;
+    } else if (dataLength == "0000") {
+        messageLength += 13;
+    }
+
     var messageLengthHex = messageLength.toString(16);
     if (messageLengthHex.length == 2) {
         messageLengthHex = "00" + messageLengthHex;
@@ -193,7 +205,11 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     tobeEncrypted += checksumHex;
 
     // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    tobeEncrypted += "ffffffffffff";
+    if (dataLength == "0001") {
+        tobeEncrypted += "ffffffffffff";
+    } else if (dataLength == "0000") {
+        tobeEncrypted += "ffffffffffffff";
+    }
 
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);

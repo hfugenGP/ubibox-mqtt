@@ -55,11 +55,11 @@ tobeEncrypted += returnFrameType;
 tobeEncrypted += frameId;
 
 // Data length always = 1
-var dataLength = "0001";
-tobeEncrypted += "0001";
+var dataLength = "0000";
+tobeEncrypted += "0000";
 
-var mainMessage = "01";
-tobeEncrypted += "01";
+var mainMessage = "";
+tobeEncrypted += "";
 
 // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
 var messageLength = (frameHeader.length + //4
@@ -72,7 +72,7 @@ var messageLength = (frameHeader.length + //4
     dataLength.length + //4
     mainMessage.length + //2
     8 + //checksum
-    12 + // extra for 3des
+    13 + // extra for 3des
     frameEnd.length) / 2; //4
 var messageLengthHex = messageLength.toString(16);
 if (messageLengthHex.length == 2) {
@@ -92,7 +92,7 @@ if (checksumHex.length == 6) {
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-tobeEncrypted += "ffffffffffff";
+tobeEncrypted += "ffffffffffffff";
 
 var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
 var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
