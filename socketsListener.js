@@ -1,15 +1,20 @@
-var net = require('net');
-var crypto = require('crypto');
+const net = require('net');
+// const crypto = require('crypto');
 const Common = require('./common')
 const SimpleCrypto = require('./simpleCrypto')
-var CryptoJS = require("crypto-js");
-var adler32 = require('adler32');
+const CryptoJS = require("crypto-js");
+const adler32 = require('adler32');
+const ZTEDataService = require('./zteDataService')
 
 // var HOST = '127.0.0.1';
-var PORT = 8884;
+const PORT = 8884;
 
 // Different per device
-var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
+const SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
+//Header
+const frameHeader = "5555";
+// End
+const frameEnd = "aaaa";
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
@@ -39,6 +44,8 @@ net.createServer(function(sock) {
         // console.log('Return mock data : ' + buff.toString("hex"));
         // console.log('*****************************************************************');
 
+        var zteDataService = new ZTEDataService();
+
         var buff = new Buffer(data, 'utf8');
         var hexData = buff.toString('hex');
         var common = new Common();
@@ -52,35 +59,22 @@ net.createServer(function(sock) {
         var common = new Common();
         var simpleCrypto = new SimpleCrypto();
 
-        // var frameHeader = hexData.substring(0, 4);
-        var messageLength = hexData.substring(4, 8);
-        var iv = hexData.substring(8, 24);
-        var deviceId = hexData.substring(24, 54);
-        // var frameEnd = hexData.substring(hexData.length - 4, hexData.length);
-
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
-
         var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
 
-        var frameType = decryptedHex.substring(16, 18);
-        var frameId = decryptedHex.substring(18, 22);
+        if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
+            return;
+        }
 
-        console.log('Crypted Hex : ' + cryptedHex);
-        console.log('Decrypted Hex : ' + decryptedHex);
         console.log('Decrypted Data : ' + decryptedData);
-        console.log('messageLength : ' + messageLength);
-        console.log('iv : ' + iv);
-        console.log('deviceId : ' + deviceId);
-        console.log('frameType : ' + frameType);
-        console.log('frameId : ' + frameId);
 
         console.log('*****************************************************************');
 
-        var messageCallback = generateReply(deviceId, frameType, frameId, decryptedHex);
+        var messageCallback = zteDataService.generateReply(hexData, decryptedHex);
 
-        // console.log('*****************************************************************');
+        console.log('*****************************************************************');
 
         var buffer = Buffer.from(messageCallback, "hex");
 
@@ -92,13 +86,10 @@ net.createServer(function(sock) {
             }
         });
 
-        // sock.end(messageCallback);
+        // sock.end(buffer);
 
-        console.log('Return data : ' + buffer.toString("hex"));
-        // console.log('Return datasize : ' + dataSize);
-        // console.log('Return buffer : ' + buffer);
-
-        console.log('*****************************************************************');
+        console.log('Returned data : ' + buffer.toString("hex"));
+        console.log('************************End data received************************');
     });
 
     // Add a 'close' event handler to this instance of socket
@@ -113,140 +104,6 @@ net.createServer(function(sock) {
 }).listen(PORT, () => {
     console.log('Server listening on ' + ':' + PORT);
 });
-
-function generateReply(deviceId, frameType, frameId, decryptedHex) {
-    var common = new Common();
-    //Header
-    var frameHeader = "5555";
-    // End
-    var frameEnd = "aaaa";
-
-    var iv = CryptoJS.lib.WordArray.random(16);
-    // var iv = CryptoJS.lib.WordArray.create(64 / 8);
-    var ivText = CryptoJS.enc.Utf16.stringify(iv);
-    var ivHex = common.hex_from_chars(ivText); //
-
-    var randomNoise = CryptoJS.lib.WordArray.random(16);
-    var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
-    var randomNoiseHex = common.hex_from_chars(randomNoiseText);
-
-    var tobeEncrypted = randomNoiseHex;
-
-    // Data length always = 1
-    var dataLength = "0001";
-
-    var mainMessage = "01";
-
-
-    var returnFrameType = "0d";
-
-    switch (frameType) {
-        case '11':
-            // Return connect with connack
-            returnFrameType = "02";
-            break;
-
-        case '0c':
-            // Return ping request with ping response
-            returnFrameType = "0d";
-            dataLength = "0000";
-            mainMessage = "";
-            break;
-
-        case '03':
-            // Return publish request with Publish Acknowledgment
-            returnFrameType = "04";
-            break;
-    }
-
-    tobeEncrypted += returnFrameType;
-
-    tobeEncrypted += dataLength;
-
-    tobeEncrypted += mainMessage;
-
-    tobeEncrypted += frameId;
-
-    // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
-    var messageLength = (frameHeader.length + //4
-        4 + //message length itself
-        ivHex.length + //16
-        deviceId.length + //30
-        randomNoiseHex.length + //16
-        returnFrameType.length + //2
-        frameId.length + //4
-        dataLength.length + //4
-        mainMessage.length + //2
-        8 + //checksum
-        16 + // 3des encryption
-        frameEnd.length) / 2; //4
-
-    // extra for 3des
-    var tobeEncryptedLength = (tobeEncrypted.length + 8) / 2;
-    var bufferBytes = 8 - (tobeEncryptedLength - (Math.floor(tobeEncryptedLength / 8) * 8));
-    messageLength += bufferBytes;
-    // if (dataLength == "0001") {
-    //     messageLength += 6;
-    // } else if (dataLength == "0000") {
-    //     messageLength += 7;
-    // }
-
-    var messageLengthHex = messageLength.toString(16);
-    if (messageLengthHex.length == 2) {
-        messageLengthHex = "00" + messageLengthHex;
-    }
-
-    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
-    var checksumBuffer = Buffer.from(checksum, "hex");
-    // var checksumValue = ADLER32.buf(checksumBuffer);
-    // var checksumHex = checksumValue.toString(16);
-    var checksumHex = adler32.sum(checksumBuffer).toString(16);
-    if (checksumHex.length == 6) {
-        checksumHex = '00' + checksumHex;
-    } else if (checksumHex.length == 7) {
-        checksumHex = '0' + checksumHex;
-    }
-    tobeEncrypted += checksumHex;
-
-    // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    // for (var i = 0; i < bufferBytes; i++) {
-    //     tobeEncrypted += "ff";
-    // }
-    // if (dataLength == "0001") {
-    //     tobeEncrypted += "ffffffffffff";
-    // } else if (dataLength == "0000") {
-    //     tobeEncrypted += "ffffffffffffff";
-    // }
-
-    var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
-    var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
-
-    var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
-    var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
-    var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
-    var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-
-    // ciphertext = ciphertext.substring(0, ciphertext.length - 16);
-
-    console.log('frameHeader : ' + frameHeader);
-    console.log('messageLengthHex : ' + messageLengthHex);
-    console.log('ivHex : ' + ivHex);
-    console.log('deviceId : ' + deviceId);
-    console.log('randomNoiseHex : ' + randomNoiseHex);
-    console.log('returnFrameType : ' + returnFrameType);
-    console.log('frameID : ' + frameId);
-    console.log('dataLength : ' + dataLength);
-    console.log('message : ' + mainMessage);
-    console.log('checksumHex : ' + checksumHex);
-    console.log('frameEnd : ' + frameEnd);
-
-    console.log('tobeEncrypted : ' + tobeEncrypted);
-    console.log('ciphertext : ' + ciphertext);
-
-    var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
-
-    return finalHex;
-}
 
 // Response Package for Connack (Unencrypted):
 // 55 55 -> Frame Header
