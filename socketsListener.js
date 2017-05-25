@@ -182,9 +182,9 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
 
     // extra for 3des
     if (dataLength == "0001") {
-        messageLength += 12;
+        messageLength += 6;
     } else if (dataLength == "0000") {
-        messageLength += 13;
+        messageLength += 7;
     }
 
     var messageLengthHex = messageLength.toString(16);

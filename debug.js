@@ -72,8 +72,16 @@ var messageLength = (frameHeader.length + //4
     dataLength.length + //4
     mainMessage.length + //2
     8 + //checksum
-    13 + // extra for 3des
+    // 13 + // extra for 3des
     frameEnd.length) / 2; //4
+
+var tobeEncryptedLength = tobeEncrypted.length / 2;
+
+var bufferBit = 8 - (tobeEncryptedLength - (Math.floor(tobeEncryptedLength / 8) * 8));
+
+
+messageLength += bufferBit;
+
 var messageLengthHex = messageLength.toString(16);
 if (messageLengthHex.length == 2) {
     messageLengthHex = "00" + messageLengthHex;
@@ -92,17 +100,21 @@ if (checksumHex.length == 6) {
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-tobeEncrypted += "ffffffffffffff";
+// tobeEncrypted += "ffffffffffffff";
+for (var i = 0; i < bufferBit; i++) {
+    tobeEncrypted += "ff";
+}
 
 var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
 var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
 var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
+// var encrypted = CryptoJS.TripleDES.encrypt(tobeEncrypted, key, { iv: ivHexParse });
 var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
 var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
 var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
-ciphertext = ciphertext.substring(0, ciphertext.length - 16);
+ciphertext = ciphertext.substring(0, ciphertext.length - 8);
 
 var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(ciphertext), 0, 1, common.chars_from_hex(ivHex));
 var decryptedHex = common.hex_from_chars(decryptedData);
