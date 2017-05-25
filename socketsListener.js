@@ -178,14 +178,18 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
         dataLength.length + //4
         mainMessage.length + //2
         8 + //checksum
+        16 + // 3des encryption
         frameEnd.length) / 2; //4
 
     // extra for 3des
-    if (dataLength == "0001") {
-        messageLength += 6;
-    } else if (dataLength == "0000") {
-        messageLength += 7;
-    }
+    var tobeEncryptedLength = (tobeEncrypted.length + 8) / 2;
+    var bufferBytes = 8 - (tobeEncryptedLength - (Math.floor(tobeEncryptedLength / 8) * 8));
+    messageLength += bufferBytes;
+    // if (dataLength == "0001") {
+    //     messageLength += 6;
+    // } else if (dataLength == "0000") {
+    //     messageLength += 7;
+    // }
 
     var messageLengthHex = messageLength.toString(16);
     if (messageLengthHex.length == 2) {
@@ -205,11 +209,14 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     tobeEncrypted += checksumHex;
 
     // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-    if (dataLength == "0001") {
-        tobeEncrypted += "ffffffffffff";
-    } else if (dataLength == "0000") {
-        tobeEncrypted += "ffffffffffffff";
+    for (var i = 0; i < bufferBytes; i++) {
+        tobeEncrypted += "ff";
     }
+    // if (dataLength == "0001") {
+    //     tobeEncrypted += "ffffffffffff";
+    // } else if (dataLength == "0000") {
+    //     tobeEncrypted += "ffffffffffffff";
+    // }
 
     var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
@@ -219,7 +226,7 @@ function generateReply(deviceId, frameType, frameId, decryptedHex) {
     var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
-    ciphertext = ciphertext.substring(0, ciphertext.length - 16);
+    // ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
     console.log('frameHeader : ' + frameHeader);
     console.log('messageLengthHex : ' + messageLengthHex);

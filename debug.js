@@ -11,7 +11,7 @@ var SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
 
 var common = new Common();
 var simpleCrypto = new SimpleCrypto();
-var frameType = '11';
+var frameType = '0c';
 var frameId = '0001';
 var deviceId = '383631343733303330313439363833';
 
@@ -31,6 +31,11 @@ var randomNoiseHex = common.hex_from_chars(randomNoiseText);
 
 var tobeEncrypted = randomNoiseHex;
 
+// Data length always = 1
+var dataLength = "0001";
+
+var mainMessage = "01";
+
 var returnFrameType = "0d";
 
 switch (frameType) {
@@ -42,6 +47,8 @@ switch (frameType) {
     case '0c':
         // Return ping request with ping response
         returnFrameType = "0d";
+        dataLength = "0000";
+        mainMessage = "";
         break;
 
     case '03':
@@ -52,14 +59,11 @@ switch (frameType) {
 
 tobeEncrypted += returnFrameType;
 
+tobeEncrypted += dataLength;
+
+tobeEncrypted += mainMessage;
+
 tobeEncrypted += frameId;
-
-// Data length always = 1
-var dataLength = "0000";
-tobeEncrypted += "0000";
-
-var mainMessage = "";
-tobeEncrypted += "";
 
 // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
 var messageLength = (frameHeader.length + //4
@@ -72,15 +76,19 @@ var messageLength = (frameHeader.length + //4
     dataLength.length + //4
     mainMessage.length + //2
     8 + //checksum
-    // 13 + // extra for 3des
     frameEnd.length) / 2; //4
 
-var tobeEncryptedLength = tobeEncrypted.length / 2;
+var tobeEncryptedLength = (tobeEncrypted.length + 8) / 2;
+var bufferBytes = 8 - (tobeEncryptedLength - (Math.floor(tobeEncryptedLength / 8) * 8));
+messageLength += bufferBytes;
 
-var bufferBit = 8 - (tobeEncryptedLength - (Math.floor(tobeEncryptedLength / 8) * 8));
-
-
-messageLength += bufferBit;
+// extra for 3des
+// if (dataLength == "0001") {
+//     messageLength += 6;
+// } else
+// if (dataLength == "0000") {
+//     messageLength += 7;
+// }
 
 var messageLengthHex = messageLength.toString(16);
 if (messageLengthHex.length == 2) {
@@ -90,8 +98,8 @@ if (messageLengthHex.length == 2) {
 var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
 var checksumBuffer = Buffer.from(checksum, "hex");
 // var checksumValue = ADLER32.buf(checksumBuffer);
+// var checksumHex = checksumValue.toString(16);
 var checksumHex = adler32.sum(checksumBuffer).toString(16);
-// var checksumHex1 = adler32.sum(checksumBuffer).toString(16);
 if (checksumHex.length == 6) {
     checksumHex = '00' + checksumHex;
 } else if (checksumHex.length == 7) {
@@ -100,21 +108,24 @@ if (checksumHex.length == 6) {
 tobeEncrypted += checksumHex;
 
 // when the length of encrypted data is not a multiple of 8,we shall add 0xFF in the end of the encrypted data
-// tobeEncrypted += "ffffffffffffff";
-for (var i = 0; i < bufferBit; i++) {
+for (var i = 0; i < bufferBytes; i++) {
     tobeEncrypted += "ff";
 }
+// if (dataLength == "0001") {
+//     tobeEncrypted += "ffffffffffff";
+// } else if (dataLength == "0000") {
+//     tobeEncrypted += "ffffffffffffff";
+// }
 
 var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
 var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
 var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
-// var encrypted = CryptoJS.TripleDES.encrypt(tobeEncrypted, key, { iv: ivHexParse });
 var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
 var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
 var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
-ciphertext = ciphertext.substring(0, ciphertext.length - 8);
+ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
 var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(ciphertext), 0, 1, common.chars_from_hex(ivHex));
 var decryptedHex = common.hex_from_chars(decryptedData);
