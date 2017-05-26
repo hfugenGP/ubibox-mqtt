@@ -10,7 +10,7 @@ redis.subscribe('application');
 redis.subscribe('device');
 redis.subscribe('event');
 redis.subscribe('manholeAlert');
-redis.subscribe('notifyNotseen');
+redis.subscribe('notifyNotSeen');
 redis.on('message', function(channel, message) {
     io.emit(channel, message);
 });
