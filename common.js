@@ -2,6 +2,13 @@
 
 var Common = function() {};
 
+var dateTime = parseInt('564EB453', 16);
+var date = new Date(dateTime * 1000);
+
+Common.prototype.date_from_hex = function(inputstr) {
+    return new Date(parseInt(inputstr, 16) * 1000);
+}
+
 Common.prototype.chars_from_hex = function(inputstr) {
     var outputstr = '';
     inputstr = inputstr.replace(/^(0x)?/g, '');

@@ -61,6 +61,8 @@ ZTEDataService.prototype.processData = function(hexData, cryptedHex, decryptedHe
 }
 
 function publishMessageHandle(effectiveData) {
+    var common = new Common();
+
     var dataTypeMajor = effectiveData.substring(0, 2); //41
     var dataTypeMinor = effectiveData.substring(2, 4); //42
 
@@ -71,9 +73,9 @@ function publishMessageHandle(effectiveData) {
                 case "00":
                     //Summary data
                     console.log('*********************Start Summary data*********************');
-                    var ignitionOnTime = effectiveData.substring(4, 12);
+                    var ignitionOnTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var gpsWhenIgnitionOn = effectiveData.substring(12, 60);
-                    var ignitionOffTime = effectiveData.substring(60, 68);
+                    var ignitionOffTime = common.date_from_hex(effectiveData.substring(60, 68));
                     var gpsWhenIgnitionOff = effectiveData.substring(68, 116);
                     var drivingDistance = effectiveData.substring(116, 122);
                     var drivingFuelConsumption = effectiveData.substring(122, 128);
@@ -108,7 +110,7 @@ function publishMessageHandle(effectiveData) {
                     //Ignition on
                     console.log('*********************Start Ignition on*********************');
                     var typeOfIgnitionOn = effectiveData.substring(4, 6);
-                    var timeOfIgnitionOn = effectiveData.substring(6, 14);
+                    var timeOfIgnitionOn = common.date_from_hex(effectiveData.substring(6, 14));
                     var informationOfDTC = effectiveData.substring(14, effectiveData.length);
 
                     console.log('typeOfIgnitionOn : ' + typeOfIgnitionOn);
@@ -120,7 +122,7 @@ function publishMessageHandle(effectiveData) {
                     //Ignition off
                     console.log('*********************Start Ignition off*********************');
                     var typeOfIgnitionOff = effectiveData.substring(4, 6);
-                    var timeOfIgnitionOff = effectiveData.substring(6, 14);
+                    var timeOfIgnitionOff = common.date_from_hex(effectiveData.substring(6, 14));
                     var informationOfDTC = effectiveData.substring(14, effectiveData.length);
 
                     console.log('typeOfIgnitionOff : ' + typeOfIgnitionOff);
@@ -136,7 +138,7 @@ function publishMessageHandle(effectiveData) {
                 case "00":
                     //Sudden acceleration
                     console.log('*********************Start Sudden acceleration*********************');
-                    var occurTime = effectiveData.substring(4, 12);
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var gpsPosition = effectiveData.substring(12, 60);
                     var speedBeforeAcc = effectiveData.substring(60, 62);
                     var speedAfterAcc = effectiveData.substring(62, 64);
@@ -152,7 +154,7 @@ function publishMessageHandle(effectiveData) {
                 case "01":
                     //Sudden deceleration
                     console.log('*********************Start Sudden deceleration*********************');
-                    var occurTime = effectiveData.substring(4, 12);
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var gpsPosition = effectiveData.substring(12, 60);
                     var speedBeforeDec = effectiveData.substring(60, 62);
                     var speedAfterDec = effectiveData.substring(62, 64);
@@ -168,7 +170,7 @@ function publishMessageHandle(effectiveData) {
                 case "02":
                     //Sharp turn
                     console.log('*********************Start Sharp turn*********************');
-                    var occurTime = effectiveData.substring(4, 12);
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var gpsPosition = effectiveData.substring(12, 60);
                     var turn = effectiveData.substring(60, 62);
 
@@ -180,7 +182,7 @@ function publishMessageHandle(effectiveData) {
                 case "03":
                     //Exceed idle
                     console.log('*********************Start Exceed idle*********************');
-                    var occurTime = effectiveData.substring(4, 12);
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Exceed idle*********************');
@@ -188,7 +190,7 @@ function publishMessageHandle(effectiveData) {
                 case "04":
                     //Driving tired
                     console.log('*********************Start Driving tired*********************');
-                    var occurTime = effectiveData.substring(4, 12);
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Driving tired*********************');
@@ -215,13 +217,50 @@ function publishMessageHandle(effectiveData) {
                     //VIN
                     console.log('*********************Start VIN code*********************');
                     var typeComProtocol = effectiveData.substring(4, 6);
-                    var numberOfVinCode = effectiveData.substring(6, 8);
-                    var typeComProtocol = effectiveData.substring(4, 6);
+                    var numberOfVinCode = parseInt(effectiveData.substring(6, 8), 16);
+                    var vinValue = effectiveData.substring(8, 8 + numberOfVinCode * 2);
+
+                    console.log('typeComProtocol : ' + typeComProtocol);
+                    console.log('numberOfVinCode : ' + numberOfVinCode);
+                    console.log('vinValue : ' + vinValue);
                     console.log('*********************End VIN code*********************');
                     break;
                 case "01":
                     //data flow
                     console.log('*********************Start data flow*********************');
+                    var reportTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var rpm = effectiveData.substring(12, 16);
+                    var speed = effectiveData.substring(16, 20);
+                    var engineCoolantTemperature = effectiveData.substring(20, 24);
+                    var throttlePosition = effectiveData.substring(24, 28);
+                    var engineDuty = effectiveData.substring(28, 32);
+                    var intakeAirFlow = effectiveData.substring(32, 36);
+                    var intakeAirTemp = effectiveData.substring(36, 40);
+                    var intakeAirPressure = effectiveData.substring(40, 44);
+                    var batteryVolt = effectiveData.substring(44, 46);
+                    var fli = effectiveData.substring(46, 50);
+                    var dt = effectiveData.substring(50, 54);
+                    var mli = effectiveData.substring(54, 58);
+                    var totalMileage = effectiveData.substring(58, 66);
+                    var totalFuelConsumption = effectiveData.substring(66, 74);
+                    var totalDrivingTime = effectiveData.substring(74, 82);
+
+                    console.log('reportTime : ' + reportTime);
+                    console.log('rpm : ' + rpm);
+                    console.log('speed : ' + speed);
+                    console.log('engineCoolantTemperature : ' + engineCoolantTemperature);
+                    console.log('throttlePosition : ' + throttlePosition);
+                    console.log('engineDuty : ' + engineDuty);
+                    console.log('intakeAirFlow : ' + intakeAirFlow);
+                    console.log('intakeAirTemp : ' + intakeAirTemp);
+                    console.log('intakeAirPressure : ' + intakeAirPressure);
+                    console.log('batteryVolt : ' + batteryVolt);
+                    console.log('fli : ' + fli);
+                    console.log('dt : ' + dt);
+                    console.log('mli : ' + mli);
+                    console.log('totalMileage : ' + totalMileage);
+                    console.log('totalFuelConsumption : ' + totalFuelConsumption);
+                    console.log('totalDrivingTime : ' + totalDrivingTime);
                     console.log('*********************End data flow*********************');
                     break;
             }
@@ -231,6 +270,61 @@ function publishMessageHandle(effectiveData) {
             break;
         case "05":
             //Report the vehicle secure data, include: Trouble code, low voltage, vibration after ignition off, high engine speed in low water temperature ,tow, suspected collision
+            switch (dataTypeMinor) {
+                case "00":
+                    //DTC code
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var dtcInformation = effectiveData.substring(12, 14);
+
+                    //TODO
+                    break;
+                case "01":
+                    //Low voltage
+                    console.log('*********************Start Low voltage*********************');
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var gpsPosition = effectiveData.substring(12, 60);
+                    var batteryVolt = effectiveData.substring(60, 62);
+
+                    console.log('occurTime : ' + occurTime);
+                    console.log('gpsPosition : ' + gpsPosition);
+                    console.log('batteryVolt : ' + batteryVolt);
+                    console.log('*********************End Low voltage*********************');
+                    break;
+                case "02":
+                    //Vibration after ignition off
+                    console.log('*********************Start Vibration after ignition off*********************');
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var gpsPosition = effectiveData.substring(12, 60);
+                    var peekValue = effectiveData.substring(60, 64);
+
+                    console.log('occurTime : ' + occurTime);
+                    console.log('gpsPosition : ' + gpsPosition);
+                    console.log('peekValue : ' + peekValue);
+                    console.log('*********************End Vibration after ignition off*********************');
+                    break;
+                case "05":
+                    //Suspected collision
+                    console.log('*********************Start Suspected collision*********************');
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var gpsPosition = effectiveData.substring(12, 60);
+                    var sollisionValue = effectiveData.substring(60, 62);
+
+                    console.log('occurTime : ' + occurTime);
+                    console.log('gpsPosition : ' + gpsPosition);
+                    console.log('sollisionValue : ' + sollisionValue);
+                    console.log('*********************End Suspected collision*********************');
+                    break;
+                case "07":
+                    //Device pulled out
+                    console.log('*********************Start Device pulled out*********************');
+                    var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var gpsPosition = effectiveData.substring(12, 60);
+
+                    console.log('occurTime : ' + occurTime);
+                    console.log('gpsPosition : ' + gpsPosition);
+                    console.log('*********************End Device pulled out*********************');
+                    break;
+            }
             break;
         case "F0":
             //Device report the data from platform server
