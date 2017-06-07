@@ -269,7 +269,10 @@ function generateMessage(macAddr, receivedDate, rawData) {
             var year = rawData.substring(12, 14);
             data['updatedOn'] = [new Date(year, month, day, hour)];
             data['voltage'] = [parseInt(rawData.substring(14, 16)) / 10, 'V'];
-            data['reading'] = [rawData.substring(16, 22)];
+
+            var readingValue = rawData.substring(16, 22);
+            readingValue = readingValue.split('').reverse().join('');
+            data['reading'] = [readingValue];
             break;
         case 9: //'scooter_sensor' 0003017b827e0736773c
             var alertFlags = Array.from(common.hex2bits(rawData.substring(0, 2)));
