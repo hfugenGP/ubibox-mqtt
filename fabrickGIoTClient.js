@@ -44,7 +44,6 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var json_object = JSON.parse(message);
 
     var gateways = new Array();
-    var devices = new Array();
 
     switch (topic) {
         case 'config/GIoT/Gateways':
@@ -62,87 +61,83 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
             });
 
-            console.log(gateways);
+            while (subcribe_gateways.length) {
+                subcribe_gateways.pop();
+            }
 
-            for (var id in subcribe_gateways) {
-                if (subcribe_gateways.hasOwnProperty(id) && subcribe_brokers[id] != null && gateways[id] == null) {
-                    subcribe_brokers[id].end();
-                    subcribe_brokers[id] = null;
-                    subcribe_gateways[id] = null;
+            for (var id in subcribe_brokers) {
+                if (!gateways.hasOwnProperty(id) && subcribe_brokers[id] != undefined) {
+                    subcribe_brokers[id].end(true);
+                    subcribe_brokers[id] = undefined;
                 }
             }
 
             for (var id in gateways) {
-                if (gateways.hasOwnProperty(id)) {
-                    var gateway = gateways[id];
-                    if (subcribe_brokers[id] == null) {
-                        subcribe_gateways[id] = gateway;
-
-                        var broker_host = "tcp://" + gateway.host;
-                        var options = {
-                            keepalive: config.defaultBroker.keepalive,
-                            port: gateway.port,
-                            clean: config.defaultBroker.clean,
-                            clientId: config.defaultBroker.idKey + gateway.id,
-                            username: gateway.username,
-                            password: gateway.password,
-                            reconnectPeriod: config.defaultBroker.reconnectPeriod,
-                            rejectUnauthorized: config.defaultBroker.rejectUnauthorized,
-                            protocolId: config.defaultBroker.protocolId,
-                            protocolVersion: config.defaultBroker.protocolVersion
-                        }
-
-                        var broker = new Broker(gateway, broker_host, options);
-                        var client = broker.connect();
-                        // broker.subscribe();
-                        broker.onConnect((name, username, topics) => {
-                            console.log(name + ' Broker connected');
-
-                            console.log('Update client status to Fabrick broker')
-                            fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Connected"}', { qos: 1, retain: true })
-
-                            // topics.forEach(function(topic){
-                            //   broker.subscribe(topic);
-                            // });
-                        });
-                        broker.onError((err, username) => {
-                            console.log('error happen with Gemtek broker')
-                            console.log(err)
-                            fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Error"}', { qos: 1, retain: true })
-                            broker.end()
-                        });
-                        broker.onClose((name, username) => {
-                            console.log(name + ' broker disconnected')
-                            fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Disconnected"}', { qos: 1, retain: true })
-                        });
-                        broker.onReconnect((name) => {
-                            console.log(name + ' reconnecting...')
-                        });
-                        broker.onOffline((name, username) => {
-                            console.log(name + ' broker is offline')
-                            fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Offline"}', { qos: 1, retain: true })
-                        });
-                        broker.onMessage(processGemtekMessage);
-
-                        subcribe_brokers[id] = broker;
-                    } else if (subcribe_gateways[id].topics != gateway.topics) {
-                        //Subcrible/Unsubcrible topics within gateway
-                        // var broker = subcribe_brokers[id];
-
-                        // subcribe_gateways[id].topics.forEach(function(topic){
-                        //     broker.unsubscribe(topic);
-                        // });
-
-                        // gateway.topics.forEach(function(topic){
-                        //     broker.subscribe(topic);
-                        // });
+                var gateway = gateways[id];
+                subcribe_gateways[id] = gateway;
+                if (!subcribe_brokers.hasOwnProperty(id) || subcribe_brokers[id] == undefined) {
+                    console.log("New gateway: " + gateway);
+                    var broker_host = "tcp://" + gateway.host;
+                    var options = {
+                        keepalive: config.defaultBroker.keepalive,
+                        port: gateway.port,
+                        clean: config.defaultBroker.clean,
+                        clientId: config.defaultBroker.idKey + gateway.id,
+                        username: gateway.username,
+                        password: gateway.password,
+                        reconnectPeriod: config.defaultBroker.reconnectPeriod,
+                        rejectUnauthorized: config.defaultBroker.rejectUnauthorized,
+                        protocolId: config.defaultBroker.protocolId,
+                        protocolVersion: config.defaultBroker.protocolVersion
                     }
+
+                    var broker = new Broker(gateway, broker_host, options);
+                    broker.connect();
+                    broker.onConnect((name, username, topics) => {
+                        console.log(name + ' Broker connected');
+
+                        console.log('Update client status to Fabrick broker')
+                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Connected"}', { qos: 1, retain: true })
+                    });
+                    broker.onError((err, username) => {
+                        console.log('error happen with Gemtek broker')
+                        console.log(err)
+                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Error"}', { qos: 1, retain: true })
+                        broker.end()
+                    });
+                    broker.onClose((name, username) => {
+                        console.log(name + ' broker disconnected')
+                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Disconnected"}', { qos: 1, retain: true })
+                    });
+                    broker.onReconnect((name) => {
+                        console.log(name + ' reconnecting...')
+                    });
+                    broker.onOffline((name, username) => {
+                        console.log(name + ' broker is offline')
+                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Offline"}', { qos: 1, retain: true })
+                    });
+                    broker.onMessage(processGemtekMessage);
+
+                    subcribe_brokers[id] = broker;
+                } else if (subcribe_gateways[id].topics != gateway.topics) {
+                    //Subcrible/Unsubcrible topics within gateway
+                    // var broker = subcribe_brokers[id];
+
+                    // subcribe_gateways[id].topics.forEach(function(topic){
+                    //     broker.unsubscribe(topic);
+                    // });
+
+                    // gateway.topics.forEach(function(topic){
+                    //     broker.subscribe(topic);
+                    // });
                 }
             }
             break;
         case 'config/GIoT/Devices':
             // console.log(json_object);
-            subcribe_devices = [];
+            while (subcribe_devices.length) {
+                subcribe_devices.pop();
+            }
             json_object.forEach(function(element) {
                 subcribe_devices['MAC-' + element['device'].toLowerCase()] = element['deviceType'];
             });
@@ -189,9 +184,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
             data["humidity"] = [humidity, '%RH', common.getDataStatus("humidity", humidity)];
-            // var co2 = "N/A"
-            // var co = "N/A"
-            // var pm25 = "N/A"
 
             switch (data["deviceType"][0]) {
                 case '01':
@@ -208,13 +200,6 @@ function generateMessage(macAddr, receivedDate, rawData) {
                     break
                 default:
             }
-
-            // data["device_type"] = device_type;
-            // data["temperature"] = temperature;
-            // data["rh"] = rh;
-            // data["co2"] = co2;
-            // data["co"] = co;
-            // data["pm25"] = pm25;
 
             break;
         case 2: //'drainage_sensor'
@@ -290,23 +275,12 @@ function generateMessage(macAddr, receivedDate, rawData) {
             if (statusFlags[5] == '0') {
                 latType = 1;
             }
-            // if (statusFlags[2] == '0') {
-            //     data['latitudeType'] = ['north'];
-            // } else {
-            //     data['latitudeType'] = ['south'];
-            //     latType = -1;
-            // }
 
             var lngType = -1;
             if (statusFlags[4] == '0') {
                 lngType = 1;
             }
-            // if (statusFlags[3] == '0') {
-            //     data['longitudeType'] = ['east'];
-            // } else {
-            //     data['longitudeType'] = ['west'];
-            //     lngType = -1;
-            // }
+
             // 24871678000000,121009733000000
             data['latitude'] = [parseInt('0x' + rawData.substring(4, 12)) * latType / 1000000];
             data['longitude'] = [parseInt('0x' + rawData.substring(12, 20)) * lngType / 1000000];
@@ -346,23 +320,11 @@ function generateMessage(macAddr, receivedDate, rawData) {
             if (statusFlags[6] == '0') {
                 latType = 1;
             }
-            // if (statusFlags[1] == '0') {
-            //     data['latitudeType'] = ['north'];
-            // } else {
-            //     data['latitudeType'] = ['south'];
-            //     latType = -1;
-            // }
 
             var lngType = -1;
             if (statusFlags[5] == '0') {
                 lngType = 1;
             }
-            // if (statusFlags[2] == '0') {
-            //     data['longitudeType'] = ['east'];
-            // } else {
-            //     data['longitudeType'] = ['west'];
-            //     lngType = -1;
-            // }
 
             if (statusFlags[2] == '0') {
                 data['loraPacketType'] = ['lora'];

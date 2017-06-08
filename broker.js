@@ -65,8 +65,8 @@ Broker.prototype.unsubscribe = function() {
     })
 }
 
-Broker.prototype.end = function() {
-    this.client.end();
+Broker.prototype.end = function(force) {
+    this.client.end(force);
 }
 
 Broker.prototype.onMessage = function(action) {
