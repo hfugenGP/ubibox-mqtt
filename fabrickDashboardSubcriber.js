@@ -87,7 +87,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             MongoClient.connect(url, function(err, db) {
                 console.log("Connected correctly to server");
 
-                db.collection('gatewayData').insertOne({}, function(err, r) {
+                db.collection('GatewayData').insertOne({}, function(err, r) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
