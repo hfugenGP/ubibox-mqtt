@@ -51,8 +51,8 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     // console.log('message : ')
     var json_object = JSON.parse(message);
     // console.log(json_object);
-    var b64string = message;
-    var buf = Buffer.from(b64string, 'base64');
+    // var b64string = message;
+    // var buf = Buffer.from(b64string, 'base64');
 
     switch (topic) {
         case 'fabrick.io/device/data':
@@ -85,7 +85,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
-                console.log("Connected correctly to server");
+                // console.log("Connected correctly to server");
 
                 db.collection('GatewayData').insertOne(data, function(err, r) {
                     if (err) {

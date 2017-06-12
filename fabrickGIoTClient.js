@@ -50,6 +50,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             json_object.forEach(function(element) {
                 var gateway = {
                     id: element['id'],
+                    protocal: element['protocal'],
                     host: element['host'],
                     port: element['port'],
                     username: element['username'],
@@ -77,18 +78,22 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribe_gateways[id] = gateway;
                 if (!subcribe_brokers.hasOwnProperty(id) || subcribe_brokers[id] == undefined) {
                     console.log("New gateway: " + gateway);
-                    var broker_host = "tcp://" + gateway.host;
+                    var broker_host = gateway.protocal + "://" + gateway.host;
+
                     var options = {
                         keepalive: config.defaultBroker.keepalive,
                         port: gateway.port,
                         clean: config.defaultBroker.clean,
                         clientId: config.defaultBroker.idKey + gateway.id,
-                        username: gateway.username,
-                        password: gateway.password,
                         reconnectPeriod: config.defaultBroker.reconnectPeriod,
                         rejectUnauthorized: config.defaultBroker.rejectUnauthorized,
                         protocolId: config.defaultBroker.protocolId,
                         protocolVersion: config.defaultBroker.protocolVersion
+                    }
+
+                    if (gateway.username && gateway.password) {
+                        options.username = gateway.username;
+                        options.password = gateway.password;
                     }
 
                     var broker = new Broker(gateway, broker_host, options);
