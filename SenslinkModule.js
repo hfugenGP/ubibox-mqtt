@@ -120,7 +120,7 @@ function step3ReadPQInfoBySTIdCallback(error, response, body) {
         this.message['dataIds'] = [];
 
         var promises = results.map(function(d) {
-            var dataName = d.Name.replace(/\s+/, "");
+            var dataName = d.Name.replace(/\s+/, "").replace(".", "");
             this.message['dataIds'][d.PQId] = dataName;
             return this.message['data'][dataName] = ["N/A", d.Unit, "N/A"];
             // return this.message;

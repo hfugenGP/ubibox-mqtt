@@ -78,8 +78,8 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribe_gateways[id] = gateway;
                 if (!subcribe_brokers.hasOwnProperty(id) || subcribe_brokers[id] == undefined) {
                     console.log("New gateway: " + gateway);
-                    var propocal = gateway.protocal ? gateway.protocal + "://" : "mqtt://";
-                    var broker_host = propocal + gateway.host;
+                    var protocal = gateway.protocal ? gateway.protocal + "://" : "mqtt://";
+                    var broker_host = protocal + gateway.host;
 
                     var options = {
                         keepalive: config.defaultBroker.keepalive,
