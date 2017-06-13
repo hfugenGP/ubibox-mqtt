@@ -73,7 +73,8 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             // });
 
             var receivedDate = new Date(json_object.receivedDate);
-            var receivedDateText = receivedDate.getFullYear() + "-" + receivedDate.getMonth() + "-" + receivedDate.getDay() + " " + receivedDate.getHours() + ":" + receivedDate.getMinutes() + ":" + receivedDate.getSeconds();
+
+            var receivedDateText = receivedDate.getUTCFullYear() + "-" + receivedDate.getUTCMonth() + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
 
             var data = {
                 "extId": json_object.extId,
