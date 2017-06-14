@@ -159,7 +159,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
 
     var macAddr = json_object['macAddr'];
     if (macAddr.length > 8) {
-        macAddr.substring(8);
+        macAddr = macAddr.substring(8);
     }
 
     // console.log(json_object)
