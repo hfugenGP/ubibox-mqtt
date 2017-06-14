@@ -50,7 +50,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             json_object.forEach(function(element) {
                 var gateway = {
                     id: element['id'],
-                    protocal: element['protocal'],
+                    protocol: element['protocol'],
                     host: element['host'],
                     port: element['port'],
                     username: element['username'],
@@ -78,8 +78,8 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribe_gateways[id] = gateway;
                 if (!subcribe_brokers.hasOwnProperty(id) || subcribe_brokers[id] == undefined) {
                     console.log("New gateway: " + gateway);
-                    var protocal = gateway.protocal ? gateway.protocal + "://" : "mqtt://";
-                    var broker_host = protocal + gateway.host;
+                    var protocol = gateway.protocol ? gateway.protocol + "://" : "mqtt://";
+                    var broker_host = protocol + gateway.host;
 
                     var options = {
                         keepalive: config.defaultBroker.keepalive,
