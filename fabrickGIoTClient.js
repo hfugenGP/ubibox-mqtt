@@ -59,7 +59,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 };
 
                 gateways[gateway.id] = gateway;
-
+                console.log(gateway);
             });
 
             while (subcribe_gateways.length) {
