@@ -46,36 +46,13 @@ fabrick_Broker.onOffline(() => {
     console.log('Fabrick broker is offline')
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
-    // console.log('Message received from Fabrick');
-    // console.log('topic: ' + topic);
-    // console.log('message : ')
     var json_object = JSON.parse(message);
-    // console.log(json_object);
-    // var b64string = message;
-    // var buf = Buffer.from(b64string, 'base64');
 
     switch (topic) {
         case 'fabrick.io/device/data':
-            // var cmd = 'php ' + config.artisanURL + ' device ' + buf.toString('base64');
-
-            // exec(cmd, function(error, stdout, stderr) {
-            //     // console.log('Command executed !!!');
-            //     // console.log(cmd);
-            //     if (error) {
-            //         console.log(error);
-            //     }
-            //     if (stdout) {
-            //         console.log(stdout);
-            //     }
-            //     if (stderr) {
-            //         console.log(stderr);
-            //     }
-            // });
 
             var receivedDate = new Date(json_object.receivedDate);
-
             var receivedDateText = receivedDate.getUTCFullYear() + "-" + receivedDate.getUTCMonth() + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
-
             var data = {
                 "extId": json_object.extId,
                 "rawData": json_object.rawData,
