@@ -437,39 +437,40 @@ function generateMessage(macAddr, receivedDate, rawData) {
             // var reserved = rawData.substring(6, 8);
 
             var status = rawData.substring(3, 4);
-            var alertCode, alartText;
-            alertCode = status;
+            var alertText = "N/A";
+            var alertCode = status;
             switch (status) {
                 case "0":
                 case "1":
                 case "2":
                     alertCode = "N/A";
-                    alartText = "N/A";
                     break;
                 case "3":
                     // Strong-magnetic interference
-                    alartText = "There is strong-magnetic interference";
+                    alertText = "There is strong-magnetic interference";
                     break;
                 case "4":
                     // Low-Voltage Alarm
-                    alartText = "Low-voltage alarm";
+                    alertText = "Low-voltage alarm";
                     break;
                 case "5":
                     // Detector failure
-                    alartText = "Detector failure ( IC information is readable)";
+                    alertText = "Detector failure ( IC information is readable)";
                     break;
                 case "f":
                     // Sensor damage
-                    alartText = "Sensor damage (IC information is not readable)";
+                    alertText = "Sensor damage (IC information is not readable)";
                     break;
             }
             var parkFlag = info.substring(0, 1);
             var battery = parseInt(info.substring(1), 2);
+            var batteryVolt = ((battery * 1.6) / 100) + 2;
 
             data['state'] = [parkFlag == '0' ? false : true];
             data['batteryLevel'] = [battery, '%'];
+            data['batteryVolt'] = [batteryVolt, 'V'];
             data['alertCode'] = [alertCode];
-            data['alartText'] = [alartText];
+            data['alertText'] = [alertText];
 
             break;
         default:
