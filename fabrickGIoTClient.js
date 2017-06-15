@@ -421,6 +421,57 @@ function generateMessage(macAddr, receivedDate, rawData) {
             data['batteryLevel'] = [common.roundFloat(batteryLevelValue, 2), 'V'];
 
             break;
+        case 14: //Turbo Parking Sensor
+            // ab11df01ae
+
+            // ab 	frameType
+            // 1	frameCount
+            // 1	status
+            // df 	ParkFlag and BattryLevel
+            // 01 	Reserved
+            // ae	frameEnd
+            var frameType = rawData.substring(0, 2);
+            var info = common.hex2bits(rawData.substring(4, 6));
+            var frameEnd = rawData.substring(8, 10);
+            var frameCount = parseInt('0x' + rawData.substring(2, 3));
+            // var reserved = rawData.substring(6, 8);
+
+            var status = rawData.substring(3, 4);
+            var alertCode, alartText;
+            alertCode = status;
+            switch (status) {
+                case "0":
+                case "1":
+                case "2":
+                    alertCode = "N/A";
+                    alartText = "N/A";
+                    break;
+                case "3":
+                    // Strong-magnetic interference
+                    alartText = "There is strong-magnetic interference";
+                    break;
+                case "4":
+                    // Low-Voltage Alarm
+                    alartText = "Low-voltage alarm";
+                    break;
+                case "5":
+                    // Detector failure
+                    alartText = "Detector failure ( IC information is readable)";
+                    break;
+                case "f":
+                    // Sensor damage
+                    alartText = "Sensor damage (IC information is not readable)";
+                    break;
+            }
+            var parkFlag = info.substring(0, 1);
+            var battery = parseInt(info.substring(1), 2);
+
+            data['state'] = [parkFlag == '0' ? false : true];
+            data['batteryLevel'] = [battery, '%'];
+            data['alertCode'] = [alertCode];
+            data['alartText'] = [alartText];
+
+            break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
             return;
