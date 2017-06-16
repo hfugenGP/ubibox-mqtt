@@ -455,7 +455,7 @@ function generateMessage(macAddr, receivedDate, rawData) {
                     break;
                 case "5":
                     // Detector failure
-                    alertText = "Detector failure ( IC information is readable)";
+                    alertText = "Detector failure (IC information is readable)";
                     break;
                 case "f":
                     // Sensor damage
