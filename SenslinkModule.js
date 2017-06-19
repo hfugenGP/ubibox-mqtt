@@ -26,7 +26,7 @@ var fabrick_gateway = {
     port: config.fabrickBroker.port,
     username: config.fabrickBroker.username,
     password: config.fabrickBroker.password,
-    topics: { 'config/Senslink/Devices': 1 }
+    topics: { 'config/fabrick.io/Senslink/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {

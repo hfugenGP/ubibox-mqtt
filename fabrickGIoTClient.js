@@ -15,7 +15,7 @@ var fabrick_gateway = {
     port: config.fabrickBroker.port,
     username: config.fabrickBroker.username,
     password: config.fabrickBroker.password,
-    topics: { 'config/GIoT/Gateways': 1, 'config/GIoT/Devices': 1 }
+    topics: { 'config/fabrick.io/GIoT/Gateways': 1, 'config/fabrick.io/GIoT/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -105,24 +105,24 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log(name + ' Broker connected');
 
                         console.log('Update client status to Fabrick broker')
-                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Connected"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/' + username + '/Status', '{"status":"Connected"}', { qos: 1, retain: true })
                     });
                     broker.onError((err, username) => {
                         console.log('error happen with Gemtek broker')
                         console.log(err)
-                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Error"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/' + username + '/Status', '{"status":"Error"}', { qos: 1, retain: true })
                         broker.end()
                     });
                     broker.onClose((name, username) => {
                         console.log(name + ' broker disconnected')
-                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Disconnected"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/' + username + '/Status', '{"status":"Disconnected"}', { qos: 1, retain: true })
                     });
                     broker.onReconnect((name) => {
                         console.log(name + ' reconnecting...')
                     });
                     broker.onOffline((name, username) => {
                         console.log(name + ' broker is offline')
-                        fabrick_Broker.publish('fabrick.io/' + username + '/Status', '{"status":"Offline"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/' + username + '/Status', '{"status":"Offline"}', { qos: 1, retain: true })
                     });
                     broker.onMessage(processGemtekMessage);
 

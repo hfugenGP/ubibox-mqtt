@@ -21,7 +21,7 @@ var fabrick_gateway = {
     port: config.fabrickBroker.port,
     username: config.fabrickBroker.username,
     password: config.fabrickBroker.password,
-    topics: { 'fabrick.io/device/data': 1 }
+    topics: { 'client/fabrick.io/device/data': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
