@@ -13,8 +13,8 @@ var fabrick_gateway = {
     id: "Fabrick GIoT Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    username: config.fabrick_Broker.username,
-    password: config.fabrick_Broker.password,
+    username: config.fabrickBroker.username,
+    password: config.fabrickBroker.password,
     topics: { 'config/GIoT/Gateways': 1, 'config/GIoT/Devices': 1 }
 };
 
@@ -177,7 +177,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
         }
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
-        fabrick_Broker.publish('client/' + config.fabrick_Broker.username + '/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
+        fabrick_Broker.publish('client/' + config.fabrickBroker.username + '/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
     }
 }
 

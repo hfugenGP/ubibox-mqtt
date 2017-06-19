@@ -11,7 +11,7 @@ var opts = {
     mqtt: {
         port: 1883, // tcp
         authenticate: function(client, username, password, callback) {
-            var authorized = (username === config.fabrick_Broker.username && password.toString() === config.fabrick_Broker.password);
+            var authorized = (username === config.fabrickBroker.username && password.toString() === config.fabrickBroker.password);
             if (authorized) {
                 client.user = username;
             } else {

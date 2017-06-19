@@ -19,8 +19,8 @@ var fabrick_gateway = {
     id: 'Fabrick Dashboard Subcriber',
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    username: config.fabrick_Broker.username,
-    password: config.fabrick_Broker.password,
+    username: config.fabrickBroker.username,
+    password: config.fabrickBroker.password,
     topics: { 'fabrick.io/device/data': 1 }
 };
 
@@ -51,7 +51,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var json_object = JSON.parse(message);
 
     switch (topic) {
-        case 'client/' + config.fabrick_Broker.username + '/device/data':
+        case 'client/' + config.fabrickBroker.username + '/device/data':
 
             var receivedDate = new Date(json_object.receivedDate);
             var receivedDateText = receivedDate.getUTCFullYear() + "-" + receivedDate.getUTCMonth() + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();

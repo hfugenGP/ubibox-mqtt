@@ -9,8 +9,8 @@ var fabrick_gateway = {
     id: "Fabrick Senslink Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    username: config.fabrick_Broker.username,
-    password: config.fabrick_Broker.password,
+    username: config.fabrickBroker.username,
+    password: config.fabrickBroker.password,
     topics: { 'config/Senslink/Devices': 1 }
 };
 
