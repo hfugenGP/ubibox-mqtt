@@ -28,6 +28,8 @@ conf.fabrickBroker.idKey = '-Stagging'; //Staging
 conf.fabrickBroker.host = 'tcp://52.187.41.181'; //Staging
 conf.fabrickBroker.port = 1883;
 conf.fabrickBroker.keepalive = 120;
+conf.fabrickBroker.username = "fabrick.io";
+conf.fabrickBroker.password = "f@brick@1234";
 
 conf.defaultBroker.idKey = "Stagging-";
 conf.defaultBroker.keepalive = 120;

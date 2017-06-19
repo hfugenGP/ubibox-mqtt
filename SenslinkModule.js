@@ -24,6 +24,8 @@ var fabrick_gateway = {
     id: "Fabrick Senslink Publisher",
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
+    username: config.fabrick_Broker.username,
+    password: config.fabrick_Broker.password,
     topics: { 'config/Senslink/Devices': 1 }
 };
 
@@ -166,7 +168,7 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
             var fabrick_client = fabrick_Broker.connect();
             console.log(this.message);
             fabrick_Broker.onConnect(() => {
-                fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
+                fabrick_Broker.publish('client/' + config.fabrick_Broker.username + '/device/data', JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
                     process.exit(); // Done deal.
                 });
             });

@@ -9,6 +9,8 @@ var fabrick_gateway = {
     id: "Fabrick Senslink Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
+    username: config.fabrick_Broker.username,
+    password: config.fabrick_Broker.password,
     topics: { 'config/Senslink/Devices': 1 }
 };
 
@@ -42,7 +44,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log(JSON.parse(message));
 
     switch (topic) {
-        case 'config/Senslink/Devices':
+        case 'config/fabrick.io/Senslink/Devices':
             var client = redis.createClient();
             client.set("config/Senslink/Devices", message);
             break;

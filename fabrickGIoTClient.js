@@ -13,6 +13,8 @@ var fabrick_gateway = {
     id: "Fabrick GIoT Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
+    username: config.fabrick_Broker.username,
+    password: config.fabrick_Broker.password,
     topics: { 'config/GIoT/Gateways': 1, 'config/GIoT/Devices': 1 }
 };
 
@@ -46,7 +48,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var gateways = new Array();
 
     switch (topic) {
-        case 'config/GIoT/Gateways':
+        case 'config/fabrick.io/GIoT/Gateways':
             json_object.forEach(function(element) {
                 var gateway = {
                     id: element['id'],
@@ -139,7 +141,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 }
             }
             break;
-        case 'config/GIoT/Devices':
+        case 'config/fabrick.io/GIoT/Devices':
             // console.log(json_object);
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
@@ -175,7 +177,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
         }
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
-        fabrick_Broker.publish('fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
+        fabrick_Broker.publish('client/' + config.fabrick_Broker.username + '/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
     }
 }
 
