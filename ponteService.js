@@ -26,7 +26,7 @@ var opts = {
                 var res = request('POST', config.authAPI, options);
                 var body = JSON.parse(res.body.toString("utf8"));
 
-                if (body.result.status == "success") {
+                if (body && body.result && body.result.status == "success") {
                     authorized = true;
                     client.user = username;
                 }

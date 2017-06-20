@@ -19,15 +19,15 @@ var fabrick_gateway = {
     id: 'Fabrick Dashboard Subcriber',
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    username: config.fabrickBroker.username,
-    password: config.fabrickBroker.password,
     topics: { 'client/fabrick.io/device/data': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
     keepalive: config.fabrickBroker.keepalive,
     port: fabrick_gateway.port,
-    clientId: fabrick_gateway.id
+    clientId: fabrick_gateway.id,
+    username: config.fabrickBroker.username,
+    password: config.fabrickBroker.password,
 });
 var fabrick_client = fabrick_Broker.connect();
 fabrick_Broker.onConnect(() => {

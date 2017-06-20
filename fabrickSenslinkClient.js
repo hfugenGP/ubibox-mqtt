@@ -9,15 +9,15 @@ var fabrick_gateway = {
     id: "Fabrick Senslink Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    username: config.fabrickBroker.username,
-    password: config.fabrickBroker.password,
     topics: { 'config/fabrick.io/Senslink/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
     keepalive: config.fabrickBroker.keepalive,
     port: fabrick_gateway.port,
-    clientId: fabrick_gateway.id
+    clientId: fabrick_gateway.id,
+    username: config.fabrickBroker.username,
+    password: config.fabrickBroker.password,
 });
 var fabrick_client = fabrick_Broker.connect();
 fabrick_Broker.onConnect(() => {
