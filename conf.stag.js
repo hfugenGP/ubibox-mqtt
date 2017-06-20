@@ -42,6 +42,8 @@ conf.defaultBroker.protocolVersion = 3;
 conf.gatewayTopic = 'conf/GIoT/Gateways';
 conf.deviceTopic = 'conf/GIoT/Devices';
 
+conf.authAPI = 'http://staging.atilze.com/api/login';
+
 //conf.artisanURL = 'D:/fabrick/fabrickgit/artisan'; //Local
 conf.artisanURL = '/var/www/fabrick/artisan'; //Staging
 

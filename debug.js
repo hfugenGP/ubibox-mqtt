@@ -20,20 +20,61 @@
 //     var messageCallback = zteDataService.generateReply(hexData, decryptedHex);
 // }
 
-var MongoClient = require('mongodb').MongoClient,
-    f = require('util').format,
+var http = require('http');
+// var client = http.createClient(3000, 'localhost');
+// var request = client.request('PUT', '/users/1');
+// request.write("stuff");
+// request.end();
+// request.on("response", function (response) {
+//   // handle the response
+// });
 
-    var user = encodeURIComponent('dave');
-var password = encodeURIComponent('abc123');
-var authMechanism = 'DEFAULT';
+var options = {
+    protocol: "http:",
+    host: "fabrick.atilze.com",
+    port: 80,
+    path: '/api/login',
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: {
+        "email": "masteradmin@brazn.co",
+        "password": "secret"
+    }
+};
 
-// Connection URL
-var url = f('mongodb://%s:%s@localhost:27017/myproject?authMechanism=%s',
-    user, password, authMechanism);
+http.request(options, function(res) {
+    console.log('STATUS: ' + res.statusCode);
+    console.log('HEADERS: ' + JSON.stringify(res.headers));
+    res.setEncoding('utf8');
+    res.on('data', function(chunk) {
+        console.log('BODY: ' + chunk);
+    });
+}).end();
 
-// Use connect method to connect to the Server
-MongoClient.connect(url, function(err, db) {
-    console.log("Connected correctly to server");
+var request = require('request')
 
-    db.close();
+var options = {
+    method: 'post',
+    body: {
+        "email": "masteradmin@brazn.co",
+        "password": "secret"
+    },
+    json: true, // Use,If you are sending JSON data
+    url: "http://fabrick.atilze.com/api/login",
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+}
+
+request(options, function(err, res, body) {
+    if (err) {
+        console.log('Error :', err)
+        return
+    }
+    console.log(' Body :', body)
+
 });
