@@ -11,7 +11,22 @@ var opts = {
     },
     mqtt: {
         port: 1883, // tcp
-        authenticate: function(client, username, password, callback) {
+    },
+    persistence: {
+        type: 'redis',
+        host: "localhost"
+    }
+};
+
+var server = ponte(opts);
+
+server.on("updated", function(resource, buffer) {
+    console.log("Resource Updated", resource, buffer);
+});
+
+server.on("ready", function() {
+    {
+        server.authenticate = function(client, username, password, callback) {
             var authorized = (username === config.fabrickBroker.username && password.toString() === config.fabrickBroker.password);
             if (authorized) {
                 client.user = username;
@@ -45,22 +60,14 @@ var opts = {
                     }
                 });
             }
-        },
-        authorizePublish: function(client, topic, payload, callback) {
+        };
+
+
+        server.authorizePublish = function(client, topic, payload, callback) {
             callback(null, client.user == topic.split('/')[1]);
-        },
-        authorizeSubscribe: function(client, topic, callback) {
+        };
+        server.authorizeSubscribe = authorizeSubscribe: function(client, topic, callback) {
             callback(null, client.user == topic.split('/')[1]);
-        }
-    },
-    persistence: {
-        type: 'redis',
-        host: "localhost"
+        };
     }
-};
-
-var server = ponte(opts);
-
-server.on("updated", function(resource, buffer) {
-    console.log("Resource Updated", resource, buffer);
 });
