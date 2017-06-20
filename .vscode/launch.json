@@ -9,7 +9,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}\\debug.js",
+            "program": "${workspaceRoot}\\ponteService.js",
             // "program": "${workspaceRoot}\\fabrickSenslinkClient.js",
             // "program": "${workspaceRoot}\\fabrickDashboardSubcriber.js",
             // "program": "${workspaceRoot}\\fabrickGIoTClient.js",
