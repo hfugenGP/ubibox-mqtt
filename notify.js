@@ -1,5 +1,4 @@
 var Redis = require('ioredis');
-var io = require('socket.io');
 
 var server = require('http').createServer(function(req, res) {
     response.writeHead(200, { 'Content-Type': 'text/html' });
@@ -8,7 +7,7 @@ var server = require('http').createServer(function(req, res) {
 });
 
 server.listen(9990);
-io.listen(server);
+var io = require('socket.io').listen(server);
 
 var redis = new Redis({ dropBufferSupport: true });
 redis.subscribe('notify');
