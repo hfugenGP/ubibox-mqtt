@@ -7,6 +7,9 @@ var server = require('http').createServer(function(req, res) {
     response.end();
 });
 
+server.listen(9990);
+io.listen(server);
+
 var redis = new Redis({ dropBufferSupport: true });
 redis.subscribe('notify');
 redis.subscribe('notifyUnread');
@@ -18,6 +21,3 @@ redis.subscribe('notifyNotSeen');
 redis.on('message', function(channel, message) {
     io.emit(channel, message);
 });
-
-server.listen(9990);
-io.listen(server);
