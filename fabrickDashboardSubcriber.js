@@ -13,13 +13,11 @@ var password = encodeURIComponent(config.mongodb.password);
 // Connection URL
 var url = f(config.mongodb.url, user, password, config.mongodb.authMechanism);
 
-var dataTopic = config.fabrickBroker.deviceDataSubcriberTopic;
-
 var fabrick_gateway = {
     id: 'Fabrick Dashboard Subcriber',
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { dataTopic: 1 }
+    topics: { 'client/fabrick.io/device/data': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -51,7 +49,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var json_object = JSON.parse(message);
 
     switch (topic) {
-        case dataTopic:
+        case 'client/fabrick.io/device/data':
 
             var receivedDate = new Date(json_object.receivedDate);
             var receivedDateText = receivedDate.getUTCFullYear() + "-" + receivedDate.getUTCMonth() + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();

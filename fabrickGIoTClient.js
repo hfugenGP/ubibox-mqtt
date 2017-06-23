@@ -9,14 +9,11 @@ var subcribe_devices = new Array();
 var subcribe_gateways = new Array();
 var subcribe_brokers = new Array();
 
-var deviceTopic = config.fabrickBroker.giotDeviceSubcriberTopic;
-var gatewayTopic = config.fabrickBroker.giotGatewaySubcriberTopic;
-
 var fabrick_gateway = {
     id: "Fabrick GIoT Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { deviceTopic: 1, gatewayTopic: 1 }
+    topics: { 'config/fabrick.io/GIoT/Devices': 1, 'config/fabrick.io/GIoT/Gateways': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -51,7 +48,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var gateways = new Array();
 
     switch (topic) {
-        case gatewayTopic:
+        case 'config/fabrick.io/GIoT/Gateways':
             json_object.forEach(function(element) {
                 var gateway = {
                     id: element['id'],
@@ -108,24 +105,24 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log(name + ' Broker connected');
 
                         console.log('Update client status to Fabrick broker')
-                        fabrick_Broker.publish(config.fabrickBroker.giotStatusSubcriberTopic, '{"status":"Connected"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Status', '{"status":"Connected"}', { qos: 1, retain: true })
                     });
                     broker.onError((err, username) => {
                         console.log('error happen with Gemtek broker')
                         console.log(err)
-                        fabrick_Broker.publish(config.fabrickBroker.giotStatusSubcriberTopic, '{"status":"Error"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Status', '{"status":"Error"}', { qos: 1, retain: true })
                         broker.end()
                     });
                     broker.onClose((name, username) => {
                         console.log(name + ' broker disconnected')
-                        fabrick_Broker.publish(config.fabrickBroker.giotStatusSubcriberTopic, '{"status":"Disconnected"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Status', '{"status":"Disconnected"}', { qos: 1, retain: true })
                     });
                     broker.onReconnect((name) => {
                         console.log(name + ' reconnecting...')
                     });
                     broker.onOffline((name, username) => {
                         console.log(name + ' broker is offline')
-                        fabrick_Broker.publish(config.fabrickBroker.giotStatusSubcriberTopic, '{"status":"Offline"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Status', '{"status":"Offline"}', { qos: 1, retain: true })
                     });
                     broker.onMessage(processGemtekMessage);
 
@@ -144,7 +141,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 }
             }
             break;
-        case deviceTopic:
+        case 'config/fabrick.io/GIoT/Devices':
             // console.log(json_object);
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
@@ -180,7 +177,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
         }
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
-        fabrick_Broker.publish(config.fabrickBroker.deviceDataSubcriberTopic, JSON.stringify(publishMessage), { qos: 1, retain: true });
+        fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
     }
 }
 

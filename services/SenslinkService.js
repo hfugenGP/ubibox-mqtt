@@ -20,13 +20,11 @@ var SenslinkService = function(gateway) {
     this.devices = gateway.devices;
 }
 
-var deviceTopic = config.fabrickBroker.senslinkDeviceSubcriberTopic;
-
 var fabrick_gateway = {
     id: "Fabrick Senslink Publisher",
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { deviceTopic: 1 }
+    topics: { 'config/fabrick.io/Senslink/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -170,7 +168,7 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
             var fabrick_client = fabrick_Broker.connect();
             console.log(this.message);
             fabrick_Broker.onConnect(() => {
-                fabrick_Broker.publish(config.fabrickBroker.deviceDataSubcriberTopic, JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
+                fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
                     process.exit(); // Done deal.
                 });
             });
