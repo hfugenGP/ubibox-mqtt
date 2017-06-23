@@ -12,7 +12,8 @@
             // "program": "${workspaceRoot}\\tests\\debug.js",
             // "program": "${workspaceRoot}\\fabrickSenslinkClient.js",
             // "program": "${workspaceRoot}\\fabrickDashboardSubcriber.js",
-            "program": "${workspaceRoot}\\fabrickGIoTClient.js",
+            // "program": "${workspaceRoot}\\fabrickGIoTClient.js",
+            "program": "${workspaceRoot}\\notify.js",
 
             "cwd": "${workspaceRoot}"
         },
