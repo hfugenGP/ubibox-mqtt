@@ -9,8 +9,8 @@ var subcribe_devices = new Array();
 var subcribe_gateways = new Array();
 var subcribe_brokers = new Array();
 
-var deviceTopic = conf.fabrickBroker.giotDeviceSubcriberTopic;
-var gatewayTopic = conf.fabrickBroker.giotGatewaySubcriberTopic;
+var deviceTopic = config.fabrickBroker.giotDeviceSubcriberTopic;
+var gatewayTopic = config.fabrickBroker.giotGatewaySubcriberTopic;
 
 var fabrick_gateway = {
     id: "Fabrick GIoT Client " + config.fabrickBroker.idKey,

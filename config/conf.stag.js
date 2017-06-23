@@ -18,6 +18,7 @@ conf.twilio = {};
 conf.fabrickBroker = {};
 conf.gemtekBroker = {};
 conf.defaultBroker = {};
+conf.mongodb = {};
 
 conf.twilio.accountSid = 'AC052250b50d66b44dbbe4df2f65eec760';
 conf.twilio.authToken = 'c2b7883dd9854de0d86e9b4d634d2818';
