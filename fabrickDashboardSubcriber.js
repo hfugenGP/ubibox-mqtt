@@ -1,25 +1,25 @@
 'use strict'
 
-const Broker = require('./broker');
-const Common = require('./common')
-const config = require('./conf');
+const Broker = require('./lib/broker');
+const Common = require('./lib/common')
+const config = require('./config/conf');
 const MongoClient = require('mongodb').MongoClient;
 const f = require('util').format;
 const exec = require('child_process').exec;
 
-var user = encodeURIComponent('fabrick');
-var password = encodeURIComponent('brazn@1234');
-var authMechanism = 'DEFAULT';
+var user = encodeURIComponent(config.mongodb.username);
+var password = encodeURIComponent(config.mongodb.password);
 
 // Connection URL
-var url = f('mongodb://%s:%s@localhost:27017/fabrick?authMechanism=%s',
-    user, password, authMechanism);
+var url = f(config.mongodb.url, user, password, config.mongodb.authMechanism);
+
+var dataTopic = config.fabrickBroker.deviceDataSubcriberTopic;
 
 var fabrick_gateway = {
     id: 'Fabrick Dashboard Subcriber',
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'client/fabrick.io/device/data': 1 }
+    topics: { dataTopic: 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -51,7 +51,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var json_object = JSON.parse(message);
 
     switch (topic) {
-        case 'client/' + config.fabrickBroker.username + '/device/data':
+        case dataTopic:
 
             var receivedDate = new Date(json_object.receivedDate);
             var receivedDateText = receivedDate.getUTCFullYear() + "-" + receivedDate.getUTCMonth() + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();

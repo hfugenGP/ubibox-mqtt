@@ -1,7 +1,6 @@
 "use strict";
 
-const Common = require('./common')
-    // const SimpleCrypto = require('./simpleCrypto')
+const Common = require('../lib/common')
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 

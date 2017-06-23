@@ -2,7 +2,7 @@
 var _ = require('lodash');
 const redis = require("redis");
 
-const Senslink = require('./SenslinkModule');
+const Senslink = require('./services/SenslinkService');
 
 var client = redis.createClient();
 // client.unref();

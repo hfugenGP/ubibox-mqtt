@@ -1,15 +1,17 @@
 'use strict'
 
-const Broker = require('./broker');
-const Common = require('./common')
-const config = require('./conf');
+const Broker = require('./lib/broker');
+const Common = require('./lib/common')
+const config = require('./config/conf');
 const redis = require("redis");
+
+var deviceTopic = config.fabrickBroker.senslinkDeviceSubcriberTopic;
 
 var fabrick_gateway = {
     id: "Fabrick Senslink Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Senslink/Devices': 1 }
+    topics: { deviceTopic: 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -44,7 +46,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log(JSON.parse(message));
 
     switch (topic) {
-        case 'config/fabrick.io/Senslink/Devices':
+        case deviceTopic:
             var client = redis.createClient();
             client.set("config/Senslink/Devices", message);
             break;

@@ -1,6 +1,6 @@
-const Broker = require('./broker');
-const Common = require('./common')
-const config = require('./conf');
+const Broker = require('../lib/broker');
+const Common = require('../lib/common')
+const config = require('../config/conf');
 
 var gateway = {
     id: "hahaha",

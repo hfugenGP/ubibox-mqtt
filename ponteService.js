@@ -1,6 +1,6 @@
 var ponte = require("ponte");
 var request = require('sync-request');
-const config = require('./conf');
+const config = require('./config/conf');
 
 var opts = {
     logger: {

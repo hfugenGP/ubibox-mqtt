@@ -1,10 +1,9 @@
 const net = require('net');
-// const crypto = require('crypto');
-const Common = require('./common')
-const SimpleCrypto = require('./simpleCrypto')
+const Common = require('./lib/common')
+const SimpleCrypto = require('./lib/simpleCrypto')
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
-const ZTEDataService = require('./zteDataService')
+const ZTEDataService = require('./services/zteDataService')
 
 // var HOST = '127.0.0.1';
 const PORT = 8884;

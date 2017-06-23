@@ -1,7 +1,7 @@
 var net = require('net');
 var crypto = require('crypto');
-const Common = require('./common')
-const SimpleCrypto = require('./simpleCrypto')
+const Common = require('./lib/common')
+const SimpleCrypto = require('./lib/simpleCrypto')
 var CryptoJS = require("crypto-js");
 var ADLER32 = require('adler-32');
 

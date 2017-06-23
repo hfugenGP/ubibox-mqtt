@@ -4,27 +4,29 @@ const request = require('request');
 const fs = require('fs');
 const crypto = require('crypto');
 const q = require('q');
-const config = require('./conf');
-const Broker = require('./broker');
-const Common = require('./common');
+const config = require('../config/conf');
+const Broker = require('../lib/broker');
+const Common = require('../lib/common');
 
 const authUrl = "http://www2.senslink.net/RestService/Users";
 const actionUrl = "http://www2.senslink.net/RestService/Actions";
 
-var SenslinkModule = function() {};
+var SenslinkService = function() {};
 
-var SenslinkModule = function(gateway) {
+var SenslinkService = function(gateway) {
     this.id = gateway.id;
     this.username = gateway.username;
     this.password = gateway.password;
     this.devices = gateway.devices;
 }
 
+var deviceTopic = config.fabrickBroker.senslinkDeviceSubcriberTopic;
+
 var fabrick_gateway = {
     id: "Fabrick Senslink Publisher",
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Senslink/Devices': 1 }
+    topics: { deviceTopic: 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -51,7 +53,7 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 //     console.log('Fabrick broker is offline')
 // });
 
-SenslinkModule.prototype.flexData = function() {
+SenslinkService.prototype.flexData = function() {
     request({
         uri: authUrl + "/GetKey",
         method: "POST",
@@ -168,7 +170,7 @@ function step4ReadRealTimeDataBySTIdCallback(error, response, body) {
             var fabrick_client = fabrick_Broker.connect();
             console.log(this.message);
             fabrick_Broker.onConnect(() => {
-                fabrick_Broker.publish('client/' + config.fabrickBroker.username + '/device/data', JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
+                fabrick_Broker.publish(config.fabrickBroker.deviceDataSubcriberTopic, JSON.stringify(this.message), { qos: 1, retain: true }, function(err) {
                     process.exit(); // Done deal.
                 });
             });
@@ -203,4 +205,4 @@ function encryptMessage(keyResponse, actionName) {
     return message;
 }
 
-module.exports = SenslinkModule;
+module.exports = SenslinkService;

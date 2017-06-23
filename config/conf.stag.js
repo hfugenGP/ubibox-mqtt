@@ -24,17 +24,24 @@ conf.twilio.authToken = 'c2b7883dd9854de0d86e9b4d634d2818';
 conf.twilio.phoneTo = '+84908565785';
 conf.twilio.phoneFrom = '+16502579348';
 
-// conf.fabrickBroker.idKey = '-Stagging'; //Staging
-conf.fabrickBroker.idKey = '-Production'; //Production
-// conf.fabrickBroker.host = 'tcp://52.187.41.181'; //Staging
-conf.fabrickBroker.host = 'tcp://52.187.188.56'; //Production
+conf.mongodb.url = 'mongodb://%s:%s@localhost:27017/fabrick?authMechanism=%s';
+conf.mongodb.username = 'fabrick';
+conf.mongodb.password = 'brazn@1234';
+conf.mongodb.authMechanism = 'DEFAULT';
+
+conf.fabrickBroker.idKey = '-Stagging'; //Staging
+conf.fabrickBroker.host = 'tcp://52.187.41.181'; //Staging
 conf.fabrickBroker.port = 1883;
 conf.fabrickBroker.keepalive = 120;
 conf.fabrickBroker.username = "fabrick.io";
 conf.fabrickBroker.password = "f@brick@1234";
+conf.fabrickBroker.giotDeviceSubcriberTopic = 'config/fabrick.io/GIoT/Devices';
+conf.fabrickBroker.giotGatewaySubcriberTopic = 'config/fabrick.io/GIoT/Gateways';
+conf.fabrickBroker.deviceDataSubcriberTopic = 'client/fabrick.io/device/data';
+conf.fabrickBroker.giotStatusSubcriberTopic = 'client/fabrick.io/Status';
+conf.fabrickBroker.senslinkDeviceSubcriberTopic = 'config/fabrick.io/Senslink/Devices';
 
-// conf.defaultBroker.idKey = "Stagging-";
-conf.defaultBroker.idKey = "Production-";
+conf.defaultBroker.idKey = "Stagging-";
 conf.defaultBroker.keepalive = 120;
 conf.defaultBroker.clean = true;
 conf.defaultBroker.reconnectPeriod = 4000;
@@ -45,11 +52,10 @@ conf.defaultBroker.protocolVersion = 3;
 conf.gatewayTopic = 'conf/GIoT/Gateways';
 conf.deviceTopic = 'conf/GIoT/Devices';
 
-conf.authAPI = 'http://fabrick.atilze.com/api/verifyUserAuth';
+conf.authAPI = 'http://staging.atilze.com/api/verifyUserAuth';
 
 //conf.artisanURL = 'D:/fabrick/fabrickgit/artisan'; //Local
-// conf.artisanURL = '/var/www/brazn/fabrick/dashboard/artisan'; //Staging
-conf.artisanURL = '/var/www/fabrick/artisan'; //Production
+conf.artisanURL = '/var/www/fabrick/artisan'; //Staging
 
 
 conf.debuggingDevices = ["0a0102b9", "01001003", "0a0102c1", "01001004", "0d01001b", "0d01003e", "01001002", "000003a9", "000003b6", "01001007", "000003aa", "000003b5"];
