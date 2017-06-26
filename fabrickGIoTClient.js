@@ -173,7 +173,8 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
         // console.log('Message received from gateway ' + gatewayName);
         // console.log(publishMessage);
         // console.log("-----------------------------------");
-        if (config.debuggingDevices.indexOf(macAddr) != -1) {
+
+        if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
             console.log('Message received from gateway ' + gatewayName);
             console.log(publishMessage);
             console.log("-----------------------------------");
