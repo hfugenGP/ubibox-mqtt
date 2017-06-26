@@ -4,7 +4,6 @@ var _ = require('lodash');
 const Broker = require('./lib/broker');
 const Common = require('./lib/common')
 const config = require('./config/conf');
-// const GioTService = require('./services/giotService');
 
 var subcribe_devices = new Array();
 // var subcribe_gateways = new Array();
@@ -12,7 +11,7 @@ var subcribe_devices = new Array();
 var subcribe_topics = new Array();
 
 var fabrick_gateway = {
-    id: "Fabrick Arduino Client",
+    id: "Fabrick Arduino Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
     topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Gateways': 1 }
@@ -64,29 +63,11 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribe_topics[] = element['topic'];
             });
 
-            // json_object.forEach(function(element) {
-            //     // var gateway = {
-            //     //     id: element['id'],
-            //     //     protocol: element['protocol'],
-            //     //     host: element['host'],
-            //     //     port: element['port'],
-            //     //     username: element['username'],
-            //     //     password: element['password'],
-            //     //     topics: element['topics']
-            //     // };
-
-            //     fabrick_Broker.subscribeOne(element['topic']);
-            //     subcribe_topics[] = element['topic'];
-
-            //     // gateways[gateway.id] = gateway;
-
-            // });
             console.log(subcribe_topics);
 
             break;
 
         case 'config/fabrick.io/Arduino/Devices':
-            // console.log(json_object);
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
             }
@@ -110,13 +91,9 @@ function processMessage(gatewayName, topic, message, packet) {
         macAddr = macAddr.substring(8);
     }
 
-    // console.log(json_object)
     var publishMessage = generateMessage(macAddr, json_object['buff'], json_object['data']);
     if (publishMessage) {
-        // console.log('Message received from gateway ' + gatewayName);
-        // console.log(publishMessage);
-        // console.log("-----------------------------------");
-        if (config.debuggingDevices.indexOf(macAddr) != -1) {
+        if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
             console.log('Message received from gateway ' + gatewayName);
             console.log(publishMessage);
             console.log("-----------------------------------");

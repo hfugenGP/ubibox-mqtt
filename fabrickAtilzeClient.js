@@ -1,8 +1,8 @@
 'use strict'
 
-// const mqtt = require('mqtt');
+var _ = require('lodash');
 const Broker = require('./lib/broker');
-const Common = require('./lib/common')
+const Common = require('./lib/common');
 const config = require('./config/conf');
 const GioTService = require('./services/giotService');
 
@@ -11,10 +11,10 @@ var subcribe_gateways = new Array();
 var subcribe_brokers = new Array();
 
 var fabrick_gateway = {
-    id: "Fabrick GIoT Client " + config.fabrickBroker.idKey,
+    id: "Fabrick Atilze Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/GIoT/Devices': 1, 'config/fabrick.io/GIoT/Gateways': 1 }
+    topics: { 'config/fabrick.io/Atilze/Devices': 1, 'config/fabrick.io/Atilze/Gateways': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -49,7 +49,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var gateways = new Array();
 
     switch (topic) {
-        case 'config/fabrick.io/GIoT/Gateways':
+        case 'config/fabrick.io/Atilze/Gateways':
             json_object.forEach(function(element) {
                 var gateway = {
                     id: element['id'],
@@ -125,25 +125,15 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log(name + ' broker is offline')
                         fabrick_Broker.publish('client/fabrick.io/Status', '{"status":"Offline"}', { qos: 1, retain: true })
                     });
-                    broker.onMessage(processGemtekMessage);
+                    broker.onMessage(processMessage);
 
                     subcribe_brokers[id] = broker;
                 } else if (subcribe_gateways[id].topics != gateway.topics) {
-                    //Subcrible/Unsubcrible topics within gateway
-                    // var broker = subcribe_brokers[id];
 
-                    // subcribe_gateways[id].topics.forEach(function(topic){
-                    //     broker.unsubscribe(topic);
-                    // });
-
-                    // gateway.topics.forEach(function(topic){
-                    //     broker.subscribe(topic);
-                    // });
                 }
             }
             break;
-        case 'config/fabrick.io/GIoT/Devices':
-            // console.log(json_object);
+        case 'config/fabrick.io/Atilze/Devices':
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
             }
@@ -157,7 +147,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     }
 });
 
-function processGemtekMessage(gatewayName, topic, message, packet, username) {
+function processMessage(gatewayName, topic, message, packet) {
     var json_object = JSON.parse(message);
 
     var macAddr = json_object['macAddr'];
