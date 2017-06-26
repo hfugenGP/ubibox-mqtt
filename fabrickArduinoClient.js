@@ -91,7 +91,7 @@ function processMessage(gatewayName, topic, message, packet) {
         macAddr = macAddr.substring(8);
     }
 
-    var publishMessage = generateMessage(macAddr, json_object['buff'], json_object['data']);
+    var publishMessage = generateMessage(json_object['data'], json_object['buff']);
     if (publishMessage) {
         if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
             console.log('Message received from gateway ' + gatewayName);
@@ -104,4 +104,40 @@ function processMessage(gatewayName, topic, message, packet) {
     }
 }
 
-function generateMessage(macAddr, receivedDate, rawData) {}
+function generateMessage(rawData, receivedDate) {
+    var deviceId = rawData.substring(0, 4);
+
+    if (subcribe_devices.indexOf(deviceId) == -1) {
+        console.log('No handler for device on MAC %s', macAddr);
+        return;
+    }
+
+    var message = { "extId": deviceId };
+    message["rawData"] = rawData;
+    message["receivedDate"] = new Date();
+    message["receivedDateLoRa"] = receivedDate;
+
+    var common = new Common();
+
+    var data = {};
+
+    var frameCount = rawData.substring(4, 6);
+    var dataChannel = rawData.substring(6, 8);
+    var dataType = rawData.substring(8, 10);
+
+
+    switch (dataType) {
+        case '67': //'temp data'
+            var temperature = parseInt('0x' + rawData.substring(10, 14));
+            data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
+
+            break;
+        default:
+            console.log('No handler for device on MAC %s', macAddr);
+            return;
+    }
+
+    message["data"] = data;
+
+    return message;
+}
