@@ -52,9 +52,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
         case 'client/fabrick.io/device/data':
 
             var receivedDate = new Date(json_object.receivedDate);
-            console.log("receivedDate: " + receivedDate);
-            var receivedDateText = receivedDate.getUTCFullYear() + "-" + receivedDate.getUTCMonth() + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
-            console.log("receivedDateText: " + receivedDateText);
+            var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
             var data = {
                 "extId": json_object.extId,
                 "rawData": json_object.rawData,
