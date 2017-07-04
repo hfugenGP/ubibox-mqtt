@@ -21,21 +21,21 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 });
 var fabrick_client = fabrick_Broker.connect();
 fabrick_Broker.onConnect(() => {
-    console.log('Fabrick Broker connected');
+    console.log('Senslink Client connected');
 });
 fabrick_Broker.onError((err) => {
-    console.log('error happen with Fabrick broker')
+    console.log('error happen with Senslink Client')
     console.log(err)
     fabrick_Broker.end()
 });
 fabrick_Broker.onClose(() => {
-    console.log('Fabrick broker disconnected')
+    console.log('Senslink Client disconnected')
 });
 fabrick_Broker.onReconnect(() => {
-    console.log('Fabrick reconnecting...')
+    console.log('Senslink Client reconnecting...')
 });
 fabrick_Broker.onOffline(() => {
-    console.log('Fabrick broker is offline')
+    console.log('Senslink Client is offline')
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received from Fabrick');

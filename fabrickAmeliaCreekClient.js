@@ -2,19 +2,18 @@
 
 var _ = require('lodash');
 const Broker = require('./lib/broker');
-const Common = require('./lib/common')
+const Common = require('./lib/common');
 const config = require('./config/conf');
+const GioTService = require('./services/giotService');
 
 var subcribe_devices = new Array();
-// var subcribe_gateways = new Array();
-// var subcribe_brokers = new Array();
 var subcribe_topics = new Array();
 
 var fabrick_gateway = {
-    id: "Fabrick Arduino Client " + config.fabrickBroker.idKey,
+    id: "Fabrick Amelia Creek Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Gateways': 1 }
+    topics: { 'config/fabrick.io/Amelia/Devices': 1, 'config/fabrick.io/Amelia/Gateways': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -26,21 +25,21 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 });
 var fabrick_client = fabrick_Broker.connect();
 fabrick_Broker.onConnect(() => {
-    console.log('Arduino Client Connected');
+    console.log('Amelia Creek Client Connected');
 });
 fabrick_Broker.onError((err) => {
-    console.log('error happen with Arduino Client')
+    console.log('error happen with Amelia Creek Client')
     console.log(err)
     fabrick_Broker.end()
 });
 fabrick_Broker.onClose(() => {
-    console.log('Arduino Client Disconnected')
+    console.log('Amelia Creek Client Disconnected')
 });
 fabrick_Broker.onReconnect(() => {
-    console.log('Arduino Client Reconnecting...')
+    console.log('Amelia Creek Client Reconnecting...')
 });
 fabrick_Broker.onOffline(() => {
-    console.log('Arduino Client is offline')
+    console.log('Amelia Creek Client is offline')
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received for topic: ' + topic);
@@ -49,7 +48,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var gateways = new Array();
 
     switch (topic) {
-        case 'config/fabrick.io/Arduino/Gateways':
+        case 'config/fabrick.io/Amelia/Gateways':
             _.each(subcribe_topics, function(topic) {
                 fabrick_Broker.unsubscribeOne(topic);
             });
@@ -67,7 +66,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
             break;
 
-        case 'config/fabrick.io/Arduino/Devices':
+        case 'config/fabrick.io/Amelia/Devices':
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
             }
@@ -76,7 +75,6 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             });
             console.log(subcribe_devices);
             break;
-
         default:
             // Handle all message returned for devices
             processMessage(gatewayName, topic, message, packet);
@@ -91,7 +89,9 @@ function processMessage(gatewayName, topic, message, packet) {
         macAddr = macAddr.substring(8);
     }
 
-    var publishMessage = generateMessage(json_object['data'], json_object['buff']);
+    var giot = new GioTService();
+
+    var publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data']);
     if (publishMessage) {
         if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
             console.log('Message received from gateway ' + gatewayName);
@@ -102,41 +102,4 @@ function processMessage(gatewayName, topic, message, packet) {
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
         fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
     }
-}
-
-function generateMessage(rawData, receivedDate) {
-    var deviceId = rawData.substring(0, 4);
-
-    if (subcribe_devices.indexOf(deviceId) == -1) {
-        console.log('No handler for device on MAC %s', macAddr);
-        return;
-    }
-
-    var message = { "extId": deviceId };
-    message["rawData"] = rawData;
-    message["receivedDate"] = new Date();
-    message["receivedDateLoRa"] = receivedDate;
-
-    var common = new Common();
-
-    var data = {};
-
-    var frameCount = rawData.substring(4, 6);
-    var dataChannel = rawData.substring(6, 8);
-    var dataType = rawData.substring(8, 10);
-
-    switch (dataType) {
-        case '67': //'temp data'
-            var temperature = parseInt('0x' + rawData.substring(10, 14));
-            data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
-
-            break;
-        default:
-            console.log('No handler for device on MAC %s', macAddr);
-            return;
-    }
-
-    message["data"] = data;
-
-    return message;
 }
