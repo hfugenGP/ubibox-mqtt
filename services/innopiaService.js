@@ -12,7 +12,7 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
     var common = new Common();
 
     var data = {};
-    switch (subcribeDevices['MAC-' + deviceId]) {
+    switch (subcribeDevices['MAC-' + deviceId.toLowerCase()]) {
         case 16: //'colorBulb'
             switch (rawData["Member"]) {
                 case "TurnedOn":
