@@ -81,7 +81,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 var gateway = gateways[id];
                 subcribe_gateways[id] = gateway;
                 if (!subcribe_brokers.hasOwnProperty(id) || subcribe_brokers[id] == undefined) {
-                    console.log("New gateway: " + gateway);
+                    // console.log("New gateway: " + gateway);
                     var protocol = gateway.protocol ? gateway.protocol + "://" : "mqtt://";
                     var broker_host = protocol + gateway.host;
 
