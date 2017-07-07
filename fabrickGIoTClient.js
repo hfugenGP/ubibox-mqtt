@@ -5,6 +5,7 @@ const Broker = require('./lib/broker');
 const Common = require('./lib/common')
 const config = require('./config/conf');
 const GioTService = require('./services/giotService');
+const InnopiaService = require('./services/innopiaService');
 
 var subcribe_devices = new Array();
 var subcribe_gateways = new Array();
@@ -160,14 +161,22 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 function processGemtekMessage(gatewayName, topic, message, packet, username) {
     var json_object = JSON.parse(message);
 
-    var macAddr = json_object['macAddr'];
-    if (macAddr.length > 8) {
-        macAddr = macAddr.substring(8);
+    var publishMessage;
+    if (gatewayName == "Innopia-000193") {
+        var deviceId = json_object['DeviceId'];
+
+        var innopia = new InnopiaService();
+        publishMessage = innopia.generateMessage(subcribe_devices, deviceId, json_object);
+    } else {
+        var macAddr = json_object['macAddr'];
+        if (macAddr.length > 8) {
+            macAddr = macAddr.substring(8);
+        }
+
+        var giot = new GioTService();
+        publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data']);
     }
 
-    var giot = new GioTService();
-
-    var publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data']);
     if (publishMessage) {
         if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
             console.log('Message received from gateway ' + gatewayName);
