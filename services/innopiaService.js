@@ -25,7 +25,7 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
 
             break;
         default:
-            console.log('No handler for device with DeviceId = %s', macAddr);
+            console.log('No handler for device with DeviceId = %s', deviceId);
             return;
     }
 

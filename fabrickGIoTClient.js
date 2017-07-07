@@ -162,13 +162,16 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
     var json_object = JSON.parse(message);
 
     var publishMessage;
+    var deviceExtId;
     if (gatewayName == "Innopia-000193") {
         var deviceId = json_object['DeviceId'];
+        deviceExtId = deviceId;
 
         var innopia = new InnopiaService();
         publishMessage = innopia.generateMessage(subcribe_devices, deviceId, json_object);
     } else {
         var macAddr = json_object['macAddr'];
+        deviceExtId = macAddr;
         if (macAddr.length > 8) {
             macAddr = macAddr.substring(8);
         }
@@ -178,7 +181,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
     }
 
     if (publishMessage) {
-        if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
+        if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(deviceExtId) != -1) {
             console.log('Message received from gateway ' + gatewayName);
             console.log(publishMessage);
             console.log("-----------------------------------");
