@@ -81,7 +81,8 @@ function processMessage(gatewayName, topic, message, packet) {
             var jsonMessage = body.split("(")[1];
             var jsonMessage = jsonMessage.split(")")[0];
             var jsonMessage = jsonMessage.trim();
-            fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(jsonMessage), { qos: 0, retain: false });
+            var responseJson = JSON.parse(jsonMessage);
+            fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(responseJson), { qos: 0, retain: false });
         });
     }
 }
