@@ -59,24 +59,26 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 });
 
 function processMessage(gatewayName, topic, message, packet) {
-    var json_object = JSON.parse(message);
+    if (message) {
+        var json_object = JSON.parse(message);
 
-    var requestParam = json_object['request'];
+        var requestParam = json_object['request'];
 
-    request({
-        uri: url + requestParam,
-        method: "GET",
-        headers: {
-            "MediaType": "HTTP/1.1",
-            "Content-Type": "application/json",
-        }
-    }, function(error, response, body) {
-        if (error) {
-            return console.error('request failed:', error);
-        }
-        console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
-        console.log('Request successful! Server responded with: ', body);
+        request({
+            uri: url + requestParam,
+            method: "GET",
+            headers: {
+                "MediaType": "HTTP/1.1",
+                "Content-Type": "application/json",
+            }
+        }, function(error, response, body) {
+            if (error) {
+                return console.error('request failed:', error);
+            }
+            console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+            console.log('Request successful! Server responded with: ', body);
 
-        fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(body), { qos: 0, retain: false })
-    });
+            fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(body), { qos: 0, retain: false });
+        });
+    }
 }
