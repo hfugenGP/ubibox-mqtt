@@ -24,6 +24,28 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
             }
 
             break;
+        case 17: //'motionSensor'
+            if (rawData["Member"] == 'MotionDetected') {
+                data['motionDetectedTime'] = new Date();
+            } else {
+                return;
+            }
+            break;
+        case 18: //DoorSensor
+            switch (rawData["Member"]) {
+                case "Open":
+                    data['state'] = [true];
+                    break;
+                case "Closed":
+                    data['state'] = [false];
+                    break;
+            }
+            break;
+        case 19: //Temp and Hum sensor
+
+            break;
+        case 20: //Coffeemaker
+            break;
         default:
             console.log('No handler for device with DeviceId = %s', deviceId);
             return;
