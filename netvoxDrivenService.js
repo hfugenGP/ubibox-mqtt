@@ -16,7 +16,7 @@ var fabrick_gateway = {
     id: "Netvox Driven Service " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Netvox/Device/ActionCall': 1 }
+    topics: { 'client/fabrick.io/Netvox/Device/ActionCall': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -48,7 +48,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received for topic: ' + topic);
 
     switch (topic) {
-        case 'config/fabrick.io/Netvox/Device/ActionCall':
+        case 'client/fabrick.io/Netvox/Device/ActionCall':
             processMessage(gatewayName, topic, message, packet);
             break;
 
@@ -70,7 +70,11 @@ function processMessage(gatewayName, topic, message, packet) {
             "MediaType": "HTTP/1.1",
             "Content-Type": "application/json",
         }
-    }, function() {
-        console.log('Netvox Driven Service request done');
+    }, function(error, response, body) {
+        if (error) {
+            return console.error('request failed:', error);
+        }
+        console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+        console.log('Request successful! Server responded with: ', body);
     });
 }
