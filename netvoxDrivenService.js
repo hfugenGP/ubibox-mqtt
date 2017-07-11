@@ -73,6 +73,7 @@ function processMessage(gatewayName, topic, message, packet) {
                 }
             }, function(error, response, body) {
                 if (error) {
+                    fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(error), { qos: 1, retain: false });
                     return console.error('request failed:', error);
                 }
                 console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received

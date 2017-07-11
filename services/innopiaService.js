@@ -4,6 +4,19 @@ const Common = require('../lib/common');
 
 var innopiaService = function() {};
 
+var gateway = {
+    id: "Innopia Action Caller",
+    host: "106.240.245.222",
+    port: "1883",
+    topics: {}
+};
+
+var broker = new Broker(gateway, gateway.host, {
+    keepalive: true,
+    port: gateway.port,
+    clientId: gateway.id
+});
+
 innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, rawData) {
     var message = { "extId": deviceId };
     message["rawData"] = rawData;
@@ -24,23 +37,37 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
             }
 
             break;
-        case 17: //'motionSensor'
-            if (rawData["Member"] == 'MotionDetected') {
-                data['motionDetectedTime'] = new Date();
-            } else {
-                return;
-            }
-            break;
-        case 18: //DoorSensor
+        case 17: //DoorSensor
+            var client = broker.connect();
             switch (rawData["Member"]) {
-                case "Open":
+                case "Opened":
                     data['state'] = [true];
+                    var actionData = {
+                        "DeviceId": "zigbee-ColorBulb-39009-000193",
+                        "Member": "TurnOn",
+                        "Param": ""
+                    };
+                    broker.publish('Bridge-000193/danny.kuan@atilze.com/ToDev/ActionCall', JSON.stringify(actionData), { qos: 1, retain: false });
                     break;
                 case "Closed":
                     data['state'] = [false];
+                    var actionData = {
+                        "DeviceId": "zigbee-ColorBulb-39009-000193",
+                        "Member": "TurnOff",
+                        "Param": ""
+                    };
+                    broker.publish('Bridge-000193/danny.kuan@atilze.com/ToDev/ActionCall', JSON.stringify(actionData), { qos: 1, retain: false });
                     break;
             }
+            broker.end(true);
             break;
+            // case 18: //'motionSensor'
+            //     if (rawData["Member"] == 'MotionDetected') {
+            //         data['motionDetectedTime'] = new Date();
+            //     } else {
+            //         return;
+            //     }
+            //     break;
         case 19: //Temp and Hum sensor
 
             break;
