@@ -1,6 +1,7 @@
 "use strict";
 
 const Common = require('../lib/common');
+const Broker = require('../lib/broker');
 
 var innopiaService = function() {};
 
