@@ -62,13 +62,13 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
             }
             broker.end(true);
             break;
-            // case 18: //'motionSensor'
+        case 18: //'motionSensor'
             //     if (rawData["Member"] == 'MotionDetected') {
             //         data['motionDetectedTime'] = new Date();
             //     } else {
             //         return;
             //     }
-            //     break;
+            break;
         case 19: //Temp and Hum sensor
 
             break;

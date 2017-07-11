@@ -60,21 +60,31 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 "receivedDate": receivedDateText,
                 "status": "New"
             }
-
-            // Use connect method to connect to the Server
-            MongoClient.connect(url, function(err, db) {
-                // console.log("Connected correctly to server");
-
-                db.collection('GatewayData').insertOne(data, function(err, r) {
-                    if (err) {
-                        console.log("Error when write to mongodb: " + err);
-                    }
-
-                    console.log(r.insertedCount + " record has been saved to mongodb");
-
-                    db.close();
+            if (json_object.extId == "zigbee-ColorBulb-39009-000193" || json_object.extId == "zigbee-Door-11624-000193") {
+                var buf = Buffer.from(JSON.stringify(data), 'base64');
+                var cmd = 'php ' + config.artisanURL + ' device ' + buf.toString('base64');
+                exec(cmd, function(error, stdout, stderr) {
+                    if (error) console.log(error);
+                    if (stdout) console.log(stdout);
+                    if (stderr) console.log(stderr);
                 });
-            });
+            } else {
+                // Use connect method to connect to the Server
+                MongoClient.connect(url, function(err, db) {
+                    // console.log("Connected correctly to server");
+
+                    db.collection('GatewayData').insertOne(data, function(err, r) {
+                        if (err) {
+                            console.log("Error when write to mongodb: " + err);
+                        }
+
+                        console.log(r.insertedCount + " record has been saved to mongodb");
+
+                        db.close();
+                    });
+                });
+            }
+
             break;
 
         default:
