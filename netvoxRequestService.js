@@ -13,7 +13,7 @@ var subcribe_devices = new Array();
 var subcribe_topics = new Array();
 
 var fabrick_gateway = {
-    id: "Netvox Driven Service " + config.fabrickBroker.idKey,
+    id: "Netvox Request Service " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
     topics: { 'client/fabrick.io/Netvox/Device/ActionCall': 1 }
@@ -28,21 +28,21 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 });
 var fabrick_client = fabrick_Broker.connect();
 fabrick_Broker.onConnect(() => {
-    console.log('Netvox Driven Service Connected');
+    console.log('Netvox Request Service Connected');
 });
 fabrick_Broker.onError((err) => {
-    console.log('error happen with Netvox Driven Service')
+    console.log('error happen with Netvox Request Service')
     console.log(err)
     fabrick_Broker.end()
 });
 fabrick_Broker.onClose(() => {
-    console.log('Netvox Driven Service Disconnected')
+    console.log('Netvox Request Service Disconnected')
 });
 fabrick_Broker.onReconnect(() => {
-    console.log('Netvox Driven Service Reconnecting...')
+    console.log('Netvox Request Service Reconnecting...')
 });
 fabrick_Broker.onOffline(() => {
-    console.log('Netvox Driven Service is offline')
+    console.log('Netvox Request Service is offline')
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received for topic: ' + topic);
