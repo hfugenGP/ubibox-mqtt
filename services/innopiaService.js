@@ -48,7 +48,7 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
                         "Member": "TurnOn",
                         "Param": ""
                     };
-                    broker.publish('Bridge-000193/danny.kuan@atilze.com/ToDev/ActionCall', JSON.stringify(actionData), { qos: 1, retain: false });
+                    broker.publish(common.innopiaTopic, JSON.stringify(actionData), { qos: 1, retain: false });
                     break;
                 case "Closed":
                     data['state'] = [false];
@@ -57,7 +57,7 @@ innopiaService.prototype.generateMessage = function(subcribeDevices, deviceId, r
                         "Member": "TurnOff",
                         "Param": ""
                     };
-                    broker.publish('Bridge-000193/danny.kuan@atilze.com/ToDev/ActionCall', JSON.stringify(actionData), { qos: 1, retain: false });
+                    broker.publish(common.innopiaTopic, JSON.stringify(actionData), { qos: 1, retain: false });
                     break;
             }
             broker.end(true);
