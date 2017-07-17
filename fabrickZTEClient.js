@@ -55,9 +55,6 @@ net.createServer(function(sock) {
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
 
-        var common = new Common();
-        var simpleCrypto = new SimpleCrypto();
-
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
         var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
@@ -69,26 +66,26 @@ net.createServer(function(sock) {
 
         console.log('Decrypted Data : ' + decryptedData);
 
-        console.log('*****************************************************************');
+        // console.log('*****************************************************************');
 
-        var messageCallback = zteDataService.generateReply(hexData, decryptedHex);
+        // var messageCallback = zteDataService.generateReply(hexData, decryptedHex);
 
-        console.log('*****************************************************************');
+        // console.log('*****************************************************************');
 
-        var buffer = Buffer.from(messageCallback, "hex");
+        // var buffer = Buffer.from(messageCallback, "hex");
 
-        // Write the data back to the socket, the client will receive it as data from the server
-        sock.write(buffer, function(err) {
-            if (err) {
-                console.log('Sock write error : ' + err);
-                console.log('*****************************************************************');
-            }
-        });
+        // // Write the data back to the socket, the client will receive it as data from the server
+        // sock.write(buffer, function(err) {
+        //     if (err) {
+        //         console.log('Sock write error : ' + err);
+        //         console.log('*****************************************************************');
+        //     }
+        // });
 
-        // sock.end(buffer);
+        // // sock.end(buffer);
 
-        console.log('Returned data : ' + buffer.toString("hex"));
-        console.log('************************End data received************************');
+        // console.log('Returned data : ' + buffer.toString("hex"));
+        // console.log('************************End data received************************');
     });
 
     // Add a 'close' event handler to this instance of socket
