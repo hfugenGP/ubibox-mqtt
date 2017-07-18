@@ -1,19 +1,10 @@
 const net = require('net');
-const Common = require('./lib/common')
-const SimpleCrypto = require('./lib/simpleCrypto')
+const Common = require('./lib/common');
+const config = require('./config/conf');
+const SimpleCrypto = require('./lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
-const ZTEDataService = require('./services/zteDataService')
-
-// var HOST = '127.0.0.1';
-const PORT = 8884;
-
-// Different per device
-const SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
-//Header
-const frameHeader = "5555";
-// End
-const frameEnd = "aaaa";
+const ZTEDataService = require('./services/zteDataService');
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
@@ -57,7 +48,7 @@ net.createServer(function(sock) {
 
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
-        var decryptedData = simpleCrypto.des(common.chars_from_hex(SECRET_KEY), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
+        var decryptedData = simpleCrypto.des(common.chars_from_hex(config.zte.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
 
         if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
@@ -97,8 +88,8 @@ net.createServer(function(sock) {
         console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
     });
 
-}).listen(PORT, () => {
-    console.log('Server listening on ' + ':' + PORT);
+}).listen(config.zte.PORT, () => {
+    console.log('Server listening on ' + ':' + config.zte.PORT);
 });
 
 // Response Package for Connack (Unencrypted):

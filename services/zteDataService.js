@@ -1,15 +1,9 @@
 "use strict";
 
-const Common = require('../lib/common')
+const Common = require('../lib/common');
+const config = require('../config/conf');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
-
-// Different per device
-const SECRET_KEY = "c3d7c43a438fa2268d3e37f81ac1261ada57dfb8fa092465";
-//Header
-const frameHeader = "5555";
-// End
-const frameEnd = "aaaa";
 
 var ZTEDataService = function() {};
 
@@ -382,7 +376,7 @@ ZTEDataService.prototype.generateReply = function(hexData, decryptedHex) {
     tobeEncrypted += frameId;
 
     // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
-    var messageLength = (frameHeader.length + //4
+    var messageLength = (config.zte.frameHeader.length + //4
         4 + //message length itself
         ivHex.length + //16
         deviceId.length + //30
@@ -392,7 +386,7 @@ ZTEDataService.prototype.generateReply = function(hexData, decryptedHex) {
         dataLength.length + //4
         mainMessage.length + //2
         8 + //checksum
-        frameEnd.length) / 2; //4
+        config.zte.frameEnd.length) / 2; //4
 
     // calculate length of padding for 3des
     var tobeEncryptedLength = (tobeEncrypted.length + 8) / 2;
@@ -414,7 +408,7 @@ ZTEDataService.prototype.generateReply = function(hexData, decryptedHex) {
     }
     tobeEncrypted += checksumHex;
 
-    var key = CryptoJS.enc.Hex.parse(SECRET_KEY);
+    var key = CryptoJS.enc.Hex.parse(config.zte.encryptionKey);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
     var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
@@ -423,7 +417,7 @@ ZTEDataService.prototype.generateReply = function(hexData, decryptedHex) {
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
     // ciphertext = ciphertext.substring(0, ciphertext.length - 16);
 
-    // console.log('frameHeader : ' + frameHeader);
+    // console.log('config.zte.frameHeader : ' + config.zte.frameHeader);
     // console.log('messageLengthHex : ' + messageLengthHex);
     // console.log('ivHex : ' + ivHex);
     // console.log('deviceId : ' + deviceId);
@@ -433,12 +427,12 @@ ZTEDataService.prototype.generateReply = function(hexData, decryptedHex) {
     // console.log('dataLength : ' + dataLength);
     console.log('message : ' + mainMessage);
     // console.log('checksumHex : ' + checksumHex);
-    // console.log('frameEnd : ' + frameEnd);
+    // console.log('config.zte.frameEnd : ' + config.zte.frameEnd);
 
     // console.log('tobeEncrypted : ' + tobeEncrypted);
     console.log('ciphertext : ' + ciphertext);
 
-    var finalHex = frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + frameEnd;
+    var finalHex = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
 
     return finalHex;
 }
