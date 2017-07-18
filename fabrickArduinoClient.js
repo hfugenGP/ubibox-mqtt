@@ -206,7 +206,7 @@ function generateMessage(extId, rawData) {
             switch (dataChannel) {
                 case '00':
                     var sound = parseInt('0x' + rawData.substring(14, 18));
-                    data["sound"] = [sound, 'dB'];
+                    data["sound"] = [(sound * 5) / 1024, 'V'];
                     break;
                 case '01':
                     var ultrasonic = parseInt('0x' + rawData.substring(14, 18));
