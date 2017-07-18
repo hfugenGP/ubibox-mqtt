@@ -60,7 +60,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
             _.each(json_object, function(element) {
                 fabrick_Broker.subscribeOne(element['topic']);
-                subcribe_topics[] = element['topic'];
+                subcribe_topics.push(element['topic']);
             });
 
             console.log(subcribe_topics);
