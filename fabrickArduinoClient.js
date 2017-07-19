@@ -14,7 +14,7 @@ var fabrick_gateway = {
     id: "Fabrick Arduino Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Gateways': 1 }
+    topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Lora/Gateways': 1, 'config/fabrick.io/Arduino/Wifi/Gateways': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {

@@ -65,21 +65,33 @@ ZTEDataService.prototype.processData = function(hexData) {
 
     switch (frameType) {
         case "03":
-            publishMessageHandle(effectiveData);
+            var dataTypeMajor = effectiveData.substring(0, 2); //41
+            var dataTypeMinor = effectiveData.substring(2, 4); //42
+
+            console.log('dataTypeMajor : ' + dataTypeMajor);
+            console.log('dataTypeMinor : ' + dataTypeMinor);
+
+            var deviceData = {
+                "DeviceId": deviceId,
+                "MessageType": frameType,
+                "MessageId": frameId,
+                "RawData": effectiveData,
+                "MajorDataTypeId": dataTypeMajor,
+                "MinorDataTypeId": dataTypeMinor
+            };
+
+            deviceData["Data"] = publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor);
             break;
     }
 
     return true;
 }
 
-function publishMessageHandle(effectiveData) {
+function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
     var common = new Common();
 
-    var dataTypeMajor = effectiveData.substring(0, 2); //41
-    var dataTypeMinor = effectiveData.substring(2, 4); //42
+    var data = {};
 
-    console.log('dataTypeMajor : ' + dataTypeMajor);
-    console.log('dataTypeMinor : ' + dataTypeMinor);
     switch (dataTypeMajor) {
         case "00":
             //Report the trip data, include: ignition on/off, summary data.
@@ -102,6 +114,22 @@ function publishMessageHandle(effectiveData) {
                     var totalMileage = effectiveData.substring(144, 152);
                     var totalFuelConsumption = effectiveData.substring(152, 160);
                     var totalDrivingTime = effectiveData.substring(160, 168);
+
+                    data["ignitionOnTime"] = ignitionOnTime;
+                    data["gpsWhenIgnitionOn"] = gpsWhenIgnitionOn;
+                    data["ignitionOffTime"] = ignitionOffTime;
+                    data["gpsWhenIgnitionOff"] = gpsWhenIgnitionOff;
+                    data["drivingDistance"] = drivingDistance;
+                    data["drivingFuelConsumption"] = drivingFuelConsumption;
+                    data["maxSpeed"] = maxSpeed;
+                    data["idleTime"] = idleTime;
+                    data["idleFuelConsumption"] = idleFuelConsumption;
+                    data["numberRapidAcce"] = numberRapidAcce;
+                    data["numberRapidDece"] = numberRapidDece;
+                    data["numberRapidSharpTurn"] = numberRapidSharpTurn;
+                    data["totalMileage"] = totalMileage;
+                    data["totalFuelConsumption"] = totalFuelConsumption;
+                    data["totalDrivingTime"] = totalDrivingTime;
 
                     console.log('ignitionOnTime : ' + ignitionOnTime);
                     console.log('gpsWhenIgnitionOn : ' + gpsWhenIgnitionOn);
@@ -127,6 +155,10 @@ function publishMessageHandle(effectiveData) {
                     var timeOfIgnitionOn = common.date_from_hex(effectiveData.substring(6, 14));
                     var informationOfDTC = effectiveData.substring(14, effectiveData.length);
 
+                    data["typeOfIgnitionOn"] = typeOfIgnitionOn;
+                    data["timeOfIgnitionOn"] = timeOfIgnitionOn;
+                    data["informationOfDTC"] = informationOfDTC;
+
                     console.log('typeOfIgnitionOn : ' + typeOfIgnitionOn);
                     console.log('timeOfIgnitionOn : ' + timeOfIgnitionOn);
                     console.log('informationOfDTC : ' + informationOfDTC);
@@ -138,6 +170,10 @@ function publishMessageHandle(effectiveData) {
                     var typeOfIgnitionOff = effectiveData.substring(4, 6);
                     var timeOfIgnitionOff = common.date_from_hex(effectiveData.substring(6, 14));
                     var informationOfDTC = effectiveData.substring(14, effectiveData.length);
+
+                    data["typeOfIgnitionOff"] = typeOfIgnitionOff;
+                    data["timeOfIgnitionOff"] = timeOfIgnitionOff;
+                    data["informationOfDTC"] = informationOfDTC;
 
                     console.log('typeOfIgnitionOff : ' + typeOfIgnitionOff);
                     console.log('timeOfIgnitionOff : ' + timeOfIgnitionOff);
@@ -158,6 +194,12 @@ function publishMessageHandle(effectiveData) {
                     var speedAfterAcc = effectiveData.substring(62, 64);
                     var accValue = effectiveData.substring(64, 66);
 
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
+                    data["speedBeforeAcc"] = speedBeforeAcc;
+                    data["speedAfterAcc"] = speedAfterAcc;
+                    data["accValue"] = accValue;
+
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('speedBeforeAcc : ' + speedBeforeAcc);
@@ -174,6 +216,12 @@ function publishMessageHandle(effectiveData) {
                     var speedAfterDec = effectiveData.substring(62, 64);
                     var decValue = effectiveData.substring(64, 66);
 
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
+                    data["speedBeforeDec"] = speedBeforeDec;
+                    data["speedAfterDec"] = speedAfterDec;
+                    data["decValue"] = decValue;
+
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('speedBeforeDec : ' + speedBeforeDec);
@@ -188,6 +236,10 @@ function publishMessageHandle(effectiveData) {
                     var gpsPosition = effectiveData.substring(12, 60);
                     var turn = effectiveData.substring(60, 62);
 
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
+                    data["turn"] = turn;
+
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('turn : ' + turn);
@@ -198,6 +250,8 @@ function publishMessageHandle(effectiveData) {
                     console.log('*********************Start Exceed idle*********************');
                     var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
 
+                    data["occurTime"] = occurTime;
+
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Exceed idle*********************');
                     break;
@@ -205,6 +259,8 @@ function publishMessageHandle(effectiveData) {
                     //Driving tired
                     console.log('*********************Start Driving tired*********************');
                     var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
+
+                    data["occurTime"] = occurTime;
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Driving tired*********************');
@@ -218,9 +274,13 @@ function publishMessageHandle(effectiveData) {
             console.log('numberOfPackage : ' + numberOfPackage);
             var gpsData = effectiveData.substring(6, 38)
             console.log('gpsData : ' + gpsData);
+
+            data["numberOfPackage"] = numberOfPackage;
+            data["gpsData"] = gpsData;
             if (numberOfPackage == 2) {
                 var gpsData2 = effectiveData.substring(38, 74)
                 console.log('gpsData2 : ' + gpsData2);
+                data["gpsData2"] = gpsData2;
             }
             console.log('*********************End GPS data*********************');
             break;
@@ -233,6 +293,10 @@ function publishMessageHandle(effectiveData) {
                     var typeComProtocol = effectiveData.substring(4, 6);
                     var numberOfVinCode = parseInt(effectiveData.substring(6, 8), 16);
                     var vinValue = effectiveData.substring(8, 8 + numberOfVinCode * 2);
+
+                    data["typeComProtocol"] = typeComProtocol;
+                    data["numberOfVinCode"] = numberOfVinCode;
+                    data["vinValue"] = vinValue;
 
                     console.log('typeComProtocol : ' + typeComProtocol);
                     console.log('numberOfVinCode : ' + numberOfVinCode);
@@ -258,6 +322,23 @@ function publishMessageHandle(effectiveData) {
                     var totalMileage = effectiveData.substring(58, 66);
                     var totalFuelConsumption = effectiveData.substring(66, 74);
                     var totalDrivingTime = effectiveData.substring(74, 82);
+
+                    data["reportTime"] = reportTime;
+                    data["rpm"] = rpm;
+                    data["speed"] = speed;
+                    data["engineCoolantTemperature"] = engineCoolantTemperature;
+                    data["throttlePosition"] = throttlePosition;
+                    data["engineDuty"] = engineDuty;
+                    data["intakeAirFlow"] = intakeAirFlow;
+                    data["intakeAirTemp"] = intakeAirTemp;
+                    data["intakeAirPressure"] = intakeAirPressure;
+                    data["batteryVolt"] = batteryVolt;
+                    data["fli"] = fli;
+                    data["dt"] = dt;
+                    data["mli"] = mli;
+                    data["totalMileage"] = totalMileage;
+                    data["totalFuelConsumption"] = totalFuelConsumption;
+                    data["totalDrivingTime"] = totalDrivingTime;
 
                     console.log('reportTime : ' + reportTime);
                     console.log('rpm : ' + rpm);
@@ -290,6 +371,9 @@ function publishMessageHandle(effectiveData) {
                     var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var dtcInformation = effectiveData.substring(12, 14);
 
+                    data["occurTime"] = occurTime;
+                    data["dtcInformation"] = dtcInformation;
+
                     //TODO
                     break;
                 case "01":
@@ -298,6 +382,10 @@ function publishMessageHandle(effectiveData) {
                     var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var gpsPosition = effectiveData.substring(12, 60);
                     var batteryVolt = effectiveData.substring(60, 62);
+
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
+                    data["batteryVolt"] = batteryVolt;
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -311,6 +399,10 @@ function publishMessageHandle(effectiveData) {
                     var gpsPosition = effectiveData.substring(12, 60);
                     var peekValue = effectiveData.substring(60, 64);
 
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
+                    data["peekValue"] = peekValue;
+
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('peekValue : ' + peekValue);
@@ -323,6 +415,10 @@ function publishMessageHandle(effectiveData) {
                     var gpsPosition = effectiveData.substring(12, 60);
                     var sollisionValue = effectiveData.substring(60, 62);
 
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
+                    data["sollisionValue"] = sollisionValue;
+
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('sollisionValue : ' + sollisionValue);
@@ -333,6 +429,9 @@ function publishMessageHandle(effectiveData) {
                     console.log('*********************Start Device pulled out*********************');
                     var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
                     var gpsPosition = effectiveData.substring(12, 60);
+
+                    data["occurTime"] = occurTime;
+                    data["gpsPosition"] = gpsPosition;
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -353,6 +452,8 @@ function publishMessageHandle(effectiveData) {
             console.log('**********Server report the data from the terminal device***************');
             break;
     }
+
+    return data;
 }
 
 ZTEDataService.prototype.generateReply = function(hexData) {
