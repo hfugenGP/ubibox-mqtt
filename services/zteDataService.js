@@ -13,7 +13,7 @@ ZTEDataService.prototype.processData = function(hexData) {
     var simpleCrypto = new SimpleCrypto();
 
     // Remove frame header (4), message length (4), device id (16) and frame end (4).
-    this.cryptedHex = hexData.substring(54, hexData.length - 4);
+    cryptedHex = hexData.substring(54, hexData.length - 4);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
     this.encryptionKey = config.zte.encryptionKey;
@@ -22,7 +22,8 @@ ZTEDataService.prototype.processData = function(hexData) {
             this.encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
             break;
     }
-    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(this.cryptedHex), 0, 1, common.chars_from_hex(iv));
+
+    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
     this.decryptedHex = common.hex_from_chars(decryptedData);
 
     console.log('***************************Device Data***************************');
