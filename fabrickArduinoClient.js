@@ -6,8 +6,8 @@ const Common = require('./lib/common')
 const config = require('./config/conf');
 
 var subcribe_devices = new Array();
-// var subcribe_gateways = new Array();
-// var subcribe_brokers = new Array();
+var subcribe_gateways = new Array();
+var subcribe_brokers = new Array();
 var subcribe_topics = new Array();
 
 var fabrick_gateway = {
