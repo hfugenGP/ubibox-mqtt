@@ -50,12 +50,14 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     switch (topic) {
         case 'config/fabrick.io/Arduino/Wifi/Gateways':
-            _.each(subcribe_topics, function(topic) {
-                fabrick_Broker.unsubscribeOne(topic);
-            });
+            if (subcribe_topics) {
+                _.each(subcribe_topics, function(topic) {
+                    fabrick_Broker.unsubscribeOne(topic);
+                });
 
-            while (subcribe_topics.length) {
-                subcribe_topics.pop();
+                while (subcribe_topics.length) {
+                    subcribe_topics.pop();
+                }
             }
 
             _.each(json_object, function(element) {
@@ -98,7 +100,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 var gateway = gateways[id];
                 subcribe_gateways[id] = gateway;
                 if (!subcribe_brokers.hasOwnProperty(id) || subcribe_brokers[id] == undefined) {
-                    console.log("New gateway: " + gateway);
+                    // console.log("New gateway: " + gateway);
                     var protocol = gateway.protocol ? gateway.protocol + "://" : "mqtt://";
                     var broker_host = protocol + gateway.host;
 
