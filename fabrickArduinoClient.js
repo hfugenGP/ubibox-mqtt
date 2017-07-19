@@ -61,8 +61,8 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             }
 
             _.each(json_object, function(element) {
-                fabrick_Broker.subscribeOne(element['topic']);
-                subcribe_topics.push(element['topic']);
+                fabrick_Broker.subscribeOne(element['topics']);
+                subcribe_topics.push(element['topics']);
             });
 
             console.log(subcribe_topics);
