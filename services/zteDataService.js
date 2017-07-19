@@ -7,12 +7,13 @@ const adler32 = require('adler32');
 
 var ZTEDataService = function() {};
 
-ZTEDataService.prototype.processData = function(hexData, cryptedHex, decryptedHex) {
+ZTEDataService.prototype.processData = function(hexData, encryptionKey, cryptedHex, decryptedHex) {
     console.log('***************************Device Data***************************');
     var messageLength = hexData.substring(4, 8);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
     console.log('deviceId : ' + deviceId);
+    console.log('encryptionKey : ' + encryptionKey);
 
     var randomNoiseHex = decryptedHex.substring(0, 16);
     var frameType = decryptedHex.substring(16, 18);

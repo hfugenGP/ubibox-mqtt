@@ -46,8 +46,10 @@ net.createServer(function(sock) {
         var iv = hexData.substring(8, 24);
         var deviceId = hexData.substring(24, 54);
         var encryptionKey = config.zte.encryptionKey;
-        if (deviceId == "") {
-            encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
+        switch (deviceId) {
+            case "383631343733303330313437393335":
+                encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
+                break;
         }
         var decryptedData = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
@@ -59,7 +61,7 @@ net.createServer(function(sock) {
         // console.log('Crypted Data : ' + cryptedHex);
         // console.log('Decrypted Data : ' + decryptedHex);
 
-        if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
+        if (!zteDataService.processData(hexData, encryptionKey, cryptedHex, decryptedHex)) {
             return;
         }
 
