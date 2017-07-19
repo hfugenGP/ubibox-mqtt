@@ -41,24 +41,22 @@ net.createServer(function(sock) {
         var common = new Common();
         var simpleCrypto = new SimpleCrypto();
 
-        console.log('************************New data received************************');
-        console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
-        console.log('Received : ' + new Date());
-        console.log('DATA : ' + hexData);
-        console.log('Crypted Data : ' + cryptedHex);
-
-
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
         var iv = hexData.substring(8, 24);
         var decryptedData = simpleCrypto.des(common.chars_from_hex(config.zte.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
 
+        console.log('************************New data received************************');
+        console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
+        console.log('Received : ' + new Date());
+        console.log('DATA : ' + hexData);
+        console.log('Crypted Data : ' + cryptedHex);
+        console.log('Decrypted Data : ' + decryptedHex);
+
         // if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
         //     return;
         // }
-
-        console.log('Decrypted Data : ' + decryptedHex);
 
         console.log('*****************************************************************');
 
