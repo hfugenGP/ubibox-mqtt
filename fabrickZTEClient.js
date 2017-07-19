@@ -44,7 +44,12 @@ net.createServer(function(sock) {
         // Remove frame header (4), message length (4), device id (16) and frame end (4).
         var cryptedHex = hexData.substring(54, hexData.length - 4);
         var iv = hexData.substring(8, 24);
-        var decryptedData = simpleCrypto.des(common.chars_from_hex(config.zte.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
+        var deviceId = hexData.substring(24, 54);
+        var encryptionKey = config.zte.encryptionKey;
+        if (deviceId == "") {
+            encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
+        }
+        var decryptedData = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
         var decryptedHex = common.hex_from_chars(decryptedData);
 
         console.log('************************New data received************************');

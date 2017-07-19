@@ -9,10 +9,10 @@ var ZTEDataService = function() {};
 
 ZTEDataService.prototype.processData = function(hexData, cryptedHex, decryptedHex) {
     console.log('***************************Device Data***************************');
-    console.log('*****************************Details*****************************');
     var messageLength = hexData.substring(4, 8);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
+    console.log('deviceId : ' + deviceId);
 
     var randomNoiseHex = decryptedHex.substring(0, 16);
     var frameType = decryptedHex.substring(16, 18);
@@ -39,7 +39,6 @@ ZTEDataService.prototype.processData = function(hexData, cryptedHex, decryptedHe
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
-    console.log('deviceId : ' + deviceId);
     console.log('Crypted Hex : ' + cryptedHex);
     console.log('Decrypted Hex : ' + decryptedHex);
 
