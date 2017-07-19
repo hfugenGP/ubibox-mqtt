@@ -324,9 +324,15 @@ function publishMessageHandle(effectiveData) {
             break;
         case "F0":
             //Device report the data from platform server
+            console.log('**********Device report the data from platform server***************');
+            console.log('*Not supported yet');
+            console.log('**********Device report the data from platform server***************');
             break;
         case "F1":
             //Server report the data from the terminal device
+            console.log('**********Server report the data from the terminal device***************');
+            console.log('*Not supported yet');
+            console.log('**********Server report the data from the terminal device***************');
             break;
     }
 }
