@@ -59,6 +59,8 @@ function publishMessageHandle(effectiveData) {
     var dataTypeMajor = effectiveData.substring(0, 2); //41
     var dataTypeMinor = effectiveData.substring(2, 4); //42
 
+    console.log('dataTypeMajor : ' + dataTypeMajor);
+    console.log('dataTypeMinor : ' + dataTypeMinor);
     switch (dataTypeMajor) {
         case "00":
             //Report the trip data, include: ignition on/off, summary data.
