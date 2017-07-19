@@ -8,6 +8,7 @@ const adler32 = require('adler32');
 var ZTEDataService = function() {};
 
 ZTEDataService.prototype.processData = function(hexData, cryptedHex, decryptedHex) {
+    console.log('***************************Device Data***************************');
     console.log('*****************************Details*****************************');
     var messageLength = hexData.substring(4, 8);
     var iv = hexData.substring(8, 24);

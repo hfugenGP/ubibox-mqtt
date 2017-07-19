@@ -51,8 +51,8 @@ net.createServer(function(sock) {
         console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
-        console.log('Crypted Data : ' + cryptedHex);
-        console.log('Decrypted Data : ' + decryptedHex);
+        // console.log('Crypted Data : ' + cryptedHex);
+        // console.log('Decrypted Data : ' + decryptedHex);
 
         if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
             return;
