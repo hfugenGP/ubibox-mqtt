@@ -33,10 +33,10 @@ ZTEDataService.prototype.processData = function(hexData, encryptionKey, cryptedH
         calculatedCheckSumHex = '0' + calculatedCheckSumHex;
     }
 
-    if (checksumHex != calculatedCheckSumHex) {
-        console.log('Error: ^^^^^^^ Checksum is not corect calculated ^^^^^^^ ');
-        return false;
-    }
+    // if (checksumHex != calculatedCheckSumHex) {
+    //     console.log('Error: ^^^^^^^ Checksum is not corect calculated ^^^^^^^ ');
+    //     return false;
+    // }
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
