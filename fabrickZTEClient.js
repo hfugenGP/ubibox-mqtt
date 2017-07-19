@@ -54,9 +54,9 @@ net.createServer(function(sock) {
         console.log('Crypted Data : ' + cryptedHex);
         console.log('Decrypted Data : ' + decryptedHex);
 
-        // if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
-        //     return;
-        // }
+        if (!zteDataService.processData(hexData, cryptedHex, decryptedHex)) {
+            return;
+        }
 
         console.log('*****************************************************************');
 
