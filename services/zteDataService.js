@@ -2,28 +2,44 @@
 
 const Common = require('../lib/common');
 const config = require('../config/conf');
+const SimpleCrypto = require('../lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 
 var ZTEDataService = function() {};
 
-ZTEDataService.prototype.processData = function(hexData, encryptionKey, cryptedHex, decryptedHex) {
+ZTEDataService.prototype.processData = function(hexData) {
+    var common = new Common();
+    var simpleCrypto = new SimpleCrypto();
+
+    // Remove frame header (4), message length (4), device id (16) and frame end (4).
+    this.cryptedHex = hexData.substring(54, hexData.length - 4);
+    var iv = hexData.substring(8, 24);
+    var deviceId = hexData.substring(24, 54);
+    this.encryptionKey = config.zte.encryptionKey;
+    switch (deviceId) {
+        case "383631343733303330313437393335":
+            this.encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
+            break;
+    }
+    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(this.cryptedHex), 0, 1, common.chars_from_hex(iv));
+    this.decryptedHex = common.hex_from_chars(decryptedData);
+
     console.log('***************************Device Data***************************');
     var messageLength = hexData.substring(4, 8);
     var iv = hexData.substring(8, 24);
-    var deviceId = hexData.substring(24, 54);
     console.log('deviceId : ' + deviceId);
-    console.log('encryptionKey : ' + encryptionKey);
+    console.log('encryptionKey : ' + this.encryptionKey);
 
-    var randomNoiseHex = decryptedHex.substring(0, 16);
-    var frameType = decryptedHex.substring(16, 18);
-    var frameId = decryptedHex.substring(18, 22);
+    var randomNoiseHex = this.decryptedHex.substring(0, 16);
+    var frameType = this.decryptedHex.substring(16, 18);
+    var frameId = this.decryptedHex.substring(18, 22);
 
-    var dataLengthHex = decryptedHex.substring(22, 26);
+    var dataLengthHex = this.decryptedHex.substring(22, 26);
     var dataLength = parseInt(dataLengthHex, 16);
     var endOfEffectiveData = 26 + (dataLength * 2);
-    var effectiveData = decryptedHex.substring(26, endOfEffectiveData);
-    var checksumHex = decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
+    var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
+    var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
 
     var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
     var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
@@ -41,7 +57,7 @@ ZTEDataService.prototype.processData = function(hexData, encryptionKey, cryptedH
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
     console.log('Crypted Hex : ' + cryptedHex);
-    console.log('Decrypted Hex : ' + decryptedHex);
+    console.log('Decrypted Hex : ' + this.decryptedHex);
 
     console.log('effectiveData : ' + effectiveData);
 
@@ -337,12 +353,12 @@ function publishMessageHandle(effectiveData) {
     }
 }
 
-ZTEDataService.prototype.generateReply = function(hexData, decryptedHex) {
+ZTEDataService.prototype.generateReply = function(hexData) {
     var common = new Common();
 
     var deviceId = hexData.substring(24, 54);
-    var frameType = decryptedHex.substring(16, 18);
-    var frameId = decryptedHex.substring(18, 22);
+    var frameType = this.decryptedHex.substring(16, 18);
+    var frameId = this.decryptedHex.substring(18, 22);
 
     var iv = CryptoJS.lib.WordArray.random(16);
     var ivText = CryptoJS.enc.Utf16.stringify(iv);
