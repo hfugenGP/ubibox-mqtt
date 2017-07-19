@@ -27,11 +27,10 @@ ZTEDataService.prototype.processData = function(hexData) {
     this.decryptedHex = common.hex_from_chars(decryptedData);
 
     console.log('***************************Device Data***************************');
-    var messageLength = hexData.substring(4, 8);
-    var iv = hexData.substring(8, 24);
     console.log('deviceId : ' + deviceId);
     console.log('encryptionKey : ' + this.encryptionKey);
 
+    var messageLength = hexData.substring(4, 8);
     var randomNoiseHex = this.decryptedHex.substring(0, 16);
     var frameType = this.decryptedHex.substring(16, 18);
     var frameId = this.decryptedHex.substring(18, 22);
@@ -50,10 +49,12 @@ ZTEDataService.prototype.processData = function(hexData) {
         calculatedCheckSumHex = '0' + calculatedCheckSumHex;
     }
 
-    // if (checksumHex != calculatedCheckSumHex) {
-    //     console.log('Error: ^^^^^^^ Checksum is not corect calculated ^^^^^^^ ');
-    //     return false;
-    // }
+    if (checksumHex != calculatedCheckSumHex) {
+        console.log('Error: ^^^^^^^ Checksum is not corect calculated ^^^^^^^ ');
+        console.log('checksum : ' + checksum);
+        console.log('calculatedCheckSum : ' + calculatedCheckSumHex);
+        // return false;
+    }
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);

@@ -19,21 +19,6 @@ net.createServer(function(sock) {
 
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
-
-        // console.log('************************New data received************************');
-
-        // var buff = Buffer.from("555538390A0F7647BA720ED377F7AAAA", "hex");
-
-        // sock.write(buff, function(err) {
-        //     if (err) {
-        //         console.log('Sock write error : ' + err);
-        //         console.log('*****************************************************************');
-        //     }
-        // });
-
-        // console.log('Return mock data : ' + buff.toString("hex"));
-        // console.log('*****************************************************************');
-
         var zteDataService = new ZTEDataService();
 
         var buff = new Buffer(data, 'utf8');
