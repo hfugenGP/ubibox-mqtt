@@ -67,24 +67,24 @@ net.createServer(function(sock) {
 
         console.log('*****************************************************************');
 
-        // var messageCallback = zteDataService.generateReply(hexData, decryptedHex);
+        var messageCallback = zteDataService.generateReply(hexData, decryptedHex);
 
-        // console.log('*****************************************************************');
+        console.log('*****************************************************************');
 
-        // var buffer = Buffer.from(messageCallback, "hex");
+        var buffer = Buffer.from(messageCallback, "hex");
 
-        // // Write the data back to the socket, the client will receive it as data from the server
-        // sock.write(buffer, function(err) {
-        //     if (err) {
-        //         console.log('Sock write error : ' + err);
-        //         console.log('*****************************************************************');
-        //     }
-        // });
+        // Write the data back to the socket, the client will receive it as data from the server
+        sock.write(buffer, function(err) {
+            if (err) {
+                console.log('Sock write error : ' + err);
+                console.log('*****************************************************************');
+            }
+        });
 
-        // // sock.end(buffer);
+        // sock.end(buffer);
 
-        // console.log('Returned data : ' + buffer.toString("hex"));
-        // console.log('************************End data received************************');
+        console.log('Returned data : ' + buffer.toString("hex"));
+        console.log('************************End data received************************');
     });
 
     // Add a 'close' event handler to this instance of socket
