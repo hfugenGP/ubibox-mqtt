@@ -47,7 +47,11 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     switch (topic) {
         case 'client/fabrick.io/Netvox/Device/Response':
-            processMessage(gatewayName, topic, message, packet);
+            processNetvoxMessage(gatewayName, topic, message, packet);
+            break;
+
+        case 'client/fabrick.io/Hue/Device/Response':
+            processHueMessage(gatewayName, topic, message, packet);
             break;
 
         default:
@@ -56,7 +60,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     }
 });
 
-function processMessage(gatewayName, topic, message, packet) {
+function processNetvoxMessage(gatewayName, topic, message, packet) {
     if (message) {
         var json_object = JSON.parse(message);
 
@@ -64,6 +68,18 @@ function processMessage(gatewayName, topic, message, packet) {
         if (requestId) {
             var client = redis.createClient();
             client.set("NetvoxResponse-" + requestId, message);
+        }
+    }
+}
+
+function processHueMessage(gatewayName, topic, message, packet) {
+    if (message) {
+        var json_object = JSON.parse(message);
+
+        var requestId = json_object['request_id'];
+        if (requestId) {
+            var client = redis.createClient();
+            client.set("HueResponse-" + requestId, message);
         }
     }
 }

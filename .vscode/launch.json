@@ -13,7 +13,8 @@
             // "program": "${workspaceRoot}\\fabrickSenslinkClient.js",
             // "program": "${workspaceRoot}\\fabrickDashboardSubcriber.js",
             // "program": "${workspaceRoot}\\fabrickGIoTClient.js",
-            "program": "${workspaceRoot}\\notify.js",
+            // "program": "${workspaceRoot}\\notify.js",
+            "program": "${workspaceRoot}\\netvoxRequestService.js",
 
             "cwd": "${workspaceRoot}"
         },
