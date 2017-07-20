@@ -177,11 +177,9 @@ function processWifiMessage(gatewayName, topic, message, packet) {
 
     var publishMessage = generateMessage(extId, message);
     if (publishMessage) {
-        if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(extId) != -1) {
-            console.log('Message received from gateway ' + gatewayName);
-            console.log(publishMessage);
-            console.log("-----------------------------------");
-        }
+        console.log('Message received from gateway ' + gatewayName);
+        console.log(publishMessage);
+        console.log("-----------------------------------");
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
         fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
@@ -201,11 +199,9 @@ function processLoraMessage(gatewayName, topic, message, packet) {
 
         var publishMessage = generateMessage(extId, rawData);
         if (publishMessage) {
-            if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(extId) != -1) {
-                console.log('Message received from gateway ' + gatewayName);
-                console.log(publishMessage);
-                console.log("-----------------------------------");
-            }
+            console.log('Message received from gateway ' + gatewayName);
+            console.log(publishMessage);
+            console.log("-----------------------------------");
 
             // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
             fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
