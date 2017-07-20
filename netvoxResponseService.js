@@ -14,7 +14,7 @@ var fabrick_gateway = {
     id: "Netvox Response Service " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'client/fabrick.io/Netvox/Device/Response': 1 }
+    topics: { 'client/fabrick.io/Netvox/Device/Response': 1, 'client/fabrick.io/Hue/Device/Response': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {

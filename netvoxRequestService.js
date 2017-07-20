@@ -126,10 +126,8 @@ function processHueMessage(gatewayName, topic, message, packet) {
                     console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
                     console.log('Request successful! Server responded with: ', body);
 
-                    if (body) {
-                        var responseJson = { "request_id": id, "data": body };
-                        fabrick_Broker.publish('client/fabrick.io/Hue/Device/Response', JSON.stringify(responseJson), { qos: 1, retain: true });
-                    }
+                    var responseJson = { "request_id": id, "response_params": body };
+                    fabrick_Broker.publish('client/fabrick.io/Hue/Device/Response', JSON.stringify(responseJson), { qos: 1, retain: true });
                 });
             } else if (method == "PUT") {
                 request({
