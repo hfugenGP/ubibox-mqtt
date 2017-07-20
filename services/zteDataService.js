@@ -13,7 +13,7 @@ ZTEDataService.prototype.processData = function(hexData) {
     var simpleCrypto = new SimpleCrypto();
 
     // Remove frame header (4), message length (4), device id (16) and frame end (4).
-    cryptedHex = hexData.substring(54, hexData.length - 4);
+    var cryptedHex = hexData.substring(54, hexData.length - 4);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
     this.encryptionKey = config.zte.encryptionKey;
