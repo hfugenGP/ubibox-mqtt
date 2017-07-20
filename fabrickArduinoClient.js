@@ -168,6 +168,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 });
 
 function processWifiMessage(gatewayName, topic, message, packet) {
+    console.log('Message received from Wifi ' + message);
     var extId = message.substring(0, 8);
 
     if (subcribe_devices.indexOf("MAC-" + extId) == -1) {
@@ -188,6 +189,7 @@ function processWifiMessage(gatewayName, topic, message, packet) {
 
 function processLoraMessage(gatewayName, topic, message, packet) {
     var json_object = JSON.parse(message);
+    console.log('Message received from Lora ' + json_object);
     var rawData = json_object['data'];
     if (rawData) {
         var extId = rawData.substring(0, 8);
