@@ -79,7 +79,7 @@ function processHueMessage(gatewayName, topic, message, packet) {
         var requestId = json_object['request_id'];
         if (requestId) {
             var client = redis.createClient();
-            client.set("HueResponse-" + requestId, message);
+            client.set("HueResponse-" + requestId, json_object['response_params']);
         }
     }
 }
