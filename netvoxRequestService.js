@@ -79,11 +79,14 @@ function processMessage(gatewayName, topic, message, packet) {
                 console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
                 console.log('Request successful! Server responded with: ', body);
 
-                var jsonMessage = body.split("(")[1];
-                var jsonMessage = jsonMessage.split(")")[0];
-                var jsonMessage = jsonMessage.trim();
-                var responseJson = JSON.parse(jsonMessage);
-                fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(responseJson), { qos: 1, retain: true });
+                if (body) {
+                    var jsonMessage = body.split("(")[1];
+                    var jsonMessage = jsonMessage.split(")")[0];
+                    var jsonMessage = jsonMessage.trim();
+
+                    var responseJson = JSON.parse(jsonMessage);
+                    fabrick_Broker.publish('client/fabrick.io/Netvox/Device/Response', JSON.stringify(responseJson), { qos: 1, retain: true });
+                }
             });
         }
 
