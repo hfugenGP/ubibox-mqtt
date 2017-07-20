@@ -50,14 +50,12 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     switch (topic) {
         case 'config/fabrick.io/Arduino/Wifi/Gateways':
-            if (subcribe_topics) {
-                _.each(subcribe_topics, function(topic) {
-                    fabrick_Broker.unsubscribeOne(topic);
-                });
+            _.each(subcribe_topics, function(topic) {
+                fabrick_Broker.unsubscribeOne(topic);
+            });
 
-                while (subcribe_topics.length) {
-                    subcribe_topics.pop();
-                }
+            while (subcribe_topics.length) {
+                subcribe_topics.pop();
             }
 
             _.each(json_object, function(element) {
@@ -144,7 +142,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log(name + ' broker is offline')
                         fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Offline"}', { qos: 1, retain: true })
                     });
-                    broker.onMessage(processMessage);
+                    broker.onMessage(processLoraMessage);
 
                     subcribe_brokers[id] = broker;
                 } else if (subcribe_gateways[id].topics != gateway.topics) {
@@ -165,11 +163,11 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
         default:
             // Handle all message returned for devices
-            processMessage(gatewayName, topic, message, packet);
+            processWifiMessage(gatewayName, topic, message, packet);
     }
 });
 
-function processMessage(gatewayName, topic, message, packet) {
+function processWifiMessage(gatewayName, topic, message, packet) {
     var extId = message.substring(0, 8);
 
     if (subcribe_devices.indexOf("MAC-" + extId) == -1) {
@@ -187,6 +185,31 @@ function processMessage(gatewayName, topic, message, packet) {
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
         fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
+    }
+}
+
+function processLoraMessage(gatewayName, topic, message, packet) {
+    var json_object = JSON.parse(message);
+    var rawData = json_object['data'];
+    if (rawData) {
+        var extId = rawData.substring(0, 8);
+
+        if (subcribe_devices.indexOf("MAC-" + extId) == -1) {
+            console.log('No handler for device on extId %s', extId);
+            return;
+        }
+
+        var publishMessage = generateMessage(extId, rawData);
+        if (publishMessage) {
+            if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(extId) != -1) {
+                console.log('Message received from gateway ' + gatewayName);
+                console.log(publishMessage);
+                console.log("-----------------------------------");
+            }
+
+            // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
+            fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
+        }
     }
 }
 
