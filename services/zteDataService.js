@@ -42,7 +42,16 @@ ZTEDataService.prototype.processData = function(hexData) {
     var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
 
     var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
+
+    console.log('frameType : ' + frameType);
+    console.log('frameId : ' + frameId);
+    console.log('Crypted Hex : ' + cryptedHex);
+    console.log('Decrypted Hex : ' + this.decryptedHex);
+    console.log('checksumHex : ' + checksumHex);
+    console.log('cal checksum : ' + checksum);
+
     var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
+    console.log('cal checksumHex : ' + calculatedCheckSumHex);
     if (calculatedCheckSumHex.length == 6) {
         calculatedCheckSumHex = '00' + calculatedCheckSumHex;
     } else if (calculatedCheckSumHex.length == 7) {
@@ -55,11 +64,6 @@ ZTEDataService.prototype.processData = function(hexData) {
         console.log('calculatedCheckSum : ' + calculatedCheckSumHex);
         // return false;
     }
-
-    console.log('frameType : ' + frameType);
-    console.log('frameId : ' + frameId);
-    console.log('Crypted Hex : ' + cryptedHex);
-    console.log('Decrypted Hex : ' + this.decryptedHex);
 
     console.log('effectiveData : ' + effectiveData);
 
