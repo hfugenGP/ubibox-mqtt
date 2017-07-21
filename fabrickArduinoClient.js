@@ -173,7 +173,9 @@ function processWifiMessage(gatewayName, topic, message, packet) {
     console.log('Message received from Wifi ' + rawData);
     var extId = rawData.substring(0, 8);
 
-    if (subcribe_devices.indexOf("MAC-" + extId) == -1) {
+    //'MAC-f3104211'
+    //'MAC-f3104211'
+    if (!subcribe_devices["MAC-" + extId]) {
         console.log('No handler for device on extId %s', extId);
         return;
     }
@@ -196,7 +198,7 @@ function processLoraMessage(gatewayName, topic, message, packet) {
     if (rawData) {
         var extId = rawData.substring(0, 8);
 
-        if (subcribe_devices.indexOf("MAC-" + extId) == -1) {
+        if (!subcribe_devices["MAC-" + extId]) {
             console.log('No handler for device on extId %s', extId);
             return;
         }
