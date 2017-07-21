@@ -181,22 +181,45 @@ function processHueMessage(gatewayName, topic, message, packet) {
                     fabrick_Broker.publish('client/fabrick.io/Hue/Device/Response', JSON.stringify(responseJson), { qos: 1, retain: true });
                 });
             } else if (method == "PUT") {
-                request({
-                    uri: config.techsauce.hueURL + requestParam,
-                    method: method,
-                    json: params,
-                    headers: {
-                        "MediaType": "HTTP/1.1",
-                        "Content-Type": "application/json",
+                if (requestParam == "lights/all/state") {
+                    for (var i = 1; i <= 10; i++) {
+                        var actualRequestParam = requestParam.replace("all", i);
+                        request({
+                            uri: config.techsauce.hueURL + actualRequestParam,
+                            method: method,
+                            json: params,
+                            headers: {
+                                "MediaType": "HTTP/1.1",
+                                "Content-Type": "application/json",
+                            }
+                        }, function(error, response, body) {
+                            if (error) {
+                                fabrick_Broker.publish('client/fabrick.io/Hue/Device/Response', JSON.stringify(error), { qos: 1, retain: false });
+                                return console.error('request failed:', error);
+                            }
+                            console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+                            console.log('Request successful! Server responded with: ', body);
+                        });
                     }
-                }, function(error, response, body) {
-                    if (error) {
-                        fabrick_Broker.publish('client/fabrick.io/Hue/Device/Response', JSON.stringify(error), { qos: 1, retain: false });
-                        return console.error('request failed:', error);
-                    }
-                    console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
-                    console.log('Request successful! Server responded with: ', body);
-                });
+                } else {
+                    request({
+                        uri: config.techsauce.hueURL + requestParam,
+                        method: method,
+                        json: params,
+                        headers: {
+                            "MediaType": "HTTP/1.1",
+                            "Content-Type": "application/json",
+                        }
+                    }, function(error, response, body) {
+                        if (error) {
+                            fabrick_Broker.publish('client/fabrick.io/Hue/Device/Response', JSON.stringify(error), { qos: 1, retain: false });
+                            return console.error('request failed:', error);
+                        }
+                        console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+                        console.log('Request successful! Server responded with: ', body);
+                    });
+                }
+
             }
         }
     }
