@@ -45,6 +45,7 @@ ZTEDataService.prototype.processData = function(hexData) {
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
+    console.log('dataLength : ' + dataLength);
     console.log('Crypted Hex : ' + cryptedHex);
     console.log('Decrypted Hex : ' + this.decryptedHex);
     console.log('checksumHex : ' + checksumHex);
