@@ -226,6 +226,10 @@ function generateMessage(extId, rawData) {
     var dataChannel = rawData.substring(10, 12);
     var dataType = rawData.substring(12, 14);
 
+    console.log('frameCount : ' + frameCount);
+    console.log('dataChannel : ' + dataChannel);
+    console.log('dataType : ' + dataType);
+
     switch (dataType) {
         case '64': // generic sensor
             switch (dataChannel) {
