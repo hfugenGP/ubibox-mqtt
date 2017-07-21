@@ -5,33 +5,33 @@ const Broker = require('./lib/broker');
 const Common = require('./lib/common');
 const config = require('./config/conf');
 const GioTService = require('./services/giotService');
-const Redis = require('ioredis');
+// const Redis = require('ioredis');
 const request = require('request');
 
-var redis = new Redis({ dropBufferSupport: true });
-redis.subscribe('TechsauceMessageAlert');
-redis.on('message', function(channel, message) {
-    var json_object = JSON.parse(message);
-    request({
-        uri: config.duoURL + "api/notification/notify",
-        method: "POST",
-        json: {
-            "title": json_object['title'],
-            "message": json_object['details']
-        },
-        headers: {
-            "MediaType": "HTTP/1.1",
-            "Content-Type": "application/json",
-        }
-    }, function(error, response, body) {
-        if (error) {
-            return console.error('request failed:', error);
-        }
-        console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
-        console.log('Request successful! Server responded with: ', body);
-    });
+// var redis = new Redis({ dropBufferSupport: true });
+// redis.subscribe('TechsauceMessageAlert');
+// redis.on('message', function(channel, message) {
+//     var json_object = JSON.parse(message);
+//     request({
+//         uri: config.duoURL + "api/notification/notify",
+//         method: "POST",
+//         json: {
+//             "title": json_object['title'],
+//             "message": json_object['details']
+//         },
+//         headers: {
+//             "MediaType": "HTTP/1.1",
+//             "Content-Type": "application/json",
+//         }
+//     }, function(error, response, body) {
+//         if (error) {
+//             return console.error('request failed:', error);
+//         }
+//         console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+//         console.log('Request successful! Server responded with: ', body);
+//     });
 
-});
+// });
 
 var subcribe_devices = new Array();
 var subcribe_topics = new Array();
@@ -40,7 +40,7 @@ var fabrick_gateway = {
     id: "Netvox Request Service " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'client/fabrick.io/Netvox/Device/ActionCall': 1, 'client/fabrick.io/Hue/Device/ActionCall': 1 }
+    topics: { 'client/fabrick.io/Netvox/Device/ActionCall': 1, 'client/fabrick.io/Hue/Device/ActionCall': 1, 'client/fabrick.io/Techsauce/Notification/Notify': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -80,11 +80,39 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             processHueMessage(gatewayName, topic, message, packet);
             break;
 
+        case 'client/fabrick.io/Techsauce/Notification/Notify':
+            processTechsauceNotify(gatewayName, topic, message, packet);
+            break;
+
         default:
             console.log('No handler for topic : ' + topic);
             break;
     }
 });
+
+function processNetvoxMessage(gatewayName, topic, message, packet) {
+    if (message) {
+        var json_object = JSON.parse(message);
+        request({
+            uri: config.duoURL + "api/notification/notify",
+            method: "POST",
+            json: {
+                "title": json_object['title'],
+                "message": json_object['details']
+            },
+            headers: {
+                "MediaType": "HTTP/1.1",
+                "Content-Type": "application/json",
+            }
+        }, function(error, response, body) {
+            if (error) {
+                return console.error('request failed:', error);
+            }
+            console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+            console.log('Request successful! Server responded with: ', body);
+        });
+    }
+}
 
 function processNetvoxMessage(gatewayName, topic, message, packet) {
     if (message) {
