@@ -169,15 +169,16 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 });
 
 function processWifiMessage(gatewayName, topic, message, packet) {
-    console.log('Message received from Wifi ' + message);
-    var extId = message.substring(0, 8);
+    var rawData = message.toString();
+    console.log('Message received from Wifi ' + rawData);
+    var extId = rawData.substring(0, 8);
 
     if (subcribe_devices.indexOf("MAC-" + extId) == -1) {
         console.log('No handler for device on extId %s', extId);
         return;
     }
 
-    var publishMessage = generateMessage(extId, message);
+    var publishMessage = generateMessage(extId, rawData);
     if (publishMessage) {
         console.log('Message received from gateway ' + gatewayName);
         console.log(publishMessage);
