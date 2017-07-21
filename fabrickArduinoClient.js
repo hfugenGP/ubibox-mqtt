@@ -44,12 +44,11 @@ fabrick_Broker.onOffline(() => {
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received for topic: ' + topic);
-    var json_object = JSON.parse(message);
-
     var gateways = new Array();
 
     switch (topic) {
         case 'config/fabrick.io/Arduino/Wifi/Gateways':
+            var json_object = JSON.parse(message);
             _.each(subcribe_topics, function(topic) {
                 fabrick_Broker.unsubscribeOne(topic);
             });
@@ -68,6 +67,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             break;
 
         case 'config/fabrick.io/Arduino/Lora/Gateways':
+            var json_object = JSON.parse(message);
             json_object.forEach(function(element) {
                 var gateway = {
                     id: element['id'],
@@ -152,6 +152,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             break;
 
         case 'config/fabrick.io/Arduino/Devices':
+            var json_object = JSON.parse(message);
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
             }
