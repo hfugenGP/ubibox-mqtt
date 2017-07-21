@@ -98,7 +98,9 @@ function processTechsauceNotify(gatewayName, topic, message, packet) {
             method: "POST",
             json: {
                 "title": json_object['title'],
-                "message": json_object['details']
+                "message": json_object['message'],
+                "image": json_object['image'],
+                "url": json_object['url'],
             },
             headers: {
                 "MediaType": "HTTP/1.1",
