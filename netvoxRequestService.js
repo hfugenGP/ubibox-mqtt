@@ -90,7 +90,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     }
 });
 
-function processNetvoxMessage(gatewayName, topic, message, packet) {
+function processTechsauceNotify(gatewayName, topic, message, packet) {
     if (message) {
         var json_object = JSON.parse(message);
         request({
