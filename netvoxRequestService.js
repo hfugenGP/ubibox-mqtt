@@ -5,10 +5,33 @@ const Broker = require('./lib/broker');
 const Common = require('./lib/common');
 const config = require('./config/conf');
 const GioTService = require('./services/giotService');
-
+const Redis = require('ioredis');
 const request = require('request');
-var netvoxURL = "http://192.168.15.1/cgi-bin/rest/network/";
-var hueURL = "http://192.168.15.101/api/sHWS9LXB4MVlM7MG1Zk4d1Aj7nhtvApI7yJp8HOm/";
+
+var redis = new Redis({ dropBufferSupport: true });
+redis.subscribe('TechsauceMessageAlert');
+redis.on('message', function(channel, message) {
+    var json_object = JSON.parse(message);
+    request({
+        uri: config.duoURL + "api/notification/notify",
+        method: "POST",
+        json: {
+            "title": json_object['title'],
+            "message": json_object['details']
+        },
+        headers: {
+            "MediaType": "HTTP/1.1",
+            "Content-Type": "application/json",
+        }
+    }, function(error, response, body) {
+        if (error) {
+            return console.error('request failed:', error);
+        }
+        console.log('Status Code: ', response && response.statusCode); // Print the response status code if a response was received
+        console.log('Request successful! Server responded with: ', body);
+    });
+
+});
 
 var subcribe_devices = new Array();
 var subcribe_topics = new Array();
@@ -70,7 +93,7 @@ function processNetvoxMessage(gatewayName, topic, message, packet) {
         var requestParam = json_object['request'];
         if (requestParam) {
             request({
-                uri: netvoxURL + requestParam,
+                uri: config.netvoxURL + requestParam,
                 method: "GET",
                 headers: {
                     "MediaType": "HTTP/1.1",
@@ -112,7 +135,7 @@ function processHueMessage(gatewayName, topic, message, packet) {
         if (requestParam) {
             if (method == "GET") {
                 request({
-                    uri: hueURL + requestParam,
+                    uri: config.hueURL + requestParam,
                     method: method,
                     headers: {
                         "MediaType": "HTTP/1.1",
@@ -131,7 +154,7 @@ function processHueMessage(gatewayName, topic, message, packet) {
                 });
             } else if (method == "PUT") {
                 request({
-                    uri: hueURL + requestParam,
+                    uri: config.hueURL + requestParam,
                     method: method,
                     json: params,
                     headers: {
