@@ -94,7 +94,7 @@ function processTechsauceNotify(gatewayName, topic, message, packet) {
     if (message) {
         var json_object = JSON.parse(message);
         request({
-            uri: config.duoURL + "api/notification/notify",
+            uri: conf.techsauce.duoURL + "api/notification/notify",
             method: "POST",
             json: {
                 "title": json_object['title'],
@@ -121,7 +121,7 @@ function processNetvoxMessage(gatewayName, topic, message, packet) {
         var requestParam = json_object['request'];
         if (requestParam) {
             request({
-                uri: config.netvoxURL + requestParam,
+                uri: conf.techsauce.netvoxURL + requestParam,
                 method: "GET",
                 headers: {
                     "MediaType": "HTTP/1.1",
@@ -163,7 +163,7 @@ function processHueMessage(gatewayName, topic, message, packet) {
         if (requestParam) {
             if (method == "GET") {
                 request({
-                    uri: config.hueURL + requestParam,
+                    uri: conf.techsauce.hueURL + requestParam,
                     method: method,
                     headers: {
                         "MediaType": "HTTP/1.1",
@@ -182,7 +182,7 @@ function processHueMessage(gatewayName, topic, message, packet) {
                 });
             } else if (method == "PUT") {
                 request({
-                    uri: config.hueURL + requestParam,
+                    uri: conf.techsauce.hueURL + requestParam,
                     method: method,
                     json: params,
                     headers: {
