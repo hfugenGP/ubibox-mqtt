@@ -21,6 +21,9 @@ ZTEDataService.prototype.processData = function(hexData) {
         case "383631343733303330313437393335":
             this.encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
             break;
+        case "303036383836376ae06a9506407a68":
+            this.encryptionKey = "ce12c65ffa07aa5ea7e1f5ac314aaea5187da0a198b97a06";
+            break;
     }
 
     var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
