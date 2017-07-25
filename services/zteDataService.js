@@ -84,7 +84,7 @@ ZTEDataService.prototype.processData = function(hexData) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
-            console.log(r.insertedCount + " record has been saved to mongodb");
+            console.log(r.insertedCount + " record has been saved to DeviceHistoricalDataDebug");
             db.close();
         });
     });
@@ -124,7 +124,7 @@ ZTEDataService.prototype.processData = function(hexData) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
-                    console.log(r.insertedCount + " record has been saved to mongodb");
+                    console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     db.close();
                 });
             });
