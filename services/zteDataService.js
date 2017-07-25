@@ -12,7 +12,7 @@ var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
 
 // Connection URL
-var url = f(config.zte.mongoUrl, user, password, config.mongoAuthMechanism);
+var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var ZTEDataService = function() {};
 
