@@ -5,6 +5,14 @@ const config = require('../config/conf');
 const SimpleCrypto = require('../lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
+const f = require('util').format;
+const MongoClient = require('mongodb').MongoClient;
+
+var user = encodeURIComponent(config.zte.mongoUsername);
+var password = encodeURIComponent(config.zte.mongoPassword);
+
+// Connection URL
+var url = f(config.zte.mongoUrl, user, password, config.mongoAuthMechanism);
 
 var ZTEDataService = function() {};
 
@@ -13,6 +21,8 @@ ZTEDataService.prototype.processData = function(hexData) {
     var simpleCrypto = new SimpleCrypto();
 
     // Remove frame header (4), message length (4), device id (16) and frame end (4).
+    var messageLength = hexData.substring(4, 8);
+    var messageLengthDec = parseInt(messageLength, 16);
     var cryptedHex = hexData.substring(54, hexData.length - 4);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
@@ -33,7 +43,7 @@ ZTEDataService.prototype.processData = function(hexData) {
     console.log('deviceId : ' + deviceId);
     console.log('encryptionKey : ' + this.encryptionKey);
 
-    var messageLength = hexData.substring(4, 8);
+
     var randomNoiseHex = this.decryptedHex.substring(0, 16);
     var frameType = this.decryptedHex.substring(16, 18);
     var frameId = this.decryptedHex.substring(18, 22);
@@ -44,6 +54,9 @@ ZTEDataService.prototype.processData = function(hexData) {
     var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
     var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
 
+    // var effectiveData = this.decryptedHex.substring(26, this.decryptedHex.length - 8);
+    // var checksumHex = this.decryptedHex.substring(this.decryptedHex.length - 8, this.decryptedHex.length);
+
     var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
 
     console.log('frameType : ' + frameType);
@@ -53,6 +66,28 @@ ZTEDataService.prototype.processData = function(hexData) {
     console.log('Decrypted Hex : ' + this.decryptedHex);
     console.log('checksumHex : ' + checksumHex);
     console.log('cal checksum : ' + checksum);
+
+    var receivedDate = Date.now();
+    var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
+    var deviceData = {
+        "DeviceId": deviceId,
+        "MessageType": frameType,
+        "MessageId": frameId,
+        "RawData": hexData,
+        "EffectiveRawData": effectiveData,
+        "CreatedDateTime": receivedDateText
+    };
+
+    // Use connect method to connect to the Server
+    MongoClient.connect(url, function(err, db) {
+        db.collection('DeviceHistoricalDataDebug').insertOne(deviceData, function(err, r) {
+            if (err) {
+                console.log("Error when write to mongodb: " + err);
+            }
+            console.log(r.insertedCount + " record has been saved to mongodb");
+            db.close();
+        });
+    });
 
     var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
     console.log('cal checksumHex : ' + calculatedCheckSumHex);
@@ -79,16 +114,21 @@ ZTEDataService.prototype.processData = function(hexData) {
             console.log('dataTypeMajor : ' + dataTypeMajor);
             console.log('dataTypeMinor : ' + dataTypeMinor);
 
-            var deviceData = {
-                "DeviceId": deviceId,
-                "MessageType": frameType,
-                "MessageId": frameId,
-                "RawData": effectiveData,
-                "MajorDataTypeId": dataTypeMajor,
-                "MinorDataTypeId": dataTypeMinor
-            };
-
+            deviceData["MajorDataTypeId"] = dataTypeMajor;
+            deviceData["MinorDataTypeId"] = dataTypeMinor;
             deviceData["Data"] = publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor);
+
+            // Use connect method to connect to the Server
+            MongoClient.connect(url, function(err, db) {
+                db.collection('DeviceHistoricalDataTemp').insertOne(deviceData, function(err, r) {
+                    if (err) {
+                        console.log("Error when write to mongodb: " + err);
+                    }
+                    console.log(r.insertedCount + " record has been saved to mongodb");
+                    db.close();
+                });
+            });
+
             break;
     }
 
