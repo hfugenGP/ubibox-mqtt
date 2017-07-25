@@ -67,7 +67,7 @@ ZTEDataService.prototype.processData = function(hexData) {
     console.log('checksumHex : ' + checksumHex);
     console.log('cal checksum : ' + checksum);
 
-    var receivedDate = Date.now();
+    var receivedDate = new Date();
     var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
     var deviceData = {
         "DeviceId": deviceId,
