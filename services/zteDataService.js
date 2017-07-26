@@ -410,19 +410,184 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             break;
         case "04":
             //Report the terminal device information, include: IMSI，device failure, sleep, wake, no location long time，modem update status, WIFI credentials.
+            switch (dataTypeMinor) {
+                case "00":
+                    //IMSI
+                    console.log('*********************Start IMSI*********************');
+                    var reportingDate = common.date_from_hex(effectiveData.substring(4, 12));
+                    var lengthOfIMSI = parseInt(effectiveData.substring(12, 14), 16);
+                    var IMSI = effectiveData.substring(14, 14 + (lengthOfIMSI * 2));
+
+                    data["reportingDate"] = reportingDate;
+                    data["lengthOfIMSI"] = lengthOfIMSI;
+                    data["IMSI"] = IMSI;
+
+                    console.log('reportingDate : ' + reportingDate);
+                    console.log('lengthOfIMSI : ' + lengthOfIMSI);
+                    console.log('IMSI : ' + IMSI);
+                    console.log('*********************End IMSI*********************');
+                    break;
+                case "01":
+                    //Device bug
+                    console.log('*********************Start Device bug*********************');
+                    var reportingDate = common.date_from_hex(effectiveData.substring(4, 12));
+                    var failureCode = effectiveData.substring(12, 14);
+
+                    data["reportingDate"] = reportingDate;
+                    data["failureCode"] = failureCode;
+
+                    console.log('reportingDate : ' + reportingDate);
+                    console.log('failureCode : ' + failureCode);
+                    console.log('*********************End Device bug*********************');
+                    break;
+                case "02":
+                    //Sleep
+                    console.log('*********************Start Sleep*********************');
+                    var sleepTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var sleepVoltage = parseInt(effectiveData.substring(12, 14), 16);
+
+                    data["sleepTime"] = sleepTime;
+                    data["failureCode"] = failureCode;
+
+                    console.log('sleepTime : ' + sleepTime);
+                    console.log('failureCode : ' + failureCode);
+                    console.log('*********************End Sleep*********************');
+                    break;
+                case "03":
+                    //Wake up
+                    console.log('*********************Start Wake up*********************');
+                    var wakeUpTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var wakeUpVoltage = parseInt(effectiveData.substring(12, 14), 16);
+                    var wakeUpType = effectiveData.substring(16, 18);
+
+                    data["wakeUpTime"] = wakeUpTime;
+                    data["wakeUpVoltage"] = wakeUpVoltage;
+                    data["wakeUpType"] = wakeUpType;
+
+                    console.log('wakeUpTime : ' + wakeUpTime);
+                    console.log('wakeUpVoltage : ' + wakeUpVoltage);
+                    console.log('wakeUpType : ' + wakeUpType);
+                    console.log('*********************End Wake up*********************');
+                    break;
+                case "04":
+                    //Can not locate for long time
+                    console.log('*********************Start Can not locate*********************');
+                    var timeNoLocation = common.date_from_hex(effectiveData.substring(4, 12));
+                    var gpsPosition = effectiveData.substring(12, 60);
+
+                    data["timeNoLocation"] = timeNoLocation;
+                    data["gpsPosition"] = gpsPosition;
+
+                    console.log('timeNoLocation : ' + timeNoLocation);
+                    console.log('gpsPosition : ' + gpsPosition);
+                    console.log('*********************End Can not locate*********************');
+                    break;
+                case "05":
+                    //Power on after reboot
+                    console.log('*********************Start Power on*********************');
+                    var timePoweredOn = common.date_from_hex(effectiveData.substring(4, 12));
+                    var timeLastPoweredOff = common.date_from_hex(effectiveData.substring(12, 20));
+                    var typeOfPowerOn = effectiveData.substring(20, 22);
+
+                    data["timePoweredOn"] = timePoweredOn;
+                    data["timeLastPoweredOff"] = timeLastPoweredOff;
+                    data["typeOfPowerOn"] = typeOfPowerOn;
+
+                    console.log('timePoweredOn : ' + timePoweredOn);
+                    console.log('timeLastPoweredOff : ' + timeLastPoweredOff);
+                    console.log('typeOfPowerOn : ' + typeOfPowerOn);
+                    console.log('*********************End Power on*********************');
+                    break;
+                case "06":
+                    //Upgrade status
+                    console.log('*********************Start Upgrade status*********************');
+                    var reportingTime = common.date_from_hex(effectiveData.substring(4, 12));
+                    var upgradeState = effectiveData.substring(12, 14);
+
+                    data["reportingTime"] = reportingTime;
+                    data["upgradeState"] = upgradeState;
+
+                    console.log('reportingTime : ' + reportingTime);
+                    console.log('upgradeState : ' + upgradeState);
+                    console.log('*********************End Upgrade status*********************');
+                    break;
+                case "07":
+                    //Accelerator calibration status
+                    console.log('*********************Start calibration*********************');
+                    var acceleratorCalibrationStatus = effectiveData.substring(4, 6);
+
+                    data["acceleratorCalibrationStatus"] = acceleratorCalibrationStatus;
+
+                    console.log('acceleratorCalibrationStatus : ' + acceleratorCalibrationStatus);
+                    console.log('*********************End calibration*********************');
+                    break;
+                case "08":
+                    //Upgrade status of Modem FOTA
+                    console.log('*********************Start status of Modem FOTA*********************');
+                    var statusIndication = effectiveData.substring(4, 6);
+                    var softwareVersion = effectiveData.substring(6);
+
+                    data["statusIndication"] = statusIndication;
+                    data["softwareVersion"] = softwareVersion;
+
+                    console.log('statusIndication : ' + statusIndication);
+                    console.log('softwareVersion : ' + softwareVersion);
+                    console.log('*********************End status of Modem FOTA*********************');
+                    break;
+                case "09":
+                    //Modem reset to factory configuration
+                    console.log('*********************Start Modem reset*********************');
+                    var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
+                    var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
+                    var wifiSSID = effectiveData.substring(6, wifiSSIDEndPosition);
+
+                    var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
+                    var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
+                    var wifiPassword = effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition);
+
+                    var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
+
+                    var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
+                    var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
+                    var wifiAPN = effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition);
+
+                    data["wifiSSID"] = wifiSSID;
+                    data["wifiPassword"] = wifiPassword;
+                    data["wifiOpenState"] = wifiOpenState;
+                    data["wifiAPN"] = wifiAPN;
+
+                    console.log('wifiSSID : ' + wifiSSID);
+                    console.log('wifiPassword : ' + wifiPassword);
+                    console.log('wifiOpenState : ' + wifiOpenState);
+                    console.log('wifiAPN : ' + wifiAPN);
+                    console.log('*********************End Modem reset*********************');
+                    break;
+            }
             break;
         case "05":
             //Report the vehicle secure data, include: Trouble code, low voltage, vibration after ignition off, high engine speed in low water temperature ,tow, suspected collision
             switch (dataTypeMinor) {
                 case "00":
                     //DTC code
+                    console.log('*********************Start DTC code*********************');
                     var occurTime = common.date_from_hex(effectiveData.substring(4, 12));
-                    var dtcInformation = effectiveData.substring(12, 14);
+                    var obdFaultCode = effectiveData.substring(12, 14);
+                    var obdFaultCodeInfo = effectiveData.substring(14, 20);
+                    var privateFaultCode = effectiveData.substring(20, 22);
+                    var privateFaultCodeInfo = effectiveData.substring(22, 30);
 
                     data["occurTime"] = occurTime;
-                    data["dtcInformation"] = dtcInformation;
+                    data["obdFaultCode"] = obdFaultCode;
+                    data["obdFaultCodeInfo"] = obdFaultCodeInfo;
+                    data["privateFaultCode"] = privateFaultCode;
+                    data["privateFaultCodeInfo"] = privateFaultCodeInfo;
 
-                    //TODO
+                    console.log('occurTime : ' + occurTime);
+                    console.log('obdFaultCode : ' + obdFaultCode);
+                    console.log('obdFaultCodeInfo : ' + obdFaultCodeInfo);
+                    console.log('privateFaultCode : ' + privateFaultCode);
+                    console.log('privateFaultCodeInfo : ' + privateFaultCodeInfo);
+                    console.log('*********************End DTC code*********************');
                     break;
                 case "01":
                     //Low voltage
@@ -455,6 +620,10 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('peekValue : ' + peekValue);
                     console.log('*********************End Vibration after ignition off*********************');
+                    break;
+                case "03":
+                case "04":
+                    //Preserve
                     break;
                 case "05":
                     //Suspected collision
@@ -490,7 +659,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
         case "F0":
             //Device report the data from platform server
             console.log('**********Device report the data from platform server***************');
-            console.log('*Not supported yet');
+            console.log('*Not supported yet*');
             console.log('**********Device report the data from platform server***************');
             break;
         case "F1":
