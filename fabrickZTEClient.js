@@ -1,3 +1,7 @@
+'use strict'
+
+const Broker = require('./lib/broker');
+
 const net = require('net');
 const Common = require('./lib/common');
 const config = require('./config/conf');
@@ -5,12 +9,23 @@ const SimpleCrypto = require('./lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 const ZTEDataService = require('./services/zteDataService');
+const f = require('util').format;
+const MongoClient = require('mongodb').MongoClient;
+var AsyncLock = require('async-lock');
+
+var user = encodeURIComponent(config.zte.mongoUsername);
+var password = encodeURIComponent(config.zte.mongoPassword);
+
+// Connection URL
+var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
+
+var lock = new AsyncLock();
+var connectingDevices = new Array();
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
 // The sock object the callback function receives UNIQUE for each connection
-net.createServer(function(sock) {
-
+function handleDeviceConnetion(sock) {
     // We have a connection - a socket object is assigned to the connection automatically
     console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
 
@@ -29,6 +44,15 @@ net.createServer(function(sock) {
         console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
+
+        var deviceId = hexData.substring(24, 54);
+
+        lock.acquire("connectingDevicesLock", function(done) {
+            if (!connectingDevices.hasOwnProperty(deviceId) ||
+                connectingDevices[deviceId] == undefined) {
+                connectingDevices[deviceId] = sock;
+            }
+        });
 
         if (!zteDataService.processData(hexData)) {
             return;
@@ -59,14 +83,63 @@ net.createServer(function(sock) {
     // Add a 'close' event handler to this instance of socket
     sock.on('close', function(data) {
         console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
+        lock.acquire("connectingDevicesLock", function(done) {
+            connectingDevices[deviceId] = undefined;
+        });
     });
 
     sock.on('error', function(data) {
         console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
+        lock.acquire("connectingDevicesLock", function(done) {
+            connectingDevices[deviceId] = undefined;
+        });
     });
+};
 
-}).listen(config.zte.PORT, () => {
+net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
     console.log('Server listening on ' + ':' + config.zte.PORT);
+});
+
+var fabrick_gateway = {
+    id: "Fabrick ZTE Sockets Client " + config.fabrickBroker.idKey,
+    host: config.fabrickBroker.host,
+    port: config.fabrickBroker.port,
+    topics: { 'config/fabrick.io/ZTE/Devices': 1 }
+};
+
+var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
+    keepalive: config.fabrickBroker.keepalive,
+    port: fabrick_gateway.port,
+    clientId: fabrick_gateway.id,
+    username: config.fabrickBroker.username,
+    password: config.fabrickBroker.password,
+});
+var fabrick_client = fabrick_Broker.connect();
+
+fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
+    console.log('Message received from Fabrick');
+
+    var data = JSON.parse(message);
+    var deviceId = data["deviceId"];
+    if (connectingDevices.hasOwnProperty(deviceId) &&
+        connectingDevices[deviceId] != undefined) {
+        switch (topic) {
+            case 'config/fabrick.io/ZTE/Device/Message':
+                var messageCallback = zteDataService.generateMessageToDevice(hexData);
+                var buffer = Buffer.from(messageCallback, "hex");
+                var sock = connectingDevices[deviceId];
+                // Write the data back to the socket, the client will receive it as data from the server
+                sock.write(buffer, function(err) {
+                    if (err) {
+                        console.log('Sock write error : ' + err);
+                        console.log('*****************************************************************');
+                    }
+                });
+                break;
+            default:
+                console.log('No handler for topic %s', topic);
+        }
+    }
 });
 
 // Response Package for Connack (Unencrypted):

@@ -16,6 +16,10 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var ZTEDataService = function() {};
 
+ZTEDataService.prototype.generateMessageToDevice = function(data) {
+
+}
+
 ZTEDataService.prototype.processData = function(hexData) {
     var common = new Common();
     var simpleCrypto = new SimpleCrypto();
@@ -23,9 +27,9 @@ ZTEDataService.prototype.processData = function(hexData) {
     // Remove frame header (4), message length (4), device id (16) and frame end (4).
     var messageLength = hexData.substring(4, 8);
     var messageLengthDec = parseInt(messageLength, 16);
-    var cryptedHex = hexData.substring(54, hexData.length - 4);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
+    var cryptedHex = hexData.substring(54, hexData.length - 4);
     this.encryptionKey = config.zte.encryptionKey;
     switch (deviceId) {
         case "383631343733303330313437393335":
@@ -33,6 +37,9 @@ ZTEDataService.prototype.processData = function(hexData) {
             break;
         case "303036383836376ae06a9506407a68":
             this.encryptionKey = "ce12c65ffa07aa5ea7e1f5ac314aaea5187da0a198b97a06";
+            break;
+        case "383635313432303230303133323433":
+            this.encryptionKey = "f416835fae648be87dc39bda084bdc8fce6deded47e762e8";
             break;
     }
 
@@ -42,7 +49,6 @@ ZTEDataService.prototype.processData = function(hexData) {
     console.log('***************************Device Data***************************');
     console.log('deviceId : ' + deviceId);
     console.log('encryptionKey : ' + this.encryptionKey);
-
 
     var randomNoiseHex = this.decryptedHex.substring(0, 16);
     var frameType = this.decryptedHex.substring(16, 18);
@@ -65,7 +71,6 @@ ZTEDataService.prototype.processData = function(hexData) {
     console.log('Crypted Hex : ' + cryptedHex);
     console.log('Decrypted Hex : ' + this.decryptedHex);
     console.log('checksumHex : ' + checksumHex);
-    console.log('cal checksum : ' + checksum);
 
     var receivedDate = new Date();
     var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
@@ -88,6 +93,11 @@ ZTEDataService.prototype.processData = function(hexData) {
             db.close();
         });
     });
+
+    if (dataLength > 952) {
+        console.log('Error: ^^^^^^^ dataLength > 952, there should be critical issues in data ^^^^^^^ ');
+        return false;
+    }
 
     var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
     console.log('cal checksumHex : ' + calculatedCheckSumHex);
