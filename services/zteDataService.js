@@ -44,7 +44,7 @@ ZTEDataService.prototype.processData = function(hexData) {
     }
 
     var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
-    this.decryptedHex = common.hex_from_chars(decryptedData);
+    this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
 
     console.log('***************************Device Data***************************');
     console.log('deviceId : ' + deviceId);
@@ -59,9 +59,6 @@ ZTEDataService.prototype.processData = function(hexData) {
     var endOfEffectiveData = 26 + (dataLength * 2);
     var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
     var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
-
-    // var effectiveData = this.decryptedHex.substring(26, this.decryptedHex.length - 8);
-    // var checksumHex = this.decryptedHex.substring(this.decryptedHex.length - 8, this.decryptedHex.length);
 
     var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
 
@@ -109,9 +106,7 @@ ZTEDataService.prototype.processData = function(hexData) {
 
     if (checksumHex != calculatedCheckSumHex) {
         console.log('Error: ^^^^^^^ Checksum is not corect calculated ^^^^^^^ ');
-        console.log('checksum : ' + checksum);
-        console.log('calculatedCheckSum : ' + calculatedCheckSumHex);
-        // return false;
+        return false;
     }
 
     console.log('effectiveData : ' + effectiveData);
