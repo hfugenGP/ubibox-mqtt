@@ -38,9 +38,9 @@ ZTEDataService.prototype.processData = function(hexData) {
         case "303036383836376ae06a9506407a68":
             this.encryptionKey = "ce12c65ffa07aa5ea7e1f5ac314aaea5187da0a198b97a06";
             break;
-        case "383635313432303230303133323433":
-            this.encryptionKey = "f416835fae648be87dc39bda084bdc8fce6deded47e762e8";
-            break;
+        default:
+            console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+            return false;
     }
 
     var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
