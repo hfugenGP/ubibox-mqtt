@@ -21,6 +21,7 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var lock = new AsyncLock();
 var connectingDevices = new Array();
+var subcribedDevices = new Array();
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
@@ -54,7 +55,7 @@ function handleDeviceConnetion(sock) {
             }
         });
 
-        if (!zteDataService.processData(hexData)) {
+        if (!zteDataService.processData(hexData, subcribedDevices)) {
             return;
         }
 
@@ -104,7 +105,7 @@ var fabrick_gateway = {
     id: "Fabrick ZTE Sockets Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/ZTE/Devices': 1 }
+    topics: { 'config/fabrick.io/ZTE/Devices/Message': 1, 'config/fabrick.io/ZTE/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -135,6 +136,16 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log('*****************************************************************');
                     }
                 });
+                break;
+            case 'config/fabrick.io/ZTE/Devices':
+                // console.log(json_object);
+                while (subcribedDevices.length) {
+                    subcribedDevices.pop();
+                }
+                json_object.forEach(function(element) {
+                    subcribedDevices['ID-' + element['device_id'].toLowerCase()] = element['encrytion_key'];
+                });
+                console.log(subcribedDevices);
                 break;
             default:
                 console.log('No handler for topic %s', topic);

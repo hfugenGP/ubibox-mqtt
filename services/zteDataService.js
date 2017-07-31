@@ -20,7 +20,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(data) {
 
 }
 
-ZTEDataService.prototype.processData = function(hexData) {
+ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     var common = new Common();
     var simpleCrypto = new SimpleCrypto();
 
@@ -31,6 +31,12 @@ ZTEDataService.prototype.processData = function(hexData) {
     var deviceId = hexData.substring(24, 54);
     var cryptedHex = hexData.substring(54, hexData.length - 4);
     this.encryptionKey = config.zte.encryptionKey;
+    // if (!subcribedDevices["ID-" + deviceId]) {
+    //     console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+    //     return false;
+    // }
+
+    // this.encryptionKey = subcribedDevices["ID-" + deviceId];
     switch (deviceId) {
         case "383631343733303330313437393335":
             this.encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
@@ -758,7 +764,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     }
     tobeEncrypted += checksumHex;
 
-    var key = CryptoJS.enc.Hex.parse(config.zte.encryptionKey);
+    var key = CryptoJS.enc.Hex.parse(this.encryptionKey);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
     var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
