@@ -56,6 +56,7 @@ function handleDeviceConnetion(sock) {
         });
 
         if (!zteDataService.processData(hexData, subcribedDevices)) {
+            console.log('Fail to process data, return now without callback...');
             return;
         }
 
@@ -74,8 +75,6 @@ function handleDeviceConnetion(sock) {
                 console.log('*****************************************************************');
             }
         });
-
-        // sock.end(buffer);
 
         console.log('Returned data : ' + buffer.toString("hex"));
         console.log('************************End data received************************');
@@ -121,11 +120,11 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received from Fabrick');
 
     var data = JSON.parse(message);
-    var deviceId = data["deviceId"];
-    if (connectingDevices.hasOwnProperty(deviceId) &&
-        connectingDevices[deviceId] != undefined) {
-        switch (topic) {
-            case 'config/fabrick.io/ZTE/Device/Message':
+    switch (topic) {
+        case 'config/fabrick.io/ZTE/Device/Message':
+            var deviceId = data["deviceId"];
+            if (connectingDevices.hasOwnProperty(deviceId) &&
+                connectingDevices[deviceId] != undefined) {
                 var messageCallback = zteDataService.generateMessageToDevice(hexData);
                 var buffer = Buffer.from(messageCallback, "hex");
                 var sock = connectingDevices[deviceId];
@@ -136,20 +135,20 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log('*****************************************************************');
                     }
                 });
-                break;
-            case 'config/fabrick.io/ZTE/Devices':
-                // console.log(json_object);
-                while (subcribedDevices.length) {
-                    subcribedDevices.pop();
-                }
-                json_object.forEach(function(element) {
-                    subcribedDevices['ID-' + element['device_id'].toLowerCase()] = element['encrytion_key'];
-                });
-                console.log(subcribedDevices);
-                break;
-            default:
-                console.log('No handler for topic %s', topic);
-        }
+            }
+            break;
+        case 'config/fabrick.io/ZTE/Devices':
+            // console.log(json_object);
+            while (subcribedDevices.length) {
+                subcribedDevices.pop();
+            }
+            data.forEach(function(element) {
+                subcribedDevices['ID-' + element['device_id'].toLowerCase()] = element['encrytion_key'];
+            });
+            console.log(subcribedDevices);
+            break;
+        default:
+            console.log('No handler for topic %s', topic);
     }
 });
 

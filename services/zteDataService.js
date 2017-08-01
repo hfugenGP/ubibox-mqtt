@@ -30,24 +30,24 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
     var cryptedHex = hexData.substring(54, hexData.length - 4);
-    this.encryptionKey = config.zte.encryptionKey;
-    // if (!subcribedDevices["ID-" + deviceId]) {
-    //     console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
-    //     return false;
-    // }
-
-    // this.encryptionKey = subcribedDevices["ID-" + deviceId];
-    switch (deviceId) {
-        case "383631343733303330313437393335":
-            this.encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
-            break;
-        case "303036383836376ae06a9506407a68":
-            this.encryptionKey = "ce12c65ffa07aa5ea7e1f5ac314aaea5187da0a198b97a06";
-            break;
-        default:
-            console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
-            return false;
+    // this.encryptionKey = config.zte.encryptionKey;
+    if (!subcribedDevices["ID-" + deviceId]) {
+        console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+        return false;
     }
+
+    this.encryptionKey = subcribedDevices["ID-" + deviceId];
+    // switch (deviceId) {
+    //     case "383631343733303330313437393335":
+    //         this.encryptionKey = "fad238ec6c8f8381644ee54409b5119c071c0249cd6b5dad";
+    //         break;
+    //     case "303036383836376ae06a9506407a68":
+    //         this.encryptionKey = "ce12c65ffa07aa5ea7e1f5ac314aaea5187da0a198b97a06";
+    //         break;
+    //     default:
+    //         console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+    //         return false;
+    // }
 
     var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
     this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
@@ -70,10 +70,10 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
-    console.log('dataLength : ' + dataLength);
-    console.log('Crypted Hex : ' + cryptedHex);
+    // console.log('dataLength : ' + dataLength);
+    // console.log('Crypted Hex : ' + cryptedHex);
     console.log('Decrypted Hex : ' + this.decryptedHex);
-    console.log('checksumHex : ' + checksumHex);
+    // console.log('checksumHex : ' + checksumHex);
 
     var receivedDate = new Date();
     var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
@@ -112,6 +112,8 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
     if (checksumHex != calculatedCheckSumHex) {
         console.log('Error: ^^^^^^^ Checksum is not corect calculated ^^^^^^^ ');
+        console.log('checksumHex : ' + checksumHex);
+        console.log('calculatedCheckSumHex : ' + calculatedCheckSumHex);
         return false;
     }
 
@@ -786,7 +788,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     // console.log('config.zte.frameEnd : ' + config.zte.frameEnd);
 
     // console.log('tobeEncrypted : ' + tobeEncrypted);
-    console.log('ciphertext : ' + ciphertext);
+    // console.log('ciphertext : ' + ciphertext);
 
     var finalHex = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
 
