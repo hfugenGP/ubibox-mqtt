@@ -154,7 +154,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribedDevices.pop();
             }
             data.forEach(function(element) {
-                subcribedDevices['ID-' + element['device_id'].toLowerCase()] = element['encrytion_key'];
+                subcribedDevices['ID-' + element['device_id'].toLowerCase()] = element['encryption_key'];
             });
             console.log(subcribedDevices);
             break;
