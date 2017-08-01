@@ -115,6 +115,17 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
     password: config.fabrickBroker.password,
 });
 var fabrick_client = fabrick_Broker.connect();
+fabrick_Broker.onConnect(() => {
+    console.log('ZTE Client connected');
+});
+fabrick_Broker.onError((err) => {
+    console.log('error happen with ZTE Client');
+    console.log(err);
+    fabrick_Broker.end();
+});
+fabrick_Broker.onClose(() => {
+    console.log('ZTE Client disconnected');
+});
 
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received from Fabrick');
