@@ -55,7 +55,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
 
     console.log('***************************Device Data***************************');
-    console.log('emei : ' + imei);
+    console.log('imei : ' + imei);
     console.log('deviceId : ' + deviceId);
     console.log('Decrypted Message : ' + fullDecryptedMessage);
 
@@ -75,7 +75,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     console.log('frameId : ' + frameId);
     // console.log('dataLength : ' + dataLength);
     // console.log('Crypted Hex : ' + cryptedHex);
-    console.log('Decrypted Hex : ' + this.decryptedHex);
+    // console.log('Decrypted Hex : ' + this.decryptedHex);
     // console.log('checksumHex : ' + checksumHex);
 
     var receivedDate = new Date();
