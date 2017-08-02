@@ -298,6 +298,13 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             data['alertText'] = [alertText];
 
             break;
+        case 19: // Weather station
+            var deviceId = parseInt(rawData.substring(0, 2), 16);
+            var frameCount = parseInt(rawData.substring(2, 4), 16);
+            while (frameCount > 0) {
+
+            }
+            break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
             return;
