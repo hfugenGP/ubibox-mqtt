@@ -345,7 +345,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     console.log('*********************Start VIN code*********************');
                     var typeComProtocol = effectiveData.substring(4, 6);
                     var numberOfVinCode = parseInt(effectiveData.substring(6, 8), 16);
-                    var vinValue = common.hex_from_chars(effectiveData.substring(8, 8 + numberOfVinCode * 2));
+                    var vinValue = common.chars_from_hex(effectiveData.substring(8, 8 + numberOfVinCode * 2));
 
                     data["typeComProtocol"] = typeComProtocol;
                     data["numberOfVinCode"] = numberOfVinCode;
