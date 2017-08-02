@@ -153,10 +153,10 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Summary data
                     console.log('*********************Start Summary data*********************');
                     var ignitionOnTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsWhenIgnitionOn = effectiveData.substring(12, 60); //TODO
+                    var gpsWhenIgnitionOn = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var ignitionOffTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(60, 68)));
-                    var gpsWhenIgnitionOff = effectiveData.substring(68, 116); //TODO
-                    var drivingDistance = effectiveData.substring(116, 122); //TODO
+                    var gpsWhenIgnitionOff = formatGPS(effectiveData.substring(68, 116)); //TODO
+                    var drivingDistance = formatGPS(effectiveData.substring(116, 122)); //TODO
                     var drivingFuelConsumption = parseInt(effectiveData.substring(122, 128), 16);
                     var maxSpeed = parseInt(effectiveData.substring(128, 130), 16);
                     var idleTime = parseInt(effectiveData.substring(130, 134), 16);
@@ -242,7 +242,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Sudden acceleration
                     console.log('*********************Start Sudden acceleration*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var speedBeforeAcc = parseInt(effectiveData.substring(60, 62), 16);
                     var speedAfterAcc = parseInt(effectiveData.substring(62, 64), 16);
                     var accValue = parseInt(effectiveData.substring(64, 66), 16) / 10;
@@ -264,7 +264,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Sudden deceleration
                     console.log('*********************Start Sudden deceleration*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var speedBeforeDec = parseInt(effectiveData.substring(60, 62), 16);
                     var speedAfterDec = parseInt(effectiveData.substring(62, 64), 16);
                     var decValue = parseInt(effectiveData.substring(64, 66), 16) / 10;
@@ -286,7 +286,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Sharp turn
                     console.log('*********************Start Sharp turn*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var turn = parseInt(effectiveData.substring(60, 62), 16) / 10;
 
                     data["occurTime"] = occurTime;
@@ -325,23 +325,23 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             console.log('*********************Start GPS data*********************');
             var numberOfPackage = parseInt(effectiveData.substring(4, 6), 16);
             console.log('numberOfPackage : ' + numberOfPackage);
-            var gpsData = effectiveData.substring(6, 38)
+            var gpsData = formatGPS(effectiveData.substring(6, 38))
             console.log('gpsData : ' + gpsData); //TODO
 
             data["numberOfPackage"] = numberOfPackage;
             data["gpsData"] = gpsData;
             switch (numberOfPackage) {
                 case 2:
-                    var gpsData2 = effectiveData.substring(38, 74)
+                    var gpsData2 = formatGPS(effectiveData.substring(38, 74));
                     console.log('gpsData2 : ' + gpsData2); // TODO
                     data["gpsData2"] = gpsData2;
                     break;
                 case 3:
-                    var gpsData2 = effectiveData.substring(38, 74)
+                    var gpsData2 = formatGPS(effectiveData.substring(38, 74));
                     console.log('gpsData2 : ' + gpsData2); // TODO
                     data["gpsData2"] = gpsData2;
 
-                    var gpsData3 = effectiveData.substring(74, 116)
+                    var gpsData3 = formatGPS(effectiveData.substring(74, 116));
                     console.log('gpsData3 : ' + gpsData3); // TODO
                     data["gpsData3"] = gpsData3;
                     break;
@@ -489,7 +489,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Can not locate for long time
                     console.log('*********************Start Can not locate*********************');
                     var timeNoLocation = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
 
                     data["timeNoLocation"] = timeNoLocation;
                     data["gpsPosition"] = gpsPosition;
@@ -609,7 +609,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Low voltage
                     console.log('*********************Start Low voltage*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var batteryVolt = parseInt(effectiveData.substring(60, 62), 16) / 10;
 
                     data["occurTime"] = occurTime;
@@ -625,7 +625,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Vibration after ignition off
                     console.log('*********************Start Vibration after ignition off*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var peekValue = parseInt(effectiveData.substring(60, 64), 16);
 
                     data["occurTime"] = occurTime;
@@ -645,7 +645,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Suspected collision
                     console.log('*********************Start Suspected collision*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var sollisionValue = parseInt(effectiveData.substring(60, 62), 16) / 10;
 
                     data["occurTime"] = occurTime;
@@ -661,7 +661,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Device pulled out
                     console.log('*********************Start Device pulled out*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = effectiveData.substring(12, 60); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
 
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
@@ -787,6 +787,47 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     var finalHex = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
 
     return finalHex;
+}
+
+function formatGPS(gpsValue) {
+    var gpsData = {};
+    var possitionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
+    gpsData["possitionTime"] = possitionTime;
+    var statusFlags = Array.from(common.hex2bits(gpsValue.substring(8, 10)));
+    gpsData["possitionSource"] = statusFlags[0] ? "GSM" : "GPS";
+    gpsData["dataValidity"] = statusFlags[1] ? "Last time" : "Real time";
+    gpsData["numberOfSatellites"] = parseInt("" + statusFlags[4] + statusFlags[5] + statusFlags[6] + statusFlags[7], 2);
+
+    var latType = 1; // North
+    if (statusFlags[3] == '0') {
+        latType = -1; //South
+    }
+
+    var lngType = -1; //West
+    if (statusFlags[2] == '0') {
+        lngType = 1; //East
+    }
+
+    var byte5t9 = common.hex2bits(gpsValue.substring(10, 20));
+    var height = parseInt(byte5t9.substring(0, 15), 2);
+    gpsData["height"] = height <= 10000 ? height : height - 10000;
+    var longitude = parseInt(byte5t9.substring(15, 40), 2) * 0.00001;
+    gpsData["longitude"] = longitude * lngType;
+
+    var latitude = parseInt(gpsValue.substring(20, 26), 16) * 0.00001;
+    gpsData["latitude"] = latitude * latType;
+
+    var byte13t15 = common.hex2bits(gpsValue.substring(26, 32));
+    gpsData["gpsSpeed"] = parseInt(byte13t15.substring(0, 12), 2) / 10;
+    gpsData["heading"] = parseInt(byte13t15.substring(15, 24), 2);
+    if (gpsValue.length > 32) {
+        var byte16t20 = common.hex2bits(gpsValue.substring(32, 42));
+        gpsData["PDOP"] = parseInt(byte13t15.substring(0, 12), 2) / 10;
+        gpsData["HDOP"] = parseInt(byte13t15.substring(12, 24), 2) / 10;
+        gpsData["VDOP"] = parseInt(byte13t15.substring(14, 36), 2) / 10;
+    }
+
+    return gpsData;
 }
 
 module.exports = ZTEDataService;
