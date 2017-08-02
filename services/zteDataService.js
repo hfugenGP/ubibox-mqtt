@@ -776,7 +776,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     // var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
     // var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-    ciphertext = ciphertext.substring(0, tobeEncrypted.length);
+    // ciphertext = ciphertext.substring(0, tobeEncrypted.length);
 
     // console.log('config.zte.frameHeader : ' + config.zte.frameHeader);
     // console.log('messageLengthHex : ' + messageLengthHex);
