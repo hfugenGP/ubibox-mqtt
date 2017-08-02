@@ -85,7 +85,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
         "MessageType": frameType,
         "MessageId": frameId,
         "RawData": hexData,
-        "EffectiveRawData": effectiveData,
+        "DecryptedData": fullDecryptedMessage,
         "CreatedDateTime": receivedDateText
     };
 
