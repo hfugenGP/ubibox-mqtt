@@ -732,9 +732,9 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     }
 
     tobeEncrypted += returnFrameType;
+    tobeEncrypted += frameId;
     tobeEncrypted += dataLength;
     tobeEncrypted += mainMessage;
-    tobeEncrypted += frameId;
 
     // (4 + 4 + 16 + 30 + 8 + 4 + 2 + 4 + 2 + 2 + 16) / 2
     var messageLength = (config.zte.frameHeader.length + //4
@@ -776,7 +776,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     // var encryptedKey = CryptoJS.enc.Hex.stringify(encrypted.key);
     // var encryptedIV = CryptoJS.enc.Hex.stringify(encrypted.iv);
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-    // ciphertext = ciphertext.substring(0, ciphertext.length - 16);
+    ciphertext = ciphertext.substring(0, tobeEncrypted.length);
 
     // console.log('config.zte.frameHeader : ' + config.zte.frameHeader);
     // console.log('messageLengthHex : ' + messageLengthHex);
