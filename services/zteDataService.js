@@ -156,7 +156,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     var gpsWhenIgnitionOn = formatGPS(effectiveData.substring(12, 60)); //TODO
                     var ignitionOffTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(60, 68)));
                     var gpsWhenIgnitionOff = formatGPS(effectiveData.substring(68, 116)); //TODO
-                    var drivingDistance = formatGPS(effectiveData.substring(116, 122)); //TODO
+                    var drivingDistance = formatDrivingDistance(effectiveData.substring(116, 122)); //TODO
                     var drivingFuelConsumption = parseInt(effectiveData.substring(122, 128), 16);
                     var maxSpeed = parseInt(effectiveData.substring(128, 130), 16);
                     var idleTime = parseInt(effectiveData.substring(130, 134), 16);
@@ -794,8 +794,8 @@ function formatGPS(gpsValue) {
     var possitionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
     gpsData["possitionTime"] = possitionTime;
     var statusFlags = Array.from(common.hex2bits(gpsValue.substring(8, 10)));
-    gpsData["possitionSource"] = statusFlags[0] ? "GSM" : "GPS";
-    gpsData["dataValidity"] = statusFlags[1] ? "Last time" : "Real time";
+    gpsData["possitionSource"] = statusFlags[0] = '1' ? "GSM" : "GPS";
+    gpsData["dataValidity"] = statusFlags[1] = '1' ? "Last time" : "Real time";
     gpsData["numberOfSatellites"] = parseInt("" + statusFlags[4] + statusFlags[5] + statusFlags[6] + statusFlags[7], 2);
 
     var latType = 1; // North
@@ -828,6 +828,16 @@ function formatGPS(gpsValue) {
     }
 
     return gpsData;
+}
+
+function formatDrivingDistance(drivingDistance) {
+    var drivingDistanceData = {};
+    var rawData = common.hex2bits(drivingDistance);
+
+    drivingDistanceData["statisticsSource"] = rawData.substring(0, 1) == '0' ? "OBD" : "GPS";
+    drivingDistanceData["mileage"] = parseInt(rawData.substring(1, rawData.length), 2);
+
+    return drivingDistanceData;
 }
 
 module.exports = ZTEDataService;
