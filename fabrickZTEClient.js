@@ -78,6 +78,9 @@ function handleDeviceConnetion(sock) {
 
         console.log('Returned data : ' + buffer.toString("hex"));
         console.log('************************End data received************************');
+        console.log('');
+        console.log('');
+        console.log('');
     });
 
     // Add a 'close' event handler to this instance of socket

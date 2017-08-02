@@ -29,6 +29,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     var messageLengthDec = parseInt(messageLength, 16);
     var iv = hexData.substring(8, 24);
     var deviceId = hexData.substring(24, 54);
+    var imei = common.chars_from_hex(deviceId);
     var cryptedHex = hexData.substring(54, hexData.length - 4);
     // this.encryptionKey = config.zte.encryptionKey;
     if (!subcribedDevices["ID-" + deviceId]) {
@@ -51,10 +52,12 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
     var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
     this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
+    var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
 
     console.log('***************************Device Data***************************');
+    console.log('emei : ' + imei);
     console.log('deviceId : ' + deviceId);
-    console.log('encryptionKey : ' + this.encryptionKey);
+    console.log('Decrypted Message : ' + fullDecryptedMessage);
 
     var randomNoiseHex = this.decryptedHex.substring(0, 16);
     var frameType = this.decryptedHex.substring(16, 18);
@@ -92,7 +95,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
-            console.log(r.insertedCount + " record has been saved to DeviceHistoricalDataDebug");
+            // console.log(r.insertedCount + " record has been saved to DeviceHistoricalDataDebug");
             db.close();
         });
     });
@@ -137,7 +140,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
-                    console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     db.close();
                 });
             });
@@ -783,12 +786,14 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     console.log('returnFrameType : ' + returnFrameType);
     console.log('frameID : ' + frameId);
     // console.log('dataLength : ' + dataLength);
-    console.log('message : ' + mainMessage);
     // console.log('checksumHex : ' + checksumHex);
     // console.log('config.zte.frameEnd : ' + config.zte.frameEnd);
 
     // console.log('tobeEncrypted : ' + tobeEncrypted);
     // console.log('ciphertext : ' + ciphertext);
+
+    var beforeEncrypted = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + tobeEncrypted + config.zte.frameEnd;
+    console.log('Raw response : ' + beforeEncrypted);
 
     var finalHex = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
 
