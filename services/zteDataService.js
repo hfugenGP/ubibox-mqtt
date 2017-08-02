@@ -330,10 +330,21 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
 
             data["numberOfPackage"] = numberOfPackage;
             data["gpsData"] = gpsData;
-            if (numberOfPackage == 2) {
-                var gpsData2 = effectiveData.substring(38, 74)
-                console.log('gpsData2 : ' + gpsData2); // TODO
-                data["gpsData2"] = gpsData2;
+            switch (numberOfPackage) {
+                case 2:
+                    var gpsData2 = effectiveData.substring(38, 74)
+                    console.log('gpsData2 : ' + gpsData2); // TODO
+                    data["gpsData2"] = gpsData2;
+                    break;
+                case 3:
+                    var gpsData2 = effectiveData.substring(38, 74)
+                    console.log('gpsData2 : ' + gpsData2); // TODO
+                    data["gpsData2"] = gpsData2;
+
+                    var gpsData3 = effectiveData.substring(74, 116)
+                    console.log('gpsData3 : ' + gpsData3); // TODO
+                    data["gpsData3"] = gpsData3;
+                    break;
             }
             console.log('*********************End GPS data*********************');
             break;
