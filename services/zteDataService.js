@@ -124,15 +124,15 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
     switch (frameType) {
         case "03":
-            var dataTypeMajor = effectiveData.substring(0, 2); //41
-            var dataTypeMinor = effectiveData.substring(2, 4); //42
+            this.dataTypeMajor = effectiveData.substring(0, 2); //41
+            this.dataTypeMinor = effectiveData.substring(2, 4); //42
 
-            console.log('dataTypeMajor : ' + dataTypeMajor);
-            console.log('dataTypeMinor : ' + dataTypeMinor);
+            console.log('dataTypeMajor : ' + this.dataTypeMajor);
+            console.log('dataTypeMinor : ' + this.dataTypeMinor);
 
-            deviceData["MajorDataTypeId"] = dataTypeMajor;
-            deviceData["MinorDataTypeId"] = dataTypeMinor;
-            deviceData["Data"] = publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor);
+            deviceData["MajorDataTypeId"] = this.dataTypeMajor;
+            deviceData["MinorDataTypeId"] = this.dataTypeMinor;
+            deviceData["Data"] = publishMessageHandle(effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
@@ -728,6 +728,8 @@ ZTEDataService.prototype.generateReply = function(hexData) {
         case '03':
             // Return publish request with Publish Acknowledgment
             returnFrameType = "04";
+            dataLength = "0002";
+            mainMessage = this.dataTypeMajor + this.dataTypeMinor;
             break;
     }
 
