@@ -41,15 +41,17 @@ ZTEDataService.prototype.generateMessageToDevice = function(deviceId, frameId, r
             break;
         case "04":
             //Inquiry log
+            mainMessage += params[0];
             break;
         case "05":
             //Reserved
             break;
         case "06":
             //Set vehicle information
+
             break;
         case "07":
-            //Re-study the accelerator calibration
+            //Re-study the accelerator calibration  //Just requestType is ok
             break;
     }
 
@@ -864,6 +866,7 @@ function formatGPS(gpsValue) {
 
     var latitude = parseInt(gpsValue.substring(20, 26), 16) * 0.00001;
     gpsData["latitude"] = latitude * latType;
+    gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
 
     var byte13t15 = common.hex2bits(gpsValue.substring(26, 32));
     gpsData["gpsSpeed"] = parseInt(byte13t15.substring(0, 12), 2) / 10;
