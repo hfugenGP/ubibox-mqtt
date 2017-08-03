@@ -64,7 +64,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
     }
 
     var dataLengthDec = mainMessage.length / 2;
-    var dataLength = common.hex_from_chars(dataLengthDec);
+    var dataLength = dataLengthDec.toString(16);
     if (dataLength.length == 2) {
         dataLength = "00" + dataLength;
     }
