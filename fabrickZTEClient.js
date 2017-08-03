@@ -129,7 +129,7 @@ var fabrick_gateway = {
     id: "Fabrick ZTE Sockets Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/ZTE/Devices/Message': 1, 'config/fabrick.io/ZTE/Devices': 1 }
+    topics: { 'config/fabrick.io/ZTE/Device/Message': 1, 'config/fabrick.io/ZTE/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
