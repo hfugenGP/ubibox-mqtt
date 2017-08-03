@@ -16,8 +16,50 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var ZTEDataService = function() {};
 
-ZTEDataService.prototype.generateMessageToDevice = function(data) {
+ZTEDataService.prototype.generateMessageToDevice = function(deviceId, frameId, requestType, params) {
+    var common = new Common();
 
+    //This is publish message
+    var frameType = "03";
+    var mainMessage = requestType;
+
+    switch (requestType) {
+        case "01":
+            //Vehicle detection //Just requestType is ok
+            break;
+        case "02":
+            //Set parameters
+            params.forEach(function(element) {
+                mainMessage += element;
+            }, this);
+            break;
+        case "03":
+            //Inquire parameters
+            params.forEach(function(element) {
+                mainMessage += element;
+            }, this);
+            break;
+        case "04":
+            //Inquiry log
+            break;
+        case "05":
+            //Reserved
+            break;
+        case "06":
+            //Set vehicle information
+            break;
+        case "07":
+            //Re-study the accelerator calibration
+            break;
+    }
+
+    var dataLengthDec = mainMessage.length / 2;
+    var dataLength = common.hex_from_chars(dataLengthDec);
+    if (dataLength.length == 2) {
+        dataLength = "00" + dataLength;
+    }
+
+    return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage);
 }
 
 ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
@@ -690,21 +732,9 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
 }
 
 ZTEDataService.prototype.generateReply = function(hexData) {
-    var common = new Common();
-
     var deviceId = hexData.substring(24, 54);
     var frameType = this.decryptedHex.substring(16, 18);
     var frameId = this.decryptedHex.substring(18, 22);
-
-    var iv = CryptoJS.lib.WordArray.random(16);
-    var ivText = CryptoJS.enc.Utf16.stringify(iv);
-    var ivHex = common.hex_from_chars(ivText);
-
-    var randomNoise = CryptoJS.lib.WordArray.random(16);
-    var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
-    var randomNoiseHex = common.hex_from_chars(randomNoiseText);
-
-    var tobeEncrypted = randomNoiseHex;
 
     // Data length always = 1
     var dataLength = "0001";
@@ -733,7 +763,22 @@ ZTEDataService.prototype.generateReply = function(hexData) {
             break;
     }
 
-    tobeEncrypted += returnFrameType;
+    return dataPacking(deviceId, returnFrameType, frameId, dataLength, mainMessage);
+}
+
+function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage) {
+    var common = new Common();
+
+    var iv = CryptoJS.lib.WordArray.random(16);
+    var ivText = CryptoJS.enc.Utf16.stringify(iv);
+    var ivHex = common.hex_from_chars(ivText);
+
+    var randomNoise = CryptoJS.lib.WordArray.random(16);
+    var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
+    var randomNoiseHex = common.hex_from_chars(randomNoiseText);
+
+    var tobeEncrypted = randomNoiseHex;
+    tobeEncrypted += frameType;
     tobeEncrypted += frameId;
     tobeEncrypted += dataLength;
     tobeEncrypted += mainMessage;
@@ -744,7 +789,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
         ivHex.length + //16
         deviceId.length + //30
         randomNoiseHex.length + //16
-        returnFrameType.length + //2
+        frameType.length + //2
         frameId.length + //4
         dataLength.length + //4
         mainMessage.length + //2
@@ -761,7 +806,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
         messageLengthHex = "00" + messageLengthHex;
     }
 
-    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + returnFrameType + frameId + dataLength + mainMessage;
+    var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameId + dataLength + mainMessage;
     var checksumBuffer = Buffer.from(checksum, "hex");
     var checksumHex = adler32.sum(checksumBuffer).toString(16);
     if (checksumHex.length == 6) {
@@ -778,7 +823,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
     // ciphertext = ciphertext.substring(0, tobeEncrypted.length);
 
-    console.log('returnFrameType : ' + returnFrameType);
+    console.log('frameType : ' + frameType);
     console.log('frameID : ' + frameId);
 
     var beforeEncrypted = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + tobeEncrypted + config.zte.frameEnd;
@@ -786,10 +831,13 @@ ZTEDataService.prototype.generateReply = function(hexData) {
 
     var finalHex = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
 
+    console.log('Final response : ' + finalHex);
+
     return finalHex;
 }
 
 function formatGPS(gpsValue) {
+    var common = new Common();
     var gpsData = {};
     var possitionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
     gpsData["possitionTime"] = possitionTime;
@@ -831,6 +879,7 @@ function formatGPS(gpsValue) {
 }
 
 function formatDrivingDistance(drivingDistance) {
+    var common = new Common();
     var drivingDistanceData = {};
     var rawData = common.hex2bits(drivingDistance);
 

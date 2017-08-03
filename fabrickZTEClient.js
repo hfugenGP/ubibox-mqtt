@@ -64,8 +64,6 @@ function handleDeviceConnetion(sock) {
 
         var messageCallback = zteDataService.generateReply(hexData);
 
-        console.log('*****************************************************************');
-
         var buffer = Buffer.from(messageCallback, "hex");
 
         // Write the data back to the socket, the client will receive it as data from the server
@@ -75,8 +73,6 @@ function handleDeviceConnetion(sock) {
                 console.log('*****************************************************************');
             }
         });
-
-        console.log('Returned data : ' + buffer.toString("hex"));
         console.log('************************End data received************************');
         console.log('');
         console.log('');
