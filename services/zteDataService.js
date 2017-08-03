@@ -59,7 +59,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(deviceId, frameId, r
         dataLength = "00" + dataLength;
     }
 
-    return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage);
+    return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, this.encryptionKey);
 }
 
 ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
@@ -763,10 +763,10 @@ ZTEDataService.prototype.generateReply = function(hexData) {
             break;
     }
 
-    return dataPacking(deviceId, returnFrameType, frameId, dataLength, mainMessage);
+    return dataPacking(deviceId, returnFrameType, frameId, dataLength, mainMessage, this.encryptionKey);
 }
 
-function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage) {
+function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey) {
     var common = new Common();
 
     var iv = CryptoJS.lib.WordArray.random(16);
@@ -816,7 +816,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage) {
     }
     tobeEncrypted += checksumHex;
 
-    var key = CryptoJS.enc.Hex.parse(this.encryptionKey);
+    var key = CryptoJS.enc.Hex.parse(encryptionKey);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
     var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
