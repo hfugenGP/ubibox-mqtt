@@ -16,12 +16,20 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var ZTEDataService = function() {};
 
-ZTEDataService.prototype.generateMessageToDevice = function(deviceId, frameId, requestType, params) {
+ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
+
+    if (!subcribedDevices["ID-" + deviceId]) {
+        console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+        return false;
+    }
+
+    var encryptionKey = subcribedDevices["ID-" + deviceId];
 
     //This is publish message
     var frameType = "03";
-    var mainMessage = requestType;
+    var mainMessage = "F1";
+    mainMessage += requestType;
 
     switch (requestType) {
         case "01":
@@ -61,7 +69,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(deviceId, frameId, r
         dataLength = "00" + dataLength;
     }
 
-    return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, this.encryptionKey);
+    return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey);
 }
 
 ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
@@ -75,7 +83,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     var deviceId = hexData.substring(24, 54);
     var imei = common.chars_from_hex(deviceId);
     var cryptedHex = hexData.substring(54, hexData.length - 4);
-    // this.encryptionKey = config.zte.encryptionKey;
+
     if (!subcribedDevices["ID-" + deviceId]) {
         console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
         return false;
@@ -157,6 +165,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
     switch (frameType) {
         case "03":
+            // Handle publish message from devices
             this.dataTypeMajor = effectiveData.substring(0, 2); //41
             this.dataTypeMinor = effectiveData.substring(2, 4); //42
 
@@ -178,6 +187,29 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                 });
             });
 
+            break;
+        case "04":
+            // Handle response message from devices
+            this.dataTypeMajor = effectiveData.substring(0, 2); //41
+            this.dataTypeMinor = effectiveData.substring(2, 4); //42
+
+            console.log('dataTypeMajor : ' + this.dataTypeMajor);
+            console.log('dataTypeMinor : ' + this.dataTypeMinor);
+
+            deviceData["MajorDataTypeId"] = this.dataTypeMajor;
+            deviceData["MinorDataTypeId"] = this.dataTypeMinor;
+            deviceData["Data"] = responseMessageHandle(effectiveData, this.dataTypeMajor, this.dataTypeMinor);
+
+            // Use connect method to connect to the Server
+            MongoClient.connect(url, function(err, db) {
+                db.collection('DeviceHistoricalDataTemp').insertOne(deviceData, function(err, r) {
+                    if (err) {
+                        console.log("Error when write to mongodb: " + err);
+                    }
+                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                    db.close();
+                });
+            });
             break;
     }
 
@@ -733,6 +765,86 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
     return data;
 }
 
+function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
+    var common = new Common();
+
+    var data = {};
+
+    switch (dataTypeMinor) {
+        case "01":
+            //Vehicle detection
+            console.log('*********************Start Vehicle detection*********************');
+            var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+            var obdFaultCode = effectiveData.substring(12, 14);
+            var obdFaultCodeInfo = effectiveData.substring(14, 20);
+            var privateFaultCode = effectiveData.substring(20, 22);
+            var privateFaultCodeInfo = effectiveData.substring(22, 30);
+
+            data["occurTime"] = occurTime;
+            data["obdFaultCode"] = obdFaultCode;
+            data["obdFaultCodeInfo"] = obdFaultCodeInfo;
+            data["privateFaultCode"] = privateFaultCode;
+            data["privateFaultCodeInfo"] = privateFaultCodeInfo;
+
+            console.log('occurTime : ' + occurTime);
+            console.log('obdFaultCode : ' + obdFaultCode);
+            console.log('obdFaultCodeInfo : ' + obdFaultCodeInfo);
+            console.log('privateFaultCode : ' + privateFaultCode);
+            console.log('privateFaultCodeInfo : ' + privateFaultCodeInfo);
+            console.log('*********************End Vehicle detection*********************');
+            break;
+        case "02":
+            //Set parameters
+            console.log('*********************Start Set parameters*********************');
+            var resultCode = effectiveData.substring(4, 6);
+            var result = "Invalid";
+            switch (resultCode) {
+                case "00":
+                    result = "Successful";
+                    break;
+                case "01":
+                    result = "Failure";
+                    break;
+            }
+
+            data["Result"] = result;
+            console.log('Result : ' + result);
+            console.log('*********************Start Set parameters*********************');
+            break;
+        case "03":
+            //Inquire parameters
+
+            break;
+        case "04":
+            //Inquiry log
+            console.log('*********************Start Inquiry log*********************');
+            var logHex = effectiveData.substring(4, effectiveData.length);
+            var log = common.chars_from_hex(logHex);
+
+            data["logDetails"] = log;
+            console.log('logDetails : ' + log);
+            console.log('*********************Start Inquiry log*********************');
+            break;
+        case "05":
+            //Reserved
+            break;
+        case "06":
+            //Set vehicle information
+
+            break;
+        case "07":
+            //Re-study the accelerator calibration  //Just requestType is ok
+            console.log('*********************Start Re-study*********************');
+            var result = "Successful";
+            data["Result"] = result;
+            console.log('Result : ' + result);
+            console.log('*********************Start Re-study*********************');
+            break;
+    }
+
+    return data;
+}
+
 ZTEDataService.prototype.generateReply = function(hexData) {
     var deviceId = hexData.substring(24, 54);
     var frameType = this.decryptedHex.substring(16, 18);
@@ -763,6 +875,10 @@ ZTEDataService.prototype.generateReply = function(hexData) {
             dataLength = "0002";
             mainMessage = this.dataTypeMajor + this.dataTypeMinor;
             break;
+
+        case '04':
+            // Do not response to response message from device
+            return false;
     }
 
     return dataPacking(deviceId, returnFrameType, frameId, dataLength, mainMessage, this.encryptionKey);

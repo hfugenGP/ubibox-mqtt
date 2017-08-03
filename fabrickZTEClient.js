@@ -22,6 +22,7 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 var lock = new AsyncLock();
 var connectingDevices = new Array();
 var subcribedDevices = new Array();
+var pendingDeviceMessages = new Array();
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
@@ -63,6 +64,13 @@ function handleDeviceConnetion(sock) {
         console.log('*****************************************************************');
 
         var messageCallback = zteDataService.generateReply(hexData);
+        if (!messageCallback) {
+            console.log('************************End data received************************');
+            console.log('');
+            console.log('');
+            console.log('');
+            return;
+        }
 
         var buffer = Buffer.from(messageCallback, "hex");
 
@@ -77,6 +85,22 @@ function handleDeviceConnetion(sock) {
         console.log('');
         console.log('');
         console.log('');
+
+        if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
+            pendingDeviceMessages[deviceId] != undefined) {
+            lock.acquire("pendingDeviceMessagesLock", function(done) {
+                pendingDeviceMessages[deviceId].forEach(function(element) {
+                    var buffer = Buffer.from(element, "hex");
+                    // Write the data back to the socket, the client will receive it as data from the server
+                    sock.write(buffer, function(err) {
+                        if (err) {
+                            console.log('Sock write error : ' + err);
+                            console.log('*****************************************************************');
+                        }
+                    });
+                });
+            });
+        }
     });
 
     // Add a 'close' event handler to this instance of socket
@@ -98,6 +122,8 @@ function handleDeviceConnetion(sock) {
 net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
     console.log('Server listening on ' + ':' + config.zte.PORT);
 });
+
+var zteDataSenderService = new ZTEDataService();
 
 var fabrick_gateway = {
     id: "Fabrick ZTE Sockets Client " + config.fabrickBroker.idKey,
@@ -133,17 +159,29 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     switch (topic) {
         case 'config/fabrick.io/ZTE/Device/Message':
             var deviceId = data["deviceId"];
+            var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["params"]);
+
             if (connectingDevices.hasOwnProperty(deviceId) &&
                 connectingDevices[deviceId] != undefined) {
-                var messageCallback = zteDataService.generateMessageToDevice(hexData);
-                var buffer = Buffer.from(messageCallback, "hex");
-                var sock = connectingDevices[deviceId];
-                // Write the data back to the socket, the client will receive it as data from the server
-                sock.write(buffer, function(err) {
-                    if (err) {
-                        console.log('Sock write error : ' + err);
-                        console.log('*****************************************************************');
+                lock.acquire("connectingDevicesLock", function(done) {
+                    var buffer = Buffer.from(messageCallback, "hex");
+                    var sock = connectingDevices[deviceId];
+                    // Write the data back to the socket, the client will receive it as data from the server
+                    sock.write(buffer, function(err) {
+                        if (err) {
+                            console.log('Sock write error : ' + err);
+                            console.log('*****************************************************************');
+                        }
+                    });
+                });
+            } else {
+                lock.acquire("pendingDeviceMessagesLock", function(done) {
+                    if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
+                        pendingDeviceMessages[deviceId] == undefined) {
+                        pendingDeviceMessages[deviceId] = new Array();
                     }
+
+                    pendingDeviceMessages[deviceId].push(messageCallback);
                 });
             }
             break;
