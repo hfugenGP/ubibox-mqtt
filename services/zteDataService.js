@@ -7,6 +7,7 @@ const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
+const redis = require("redis");
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
@@ -37,9 +38,109 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "02":
             //Set parameters
-            params.forEach(function(element) {
-                mainMessage += element;
-            }, this);
+            for (no in params) {
+                mainMessage += no.substring(2, no.length);
+                switch (no) {
+                    case "0xF000":
+                        mainMessage += "ffff";
+                        break;
+                    case "0x0001":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "0x0002":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "0x0003":
+                        mainMessage += (parseInt(params[no]) * 100).toString(16);
+                        break;
+                    case "0x0004":
+                        var value = params[no].toString(16);
+                        if (value.length == 2) {
+                            value = "00" + value;
+                        }
+
+                        mainMessage += value;
+                        break;
+                    case "0x0005":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "0x0006":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "0x0007":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "0x0008":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "0x0009":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "0x000A":
+                        if (params[no]) {
+                            mainMessage += "01";
+                        } else {
+                            mainMessage += "00";
+                        }
+                        break;
+                    case "0x000B":
+                        var value = params[no].toString(16);
+                        if (value.length == 2) {
+                            value = "00" + value;
+                        }
+
+                        mainMessage += value;
+                        break;
+                    case "0x000C":
+                        var value = params[no].toString(16);
+                        if (value.length == 2) {
+                            value = "00" + value;
+                        }
+
+                        mainMessage += value;
+                        break;
+                    case "0x0200":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0201":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0202":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0203":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0204":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0205":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0206":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x0207":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "0x0208":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "0x0209":
+                        mainMessage += common.chars_from_hex(params[no]);
+                        break;
+                    case "0x020A":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "0x0300":
+                        if (params[no]) {
+                            mainMessage += "01";
+                        } else {
+                            mainMessage += "00";
+                        }
+                        break;
+                }
+            }
             break;
         case "03":
             //Inquire parameters
@@ -56,7 +157,31 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "06":
             //Set vehicle information
-
+            for (type in params) {
+                switch (type) {
+                    case "vin":
+                        mainMessage += common.chars_from_hex(params[type]);
+                        break;
+                    case "fuel":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "engineDisplacement":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "engineEfficiency":
+                        mainMessage += params[no].toString(16);
+                        break;
+                    case "mixedRoadFuelConsumption":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "highSpeedFuelConsumption":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                    case "lowSpeedFuelConsumption":
+                        mainMessage += (parseInt(params[no]) * 10).toString(16);
+                        break;
+                }
+            }
             break;
         case "07":
             //Re-study the accelerator calibration  //Just requestType is ok
@@ -208,6 +333,12 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     }
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     db.close();
+
+                    var client = redis.createClient();
+                    client.publish("zteDeviceResponse", {
+                        "deviceId": deviceId,
+                        "frameId": frameId
+                    });
                 });
             });
             break;
@@ -830,7 +961,21 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             break;
         case "06":
             //Set vehicle information
+            console.log('*********************Start Set vehicle information*********************');
+            var resultCode = effectiveData.substring(4, 6);
+            var result = "Invalid";
+            switch (resultCode) {
+                case "00":
+                    result = "Invalid";
+                    break;
+                case "01":
+                    result = "Valid";
+                    break;
+            }
 
+            data["Result"] = result;
+            console.log('Result : ' + result);
+            console.log('*********************Start Set vehicle information*********************');
             break;
         case "07":
             //Re-study the accelerator calibration  //Just requestType is ok
