@@ -112,7 +112,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     // console.log('checksumHex : ' + checksumHex);
 
     var receivedDate = new Date();
-    var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
+    var receivedDateText = common.dateToUTCText(receivedDate);
     var deviceData = {
         "DeviceId": deviceId,
         "MessageType": frameType,

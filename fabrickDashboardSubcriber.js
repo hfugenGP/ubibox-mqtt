@@ -46,13 +46,14 @@ fabrick_Broker.onOffline(() => {
     console.log('Dashboard Subcriber is offline')
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
+    var common = new Common();
     var json_object = JSON.parse(message);
 
     switch (topic) {
         case 'client/fabrick.io/device/data':
 
             var receivedDate = new Date(json_object.receivedDate);
-            var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
+            var receivedDateText = common.dateToUTCText(receivedDate);
             var data = {
                 "extId": json_object.extId,
                 "rawData": json_object.rawData,
