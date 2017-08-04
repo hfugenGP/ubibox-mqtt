@@ -172,6 +172,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                             console.log('Sock write error : ' + err);
                             console.log('*****************************************************************');
                         }
+                        console.log('Message already sent to Device');
                     });
                 });
             } else {
@@ -182,6 +183,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                     }
 
                     pendingDeviceMessages[deviceId].push(messageCallback);
+                    console.log('Device is offline, message push to queue');
                 });
             }
             break;
