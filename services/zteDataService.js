@@ -386,7 +386,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
-                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                    console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     db.close();
 
                     var client = redis.createClient();
