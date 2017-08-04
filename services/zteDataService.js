@@ -100,25 +100,46 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += value;
                         break;
                     case "0x0200":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0201":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0202":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0203":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0204":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0205":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0206":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x0207":
                         mainMessage += params[no].toString(16);
@@ -127,7 +148,10 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += params[no].toString(16);
                         break;
                     case "0x0209":
-                        mainMessage += common.chars_from_hex(params[no]);
+                        var hexBytes = common.hex_from_chars(params[no]);
+                        var count = hexBytes.length / 2;
+                        mainMessage += count.toString(16);
+                        mainMessage += hexBytes;
                         break;
                     case "0x020A":
                         mainMessage += params[no].toString(16);
@@ -944,7 +968,143 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             break;
         case "03":
             //Inquire parameters
-
+            var start = 4;
+            var end = 8;
+            var eom = false;
+            while (!eom) {
+                var paramNo = effectiveData.substring(start, end);
+                start = end;
+                switch (paramNo) {
+                    case "f000":
+                        //Should not be here, this one only for set.
+                        break;
+                    case "0001":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0002":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0003":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
+                        break;
+                    case "0004":
+                        end += 4;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0005":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0006":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0007":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0008":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0009":
+                        end += 4;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "000a":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "000b":
+                        end += 4;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "000c":
+                        end += 4;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0200":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0201":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0202":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0203":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0204":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0205":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0206":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "0207":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0208":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0209":
+                        end += 1;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        break;
+                    case "020a":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                    case "0300":
+                        end += 2;
+                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        break;
+                }
+                if (end >= effectiveData.length) {
+                    eom = true;
+                }
+                start = end;
+                end += 4;
+            }
             break;
         case "04":
             //Inquiry log
