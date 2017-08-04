@@ -370,15 +370,15 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             break;
         case "04":
             // Handle response message from devices
-            this.dataTypeMajor = effectiveData.substring(0, 2); //41
-            this.dataTypeMinor = effectiveData.substring(2, 4); //42
+            var majorType = effectiveData.substring(0, 2); //41
+            var minorType = effectiveData.substring(2, 4); //42
 
-            console.log('dataTypeMajor : ' + this.dataTypeMajor);
-            console.log('dataTypeMinor : ' + this.dataTypeMinor);
+            console.log('dataTypeMajor : ' + majorType);
+            console.log('dataTypeMinor : ' + minorType);
 
-            deviceData["MajorDataTypeId"] = this.dataTypeMajor;
-            deviceData["MinorDataTypeId"] = this.dataTypeMinor;
-            deviceData["Data"] = responseMessageHandle(effectiveData, this.dataTypeMajor, this.dataTypeMinor);
+            deviceData["MajorDataTypeId"] = majorType;
+            deviceData["MinorDataTypeId"] = minorType;
+            deviceData["Data"] = responseMessageHandle(effectiveData, majorType, minorType);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
@@ -389,11 +389,11 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     db.close();
 
-                    // var client = redis.createClient();
-                    // client.publish("zteDeviceResponse", {
-                    //     "deviceId": deviceId,
-                    //     "frameId": frameId
-                    // });
+                    var client = redis.createClient();
+                    client.publish("zteDeviceResponse", JSON.stringify({
+                        "deviceId": deviceId,
+                        "frameId": frameId
+                    }));
                 });
             });
             break;
@@ -993,7 +993,7 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     break;
             }
 
-            data["Result"] = result;
+            data["result"] = result;
             console.log('Result : ' + result);
             console.log('*********************Start Set parameters*********************');
             break;
@@ -1164,7 +1164,7 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     break;
             }
 
-            data["Result"] = result;
+            data["result"] = result;
             console.log('Result : ' + result);
             console.log('*********************Start Set vehicle information*********************');
             break;
@@ -1172,7 +1172,7 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             //Re-study the accelerator calibration  //Just requestType is ok
             console.log('*********************Start Re-study*********************');
             var result = "Successful";
-            data["Result"] = result;
+            data["result"] = result;
             console.log('Result : ' + result);
             console.log('*********************Start Re-study*********************');
             break;
