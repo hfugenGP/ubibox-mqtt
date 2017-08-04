@@ -214,8 +214,12 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
 
     var dataLengthDec = mainMessage.length / 2;
     var dataLength = dataLengthDec.toString(16);
-    if (dataLength.length == 2) {
+    if (dataLength.length == 1) {
+        dataLength = "000" + dataLength;
+    } else if (dataLength.length == 2) {
         dataLength = "00" + dataLength;
+    } else if (dataLength.length == 3) {
+        dataLength = "0" + dataLength;
     }
 
     return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey);

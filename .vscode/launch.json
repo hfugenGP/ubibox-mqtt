@@ -9,12 +9,12 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}\\tests\\debugZTE.js",
+            // "program": "${workspaceRoot}\\tests\\debugZTE.js",
             // "program": "${workspaceRoot}\\fabrickSenslinkClient.js",
             // "program": "${workspaceRoot}\\fabrickDashboardSubcriber.js",
             // "program": "${workspaceRoot}\\fabrickGIoTClient.js",
             // "program": "${workspaceRoot}\\notify.js",
-            // "program": "${workspaceRoot}\\netvoxRequestService.js",
+            "program": "${workspaceRoot}\\fabrickZTEClient.js",
 
             "cwd": "${workspaceRoot}"
         },
