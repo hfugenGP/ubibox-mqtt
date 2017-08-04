@@ -389,11 +389,11 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     db.close();
 
-                    var client = redis.createClient();
-                    client.publish("zteDeviceResponse", {
-                        "deviceId": deviceId,
-                        "frameId": frameId
-                    });
+                    // var client = redis.createClient();
+                    // client.publish("zteDeviceResponse", {
+                    //     "deviceId": deviceId,
+                    //     "frameId": frameId
+                    // });
                 });
             });
             break;
