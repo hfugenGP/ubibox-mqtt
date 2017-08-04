@@ -957,6 +957,34 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
     var data = {};
 
     switch (dataTypeMinor) {
+        case "00":
+            console.log('*********************Start Device Update*********************');
+            var currentState = effectiveData.substring(4, 6);
+            data["currentState"] = currentState;
+            switch (currentState) {
+                case "00":
+                    data["description"] = "Update immediately";
+                    break;
+                case "01":
+                    data["description"] = "In driving now，update later";
+                    break;
+                case "02":
+                    data["description"] = "Reporting data is not completed, waiting for upgrade";
+                    break;
+                case "03":
+                    data["description"] = "The length of the effective is incorrect";
+                    break;
+                case "04":
+                    data["description"] = "CRC32 is 0，invalid";
+                    break;
+                case "05":
+                    data["description"] = "Upgraded version is consistent with the current version ,could not be upgraded";
+                    break;
+            }
+            console.log('occurTime : ' + occurTime);
+            console.log('description : ' + data["description"]);
+            console.log('*********************End Device Update*********************');
+            break;
         case "01":
             //Vehicle detection
             console.log('*********************Start Vehicle detection*********************');
