@@ -30,9 +30,10 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
     //This is publish message
     var frameType = "03";
     var mainMessage = "f1";
-    mainMessage += requestType.substring(2, requestType.length);
+    var request = requestType.substring(2, requestType.length);
+    mainMessage += request;
 
-    switch (requestType) {
+    switch (request) {
         case "01":
             //Vehicle detection //Just requestType is ok
             break;
