@@ -30,7 +30,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
     //This is publish message
     var frameType = "03";
     var mainMessage = "f1";
-    mainMessage += requestType;
+    mainMessage += requestType.substring(2, requestType.length);
 
     switch (requestType) {
         case "01":
