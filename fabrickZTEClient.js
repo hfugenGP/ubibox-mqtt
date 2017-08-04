@@ -93,7 +93,7 @@ function handleDeviceConnetion(sock) {
         if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
             pendingDeviceMessages[deviceId] != undefined) {
             _.each(pendingDeviceMessages[deviceId], function(message) {
-                var buffer = Buffer.from(element, "hex");
+                var buffer = Buffer.from(message, "hex");
                 // Write the data back to the socket, the client will receive it as data from the server
                 sock.write(buffer, function(err) {
                     if (err) {
