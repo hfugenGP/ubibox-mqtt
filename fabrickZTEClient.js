@@ -90,31 +90,31 @@ function handleDeviceConnetion(sock) {
         console.log('');
         console.log('');
 
-        if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
-            pendingDeviceMessages[deviceId] != undefined) {
-            pendingDeviceMessages[deviceId].forEach(function(element) {
-                var buffer = Buffer.from(element, "hex");
-                // Write the data back to the socket, the client will receive it as data from the server
-                sock.write(buffer, function(err) {
-                    if (err) {
-                        console.log('Sock write error : ' + err);
-                        console.log('*****************************************************************');
-                    }
-                });
-            });
-            // lock.acquire("pendingDeviceMessagesLock", function(done) {
-            //     pendingDeviceMessages[deviceId].forEach(function(element) {
-            //         var buffer = Buffer.from(element, "hex");
-            //         // Write the data back to the socket, the client will receive it as data from the server
-            //         sock.write(buffer, function(err) {
-            //             if (err) {
-            //                 console.log('Sock write error : ' + err);
-            //                 console.log('*****************************************************************');
-            //             }
-            //         });
-            //     });
-            // });
-        }
+        // if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
+        //     pendingDeviceMessages[deviceId] != undefined) {
+        //     pendingDeviceMessages[deviceId].forEach(function(element) {
+        //         var buffer = Buffer.from(element, "hex");
+        //         // Write the data back to the socket, the client will receive it as data from the server
+        //         sock.write(buffer, function(err) {
+        //             if (err) {
+        //                 console.log('Sock write error : ' + err);
+        //                 console.log('*****************************************************************');
+        //             }
+        //         });
+        //     });
+        //     // lock.acquire("pendingDeviceMessagesLock", function(done) {
+        //     //     pendingDeviceMessages[deviceId].forEach(function(element) {
+        //     //         var buffer = Buffer.from(element, "hex");
+        //     //         // Write the data back to the socket, the client will receive it as data from the server
+        //     //         sock.write(buffer, function(err) {
+        //     //             if (err) {
+        //     //                 console.log('Sock write error : ' + err);
+        //     //                 console.log('*****************************************************************');
+        //     //             }
+        //     //         });
+        //     //     });
+        //     // });
+        // }
     });
 
     // Add a 'close' event handler to this instance of socket
