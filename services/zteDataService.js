@@ -192,13 +192,15 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "03":
             //Inquire parameters
-            params.forEach(function(element) {
-                mainMessage += element;
-            }, this);
+            for (no in params) {
+                mainMessage += no.substring(2, no.length);
+            }
             break;
         case "04":
             //Inquiry log
-            mainMessage += params[0];
+            for (no in params) {
+                mainMessage += no.substring(2, no.length);
+            }
             break;
         case "05":
             //Reserved
@@ -213,19 +215,19 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                     case "fuel":
                         mainMessage += params[no].toString(16);
                         break;
-                    case "engineDisplacement":
+                    case "eDisp":
                         mainMessage += (parseFloat(params[no]) * 10).toString(16);
                         break;
-                    case "engineEfficiency":
+                    case "eEffi":
                         mainMessage += params[no].toString(16);
                         break;
-                    case "mixedRoadFuelConsumption":
+                    case "mixedRFC":
                         mainMessage += (parseFloat(params[no]) * 10).toString(16);
                         break;
-                    case "highSpeedFuelConsumption":
+                    case "highSFC":
                         mainMessage += (parseFloat(params[no]) * 10).toString(16);
                         break;
-                    case "lowSpeedFuelConsumption":
+                    case "lowSFC":
                         mainMessage += (parseFloat(params[no]) * 10).toString(16);
                         break;
                 }
