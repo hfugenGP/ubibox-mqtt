@@ -97,8 +97,12 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         break;
                     case "0x000b":
                         var data = params[key].toString(16);
-                        if (data.length == 2) {
+                        if (data.length == 1) {
+                            data = "000" + data;
+                        } else if (data.length == 2) {
                             data = "00" + data;
+                        } else if (data.length == 3) {
+                            data = "0" + data;
                         }
 
                         mainMessage += data;
