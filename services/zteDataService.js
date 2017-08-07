@@ -44,7 +44,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                     key == "0x0209" ||
                     key == "0x020a" ||
                     key == "0x0300") {
-                    continue;
+                    return false;
                 }
                 mainMessage += key.substring(2, key.length);
                 switch (key) {
