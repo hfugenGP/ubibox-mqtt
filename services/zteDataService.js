@@ -40,6 +40,12 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
         case "02":
             //Set parameters
             Object.keys(params).forEach(function(key, value) {
+                if (key == "0x0208" ||
+                    key == "0x0209" ||
+                    key == "0x020a" ||
+                    key == "0x0300") {
+                    continue;
+                }
                 mainMessage += key.substring(2, key.length);
                 switch (key) {
                     case "0xf000":
@@ -167,26 +173,16 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += params[key].toString(16);
                         break;
                     case "0x0208":
-                        mainMessage += params[key].toString(16);
+                        //Only for inquiry
                         break;
                     case "0x0209":
-                        var hexBytes = common.hex_from_chars(params[key]);
-                        var count = hexBytes.length / 2;
-                        if (count <= 15) {
-                            // value should be less than 15 characters
-                            mainMessage += count.toString(16);
-                            mainMessage += hexBytes;
-                        }
+                        //Only for inquiry
                         break;
                     case "0x020a":
-                        mainMessage += params[key].toString(16);
+                        //Only for inquiry
                         break;
                     case "0x0300":
-                        if (params[key]) {
-                            mainMessage += "01";
-                        } else {
-                            mainMessage += "00";
-                        }
+                        //Only for inquiry
                         break;
                 }
             });
@@ -1076,7 +1072,11 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                         break;
                     case "000a":
                         end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        if (effectiveData.substring(start, end) == "00") {
+                            data["0x" + paramNo] = "Not allowed to report the speed";
+                        } else if (effectiveData.substring(start, end) == "01") {
+                            data["0x" + paramNo] = "Allowed to report the speed";
+                        }
                         break;
                     case "000b":
                         end += 4;
@@ -1091,7 +1091,7 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
                         end += count;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         break;
                     case "0201":
                         end += 1;
@@ -1148,7 +1148,7 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                         break;
                     case "0208":
                         end += 2;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        data["0x" + paramNo] = effectiveData.substring(start, end);
                         break;
                     case "0209":
                         end += 1;
@@ -1163,7 +1163,7 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                         break;
                     case "0300":
                         end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        data["0x" + paramNo] = effectiveData.substring(start, end);
                         break;
                 }
                 if (end >= effectiveData.length) {
