@@ -41,7 +41,6 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
         case "02":
             //Set parameters
             for (no in params) {
-                console.log('params: ' + no);
                 mainMessage += no.substring(2, no.length);
                 switch (no) {
                     case "0xf000":
@@ -195,16 +194,15 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "03":
             //Inquire parameters
-            for (no in params) {
-                console.log('params: ' + no);
-                mainMessage += no.substring(2, no.length);
-            }
+            Object.keys(params).forEach(function(k, v) {
+                mainMessage += k.substring(2, k.length);
+            });
             break;
         case "04":
             //Inquiry log
-            for (no in params) {
-                mainMessage += no.substring(2, no.length);
-            }
+            Object.keys(params).forEach(function(k, v) {
+                mainMessage += k.substring(2, k.length);
+            });
             break;
         case "05":
             //Reserved
@@ -217,22 +215,22 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += common.chars_from_hex(params[type]);
                         break;
                     case "fuel":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += params[type].toString(16);
                         break;
                     case "eDisp":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
                         break;
                     case "eEffi":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += params[type].toString(16);
                         break;
                     case "mixedRFC":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
                         break;
                     case "highSFC":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
                         break;
                     case "lowSFC":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
                         break;
                 }
             }
