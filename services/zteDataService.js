@@ -75,7 +75,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
                     case "0x0007":
-                        mainMessage += params[key].toString(16);
+                        mainMessage += parseInt(params[key]).toString(16);
                         break;
                     case "0x0008":
                         var value = (parseFloat(params[key]) * 10).toString(16);
