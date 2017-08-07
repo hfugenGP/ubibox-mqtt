@@ -1137,7 +1137,14 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                         break;
                     case "0207":
                         end += 2;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        if (effectiveData.substring(start, end) == "00") {
+                            data["0x" + paramNo] = "Not controlled by the server";
+                        } else if (effectiveData.substring(start, end) == "01") {
+                            data["0x" + paramNo] = "HOTSPOT on";
+                        } else {
+                            data["0x" + paramNo] = "HOTSPOT off";
+                        }
+
                         break;
                     case "0208":
                         end += 2;
