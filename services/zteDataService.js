@@ -19,6 +19,7 @@ var ZTEDataService = function() {};
 
 ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
+    console.log('request Params: ' + params);
 
     if (!subcribedDevices["ID-" + deviceId]) {
         console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
@@ -40,6 +41,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
         case "02":
             //Set parameters
             for (no in params) {
+                console.log('params: ' + no);
                 mainMessage += no.substring(2, no.length);
                 switch (no) {
                     case "0xf000":
@@ -194,6 +196,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
         case "03":
             //Inquire parameters
             for (no in params) {
+                console.log('params: ' + no);
                 mainMessage += no.substring(2, no.length);
             }
             break;
