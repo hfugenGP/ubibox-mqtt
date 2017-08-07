@@ -40,69 +40,69 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "02":
             //Set parameters
-            for (no in params) {
-                mainMessage += no.substring(2, no.length);
-                switch (no) {
+            Object.keys(params).forEach(function(key, value) {
+                mainMessage += key.substring(2, key.length);
+                switch (key) {
                     case "0xf000":
                         mainMessage += "ffff";
                         break;
                     case "0x0001":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "0x0002":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "0x0003":
-                        mainMessage += (parseFloat(params[no]) * 100).toString(16);
+                        mainMessage += (parseFloat(value) * 100).toString(16);
                         break;
                     case "0x0004":
-                        var value = params[no].toString(16);
-                        if (value.length == 2) {
-                            value = "00" + value;
+                        var data = value.toString(16);
+                        if (data.length == 2) {
+                            data = "00" + data;
                         }
 
-                        mainMessage += value;
+                        mainMessage += data;
                         break;
                     case "0x0005":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "0x0006":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "0x0007":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "0x0008":
-                        mainMessage += (parseFloat(params[no]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "0x0009":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "0x000a":
-                        if (params[no]) {
+                        if (value) {
                             mainMessage += "01";
                         } else {
                             mainMessage += "00";
                         }
                         break;
                     case "0x000b":
-                        var value = params[no].toString(16);
-                        if (value.length == 2) {
-                            value = "00" + value;
+                        var data = value.toString(16);
+                        if (data.length == 2) {
+                            data = "00" + data;
                         }
 
-                        mainMessage += value;
+                        mainMessage += data;
                         break;
                     case "0x000c":
-                        var value = params[no].toString(16);
-                        if (value.length == 2) {
-                            value = "00" + value;
+                        var data = value.toString(16);
+                        if (data.length == 2) {
+                            data = "00" + data;
                         }
 
-                        mainMessage += value;
+                        mainMessage += data;
                         break;
                     case "0x0200":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -111,7 +111,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0201":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -120,7 +120,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0202":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -129,7 +129,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0203":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -138,7 +138,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0204":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -147,7 +147,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0205":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -156,7 +156,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0206":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -165,13 +165,13 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x0207":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "0x0208":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "0x0209":
-                        var hexBytes = common.hex_from_chars(params[no]);
+                        var hexBytes = common.hex_from_chars(value);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
@@ -180,28 +180,28 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x020a":
-                        mainMessage += params[no].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "0x0300":
-                        if (params[no]) {
+                        if (value) {
                             mainMessage += "01";
                         } else {
                             mainMessage += "00";
                         }
                         break;
                 }
-            }
+            });
             break;
         case "03":
             //Inquire parameters
-            Object.keys(params).forEach(function(k, v) {
-                mainMessage += k.substring(2, k.length);
+            Object.keys(params).forEach(function(key, value) {
+                mainMessage += key.substring(2, key.length);
             });
             break;
         case "04":
             //Inquiry log
-            Object.keys(params).forEach(function(k, v) {
-                mainMessage += k.substring(2, k.length);
+            Object.keys(params).forEach(function(key, value) {
+                mainMessage += key.substring(2, key.length);
             });
             break;
         case "05":
@@ -209,31 +209,31 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "06":
             //Set vehicle information
-            for (type in params) {
-                switch (type) {
+            Object.keys(params).forEach(function(key, value) {
+                switch (key) {
                     case "vin":
-                        mainMessage += common.chars_from_hex(params[type]);
+                        mainMessage += common.chars_from_hex(value);
                         break;
                     case "fuel":
-                        mainMessage += params[type].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "eDisp":
-                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "eEffi":
-                        mainMessage += params[type].toString(16);
+                        mainMessage += value.toString(16);
                         break;
                     case "mixedRFC":
-                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "highSFC":
-                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                     case "lowSFC":
-                        mainMessage += (parseFloat(params[type]) * 10).toString(16);
+                        mainMessage += (parseFloat(value) * 10).toString(16);
                         break;
                 }
-            }
+            });
             break;
         case "07":
             //Re-study the accelerator calibration  //Just requestType is ok
