@@ -78,7 +78,12 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += params[key].toString(16);
                         break;
                     case "0x0008":
-                        mainMessage += (parseFloat(params[key]) * 10).toString(16);
+                        var value = (parseFloat(params[key]) * 10).toString(16);
+                        if (value.length == 1) {
+                            value = "0" + value;
+                        }
+                        mainMessage += value;
+
                         break;
                     case "0x0009":
                         mainMessage += params[key].toString(16);
@@ -1052,7 +1057,8 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                         break;
                     case "0005":
                         end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        var value = parseInt(effectiveData.substring(start, end), 16);
+                        data["0x" + paramNo] = (isNaN(value) ? 0 : value);
                         break;
                     case "0006":
                         end += 2;
