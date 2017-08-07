@@ -193,7 +193,7 @@ function processWifiMessage(gatewayName, topic, message, packet) {
 
 function processLoraMessage(gatewayName, topic, message, packet) {
     var json_object = JSON.parse(message);
-    console.log('Message received from Lora ' + json_object);
+    console.log('Message received from Lora ' + message);
     var rawData = json_object['data'];
     if (rawData) {
         var extId = rawData.substring(0, 8);
