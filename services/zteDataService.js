@@ -20,12 +20,12 @@ var ZTEDataService = function() {};
 ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
 
-    // if (!subcribedDevices["ID-" + deviceId]) {
-    //     console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
-    //     return false;
-    // }
+    if (!subcribedDevices["ID-" + deviceId]) {
+        console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+        return false;
+    }
 
-    // var encryptionKey = subcribedDevices["ID-" + deviceId];
+    var encryptionKey = subcribedDevices["ID-" + deviceId];
 
     //This is publish message
     var frameType = "03";
