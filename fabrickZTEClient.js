@@ -179,7 +179,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
         case 'config/fabrick.io/ZTE/Device/Message':
             console.log(data);
             var deviceId = data["deviceId"];
-            var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["params"]);
+            var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["parameters"]);
 
             if (connectingDevices.hasOwnProperty(deviceId) &&
                 connectingDevices[deviceId] != undefined) {
