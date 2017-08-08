@@ -49,17 +49,24 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     switch (topic) {
         case 'config/fabrick.io/Amelia/Gateways':
+            var new_topics = new Array();
+            _.each(json_object, function(element) {
+                new_topics.push(element['topics']);
+            });
+
             _.each(subcribe_topics, function(topic) {
-                fabrick_Broker.unsubscribeOne(topic);
+                if (new_topics.indexOf(topic) == -1) {
+                    fabrick_Broker.unsubscribeOne(topic);
+                }
             });
 
             while (subcribe_topics.length) {
                 subcribe_topics.pop();
             }
 
-            _.each(json_object, function(element) {
-                fabrick_Broker.subscribeOne(element['topic']);
-                subcribe_topics.push(element['topic']);
+            _.each(new_topics, function(topic) {
+                fabrick_Broker.subscribeOne(topic);
+                subcribe_topics.push(topic);
             });
 
             console.log(subcribe_topics);

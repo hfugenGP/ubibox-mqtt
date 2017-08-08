@@ -298,11 +298,51 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             data['alertText'] = [alertText];
 
             break;
-        case 19: // Weather station
-            var deviceId = parseInt(rawData.substring(0, 2), 16);
+        case 18: // Weather station
+            // var deviceId = parseInt(rawData.substring(0, 2), 16);
             var frameCount = parseInt(rawData.substring(2, 4), 16);
+            var start = 4;
+            var end = 6;
             while (frameCount > 0) {
+                var dataChannel = rawData.substring(start, end);
+                start = end;
+                end += 2;
+                var dataType = rawData.substring(start, end);
+                start = end;
+                end += 4;
+                var value = rawData.substring(start, end);
 
+                switch (dataType) {
+                    case "84":
+                        if (dataChannel == "00") {
+                            data['windDirection'] = [parseInt(value, 16), '°'];
+                        } else if (dataChannel == "01") {
+                            data['windSpeedAvg'] = [parseInt(value, 16) / 100, 'm/s'];
+                        } else if (dataChannel == "02") {
+                            data['windSpeedMax'] = [parseInt(value, 16) / 100, 'm/s'];
+                        }
+                        break;
+                    case "67":
+                        data["temperature"] = [parseInt(value, 16) / 100, '°C'];
+                        break;
+                    case "77":
+                        if (dataChannel == "00") {
+                            data["rainPerHour"] = [parseInt(value, 16) / 100, 'mm'];
+                        } else if (dataChannel == "01") {
+                            data["rainPerDay"] = [parseInt(value, 16) / 100, 'mm'];
+                        }
+                        break;
+                    case "68":
+                        data["humidity"] = [parseInt(value, 16), '%'];
+                        break;
+                    case "73":
+                        data["pressure"] = [parseInt(value, 16) / 100, 'hPa mm'];
+                        break;
+                }
+
+                frameCount--;
+                start = end;
+                end += 2;
             }
             break;
         default:
