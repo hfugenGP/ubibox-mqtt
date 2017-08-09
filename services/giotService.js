@@ -336,7 +336,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                         data["humidity"] = [parseInt(value, 16) / 10, '%'];
                         break;
                     case "73":
-                        data["pressure"] = [parseInt(value, 16), 'hPa mm'];
+                        data["pressure"] = [parseInt(value, 16), 'hPa'];
                         break;
                 }
 
