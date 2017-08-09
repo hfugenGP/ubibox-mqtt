@@ -323,7 +323,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                         }
                         break;
                     case "67":
-                        data["temperature"] = [parseInt(value, 16) / 100, '°C'];
+                        data["temperature"] = [parseInt(value, 16) / 10, '°C'];
                         break;
                     case "77":
                         if (dataChannel == "00") {
@@ -333,10 +333,10 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                         }
                         break;
                     case "68":
-                        data["humidity"] = [parseInt(value, 16), '%'];
+                        data["humidity"] = [parseInt(value, 16) / 10, '%'];
                         break;
                     case "73":
-                        data["pressure"] = [parseInt(value, 16) / 100, 'hPa mm'];
+                        data["pressure"] = [parseInt(value, 16), 'hPa mm'];
                         break;
                 }
 
