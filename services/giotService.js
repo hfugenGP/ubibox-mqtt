@@ -338,6 +338,9 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                     case "73":
                         data["pressure"] = [parseInt(value, 16), 'hPa'];
                         break;
+                    case "74":
+                        data["batteryLevel"] = [parseInt(value, 16) / 100, "V"];
+                        break;
                 }
 
                 frameCount--;
