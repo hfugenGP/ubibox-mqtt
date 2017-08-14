@@ -1294,7 +1294,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             break;
                         case "0x00090000":
                             end += 4;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
                             db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of exceed idle", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
                             break;
                         case "0x000a0000":
