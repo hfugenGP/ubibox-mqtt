@@ -48,19 +48,19 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                 }
                 mainMessage += key.substring(2, key.length);
                 switch (key) {
-                    case "0xf000":
+                    case "0xf0000000":
                         mainMessage += "ffff";
                         break;
-                    case "0x0001":
+                    case "0x00010000":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
-                    case "0x0002":
+                    case "0x00020000":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
-                    case "0x0003":
+                    case "0x00030000":
                         mainMessage += (parseFloat(params[key]) * 100).toString(16);
                         break;
-                    case "0x0004":
+                    case "0x00040000":
                         var data = params[key].toString(16);
                         if (data.length == 2) {
                             data = "00" + data;
@@ -68,16 +68,16 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
 
                         mainMessage += data;
                         break;
-                    case "0x0005":
+                    case "0x00050000":
                         mainMessage += params[key].toString(16);
                         break;
-                    case "0x0006":
+                    case "0x00060000":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
-                    case "0x0007":
+                    case "0x00070000":
                         mainMessage += parseInt(params[key]).toString(16);
                         break;
-                    case "0x0008":
+                    case "0x00080000":
                         var value = (parseFloat(params[key]) * 10).toString(16);
                         if (value.length == 1) {
                             value = "0" + value;
@@ -85,17 +85,17 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += value;
 
                         break;
-                    case "0x0009":
+                    case "0x00090000":
                         mainMessage += params[key].toString(16);
                         break;
-                    case "0x000a":
+                    case "0x000a0000":
                         if (params[key]) {
                             mainMessage += "01";
                         } else {
                             mainMessage += "00";
                         }
                         break;
-                    case "0x000b":
+                    case "0x000b0000":
                         var data = params[key].toString(16);
                         if (data.length == 1) {
                             data = "000" + data;
@@ -107,7 +107,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
 
                         mainMessage += data;
                         break;
-                    case "0x000c":
+                    case "0x000c0000":
                         var data = params[key].toString(16);
                         if (data.length == 2) {
                             data = "00" + data;
@@ -115,7 +115,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
 
                         mainMessage += data;
                         break;
-                    case "0x0200":
+                    case "0x02000000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -124,7 +124,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0201":
+                    case "0x02010000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -133,7 +133,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0202":
+                    case "0x02020000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -142,7 +142,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0203":
+                    case "0x02030000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -151,7 +151,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0204":
+                    case "0x02040000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -160,7 +160,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0205":
+                    case "0x02050000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -169,7 +169,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0206":
+                    case "0x02060000":
                         var hexBytes = common.hex_from_chars(params[key]);
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
@@ -178,19 +178,19 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                             mainMessage += hexBytes;
                         }
                         break;
-                    case "0x0207":
+                    case "0x02070000":
                         mainMessage += params[key].toString(16);
                         break;
-                    case "0x0208":
+                    case "0x02080000":
                         //Only for inquiry
                         break;
-                    case "0x0209":
+                    case "0x02090000":
                         //Only for inquiry
                         break;
-                    case "0x020a":
+                    case "0x020a0000":
                         //Only for inquiry
                         break;
-                    case "0x0300":
+                    case "0x03000000":
                         //Only for inquiry
                         break;
                 }
