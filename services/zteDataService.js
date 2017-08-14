@@ -52,41 +52,32 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += "ffff";
                         break;
                     case "0x00010000":
-                        mainMessage += (parseFloat(params[key]) * 10).toString(16);
+                        mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
                         break;
                     case "0x00020000":
-                        mainMessage += (parseFloat(params[key]) * 10).toString(16);
+                        mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
                         break;
                     case "0x00030000":
-                        mainMessage += (parseFloat(params[key]) * 100).toString(16);
+                        mainMessage += common.recorrectHexString((parseFloat(params[key]) * 100).toString(16), 2);
                         break;
                     case "0x00040000":
-                        var data = params[key].toString(16);
-                        if (data.length == 2) {
-                            data = "00" + data;
-                        }
-
-                        mainMessage += data;
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
                         break;
                     case "0x00050000":
-                        mainMessage += params[key].toString(16);
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 2);
                         break;
                     case "0x00060000":
-                        mainMessage += (parseFloat(params[key]) * 10).toString(16);
+                        mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
                         break;
                     case "0x00070000":
-                        mainMessage += parseInt(params[key]).toString(16);
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 2);
                         break;
                     case "0x00080000":
-                        var value = (parseFloat(params[key]) * 10).toString(16);
-                        if (value.length == 1) {
-                            value = "0" + value;
-                        }
-                        mainMessage += value;
+                        mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
 
                         break;
                     case "0x00090000":
-                        mainMessage += params[key].toString(16);
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 2);
                         break;
                     case "0x000a0000":
                         if (params[key]) {
@@ -96,24 +87,10 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x000b0000":
-                        var data = params[key].toString(16);
-                        if (data.length == 1) {
-                            data = "000" + data;
-                        } else if (data.length == 2) {
-                            data = "00" + data;
-                        } else if (data.length == 3) {
-                            data = "0" + data;
-                        }
-
-                        mainMessage += data;
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
                         break;
                     case "0x000c0000":
-                        var data = params[key].toString(16);
-                        if (data.length == 2) {
-                            data = "00" + data;
-                        }
-
-                        mainMessage += data;
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
                         break;
                     case "0x02000000":
                         var hexBytes = common.hex_from_chars(params[key]);
@@ -179,7 +156,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x02070000":
-                        mainMessage += params[key].toString(16);
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 2);
                         break;
                     case "0x02080000":
                         //Only for inquiry
