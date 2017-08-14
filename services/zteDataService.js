@@ -7,6 +7,7 @@ const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
+const MongoObjectId = require('mongodb').ObjectID;
 const redis = require("redis");
 
 var user = encodeURIComponent(config.zte.mongoUsername);
@@ -337,7 +338,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
             deviceData["MajorDataTypeId"] = this.dataTypeMajor;
             deviceData["MinorDataTypeId"] = this.dataTypeMinor;
-            deviceData["Data"] = publishMessageHandle(effectiveData, this.dataTypeMajor, this.dataTypeMinor);
+            deviceData["Data"] = publishMessageHandle(deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
@@ -346,7 +347,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                         console.log("Error when write to mongodb: " + err);
                     }
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                    db.close();
+                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: "receivedDateText" }, { upsert: true });
                 });
             });
 
@@ -361,7 +362,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
             deviceData["MajorDataTypeId"] = majorType;
             deviceData["MinorDataTypeId"] = minorType;
-            deviceData["Data"] = responseMessageHandle(effectiveData, majorType, minorType);
+            deviceData["Data"] = responseMessageHandle(deviceId, effectiveData, majorType, minorType);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
@@ -370,7 +371,8 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                         console.log("Error when write to mongodb: " + err);
                     }
                     console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                    db.close();
+
+                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: "receivedDateText" }, { upsert: true });
 
                     var client = redis.createClient();
                     client.publish("zteDeviceResponse", JSON.stringify({
@@ -385,10 +387,11 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     return true;
 }
 
-function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
+function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMinor) {
     var common = new Common();
 
     var data = {};
+    data["deviceId"] = deviceId;
 
     switch (dataTypeMajor) {
         case "00":
@@ -398,9 +401,9 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Summary data
                     console.log('*********************Start Summary data*********************');
                     var ignitionOnTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsWhenIgnitionOn = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsWhenIgnitionOn = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
                     var ignitionOffTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(60, 68)));
-                    var gpsWhenIgnitionOff = formatGPS(effectiveData.substring(68, 116)); //TODO
+                    var gpsWhenIgnitionOff = formatGPS(effectiveData.substring(68, 116), deviceId, false); //TODO
                     var drivingDistance = formatDrivingDistance(effectiveData.substring(116, 122)); //TODO
                     var drivingFuelConsumption = parseInt(effectiveData.substring(122, 128), 16);
                     var maxSpeed = parseInt(effectiveData.substring(128, 130), 16);
@@ -413,21 +416,37 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     var totalFuelConsumption = parseInt(effectiveData.substring(152, 160), 16);
                     var totalDrivingTime = parseInt(effectiveData.substring(160, 168), 16);
 
-                    data["ignitionOnTime"] = ignitionOnTime;
-                    data["gpsWhenIgnitionOn"] = gpsWhenIgnitionOn;
-                    data["ignitionOffTime"] = ignitionOffTime;
-                    data["gpsWhenIgnitionOff"] = gpsWhenIgnitionOff;
-                    data["drivingDistance"] = drivingDistance;
-                    data["drivingFuelConsumption"] = drivingFuelConsumption;
-                    data["maxSpeed"] = maxSpeed;
-                    data["idleTime"] = idleTime;
-                    data["idleFuelConsumption"] = idleFuelConsumption;
-                    data["numberRapidAcce"] = numberRapidAcce;
-                    data["numberRapidDece"] = numberRapidDece;
-                    data["numberRapidSharpTurn"] = numberRapidSharpTurn;
-                    data["totalMileage"] = totalMileage;
-                    data["totalFuelConsumption"] = totalFuelConsumption;
-                    data["totalDrivingTime"] = totalDrivingTime;
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
+                            data["ignitionOnTime"] = ignitionOnTime;
+                            data["gpsWhenIgnitionOn"] = insertedId
+                            insert(db, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
+                                data["ignitionOffTime"] = ignitionOffTime;
+                                data["gpsWhenIgnitionOff"] = insertedId;
+                                data["drivingDistance"] = drivingDistance;
+                                data["drivingFuelConsumption"] = drivingFuelConsumption;
+                                data["maxSpeed"] = maxSpeed;
+                                data["idleTime"] = idleTime;
+                                data["idleFuelConsumption"] = idleFuelConsumption;
+                                data["numberRapidAcce"] = numberRapidAcce;
+                                data["numberRapidDece"] = numberRapidDece;
+                                data["numberRapidSharpTurn"] = numberRapidSharpTurn;
+                                data["totalMileage"] = totalMileage;
+                                data["totalFuelConsumption"] = totalFuelConsumption;
+                                data["totalDrivingTime"] = totalDrivingTime;
+                                data["status"] = "New";
+                                insert(db, 'Trips', data, function(insertedId) {
+                                    // var cmd = 'php ' + config.artisanURL + ' device ' + insertedId;
+                                    // exec(cmd, function(error, stdout, stderr) {
+                                    //     if (error) console.log(error);
+                                    //     if (stdout) console.log(stdout);
+                                    //     if (stderr) console.log(stderr);
+                                    // });
+                                    db.close();
+                                });
+                            });
+                        });
+                    });
 
                     console.log('ignitionOnTime : ' + ignitionOnTime);
                     console.log('gpsWhenIgnitionOn : ' + gpsWhenIgnitionOn);
@@ -487,7 +506,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Sudden acceleration
                     console.log('*********************Start Sudden acceleration*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
                     var speedBeforeAcc = parseInt(effectiveData.substring(60, 62), 16);
                     var speedAfterAcc = parseInt(effectiveData.substring(62, 64), 16);
                     var accValue = parseInt(effectiveData.substring(64, 66), 16) / 10;
@@ -497,6 +516,25 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     data["speedBeforeAcc"] = speedBeforeAcc;
                     data["speedAfterAcc"] = speedAfterAcc;
                     data["accValue"] = accValue;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                            alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {
+                                "speedBeforeAcc": speedBeforeAcc,
+                                "speedAfterAcc": speedAfterAcc,
+                                "accValue": accValue
+                            }
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -509,7 +547,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Sudden deceleration
                     console.log('*********************Start Sudden deceleration*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
                     var speedBeforeDec = parseInt(effectiveData.substring(60, 62), 16);
                     var speedAfterDec = parseInt(effectiveData.substring(62, 64), 16);
                     var decValue = parseInt(effectiveData.substring(64, 66), 16) / 10;
@@ -519,6 +557,25 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     data["speedBeforeDec"] = speedBeforeDec;
                     data["speedAfterDec"] = speedAfterDec;
                     data["decValue"] = decValue;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                            alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {
+                                "speedBeforeDec": speedBeforeDec,
+                                "speedAfterDec": speedAfterDec,
+                                "decValue": decValue
+                            }
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -531,12 +588,29 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Sharp turn
                     console.log('*********************Start Sharp turn*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
                     var turn = parseInt(effectiveData.substring(60, 62), 16) / 10;
 
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
                     data["turn"] = turn;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                            alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {
+                                "turn": turn
+                            }
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -550,6 +624,18 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
 
                     data["occurTime"] = occurTime;
 
+                    var alertData = {};
+                    alertData["deviceId"] = deviceId;
+                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                    alertData["alertTypeId"] = new MongoObjectId("599146c295dfe43d4ca834bf");
+                    alertData["reportTime"] = occurTime;
+                    alertData["gpsPosition"] = null;
+                    alertData["value"] = {
+                        "turn": turn
+                    }
+
+                    insertOne("Alert", alertData, null);
+
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Exceed idle*********************');
                     break;
@@ -559,6 +645,16 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
 
                     data["occurTime"] = occurTime;
+
+                    var alertData = {};
+                    alertData["deviceId"] = deviceId;
+                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                    alertData["alertTypeId"] = new MongoObjectId("599146cd95dfe43d4ca834c0");
+                    alertData["reportTime"] = occurTime;
+                    alertData["gpsPosition"] = null;
+                    alertData["value"] = {}
+
+                    insertOne("Alert", alertData, null);
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Driving tired*********************');
@@ -570,27 +666,21 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             console.log('*********************Start GPS data*********************');
             var numberOfPackage = parseInt(effectiveData.substring(4, 6), 16);
             console.log('numberOfPackage : ' + numberOfPackage);
-            var gpsData = formatGPS(effectiveData.substring(6, 38))
-            console.log('gpsData : ' + gpsData); //TODO
-
             data["numberOfPackage"] = numberOfPackage;
-            data["gpsData"] = gpsData;
-            switch (numberOfPackage) {
-                case 2:
-                    var gpsData2 = formatGPS(effectiveData.substring(38, 74));
-                    console.log('gpsData2 : ' + gpsData2); // TODO
-                    data["gpsData2"] = gpsData2;
-                    break;
-                case 3:
-                    var gpsData2 = formatGPS(effectiveData.substring(38, 74));
-                    console.log('gpsData2 : ' + gpsData2); // TODO
-                    data["gpsData2"] = gpsData2;
-
-                    var gpsData3 = formatGPS(effectiveData.substring(74, 116));
-                    console.log('gpsData3 : ' + gpsData3); // TODO
-                    data["gpsData3"] = gpsData3;
-                    break;
+            var i = 1;
+            var start = 6
+            var end = 38;
+            var gps = new Array();
+            while (i <= numberOfPackage) {
+                var gpsData = formatGPS(effectiveData.substring(start, end), deviceId, true);
+                console.log('gpsData ' + i + ' : ' + gpsData);
+                data["gpsData" + i] = gpsData;
+                gps.push(gpsData);
+                start = end;
+                end += 36;
             }
+
+            insertMany('GPSData', gps, null);
             console.log('*********************End GPS data*********************');
             break;
         case "03":
@@ -734,7 +824,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Can not locate for long time
                     console.log('*********************Start Can not locate*********************');
                     var timeNoLocation = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
 
                     data["timeNoLocation"] = timeNoLocation;
                     data["gpsPosition"] = gpsPosition;
@@ -843,6 +933,21 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     data["privateFaultCode"] = privateFaultCode;
                     data["privateFaultCodeInfo"] = privateFaultCodeInfo;
 
+                    var alertData = {};
+                    alertData["deviceId"] = deviceId;
+                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                    alertData["alertTypeId"] = new MongoObjectId("5991463795dfe43d4ca834b7");
+                    alertData["reportTime"] = occurTime;
+                    alertData["gpsPosition"] = null;
+                    alertData["value"] = {
+                        "obdFaultCode": obdFaultCode,
+                        "obdFaultCodeInfo": obdFaultCodeInfo,
+                        "privateFaultCode": privateFaultCode,
+                        "privateFaultCodeInfo": privateFaultCodeInfo
+                    }
+
+                    insertOne("Alert", alertData, null);
+
                     console.log('occurTime : ' + occurTime);
                     console.log('obdFaultCode : ' + obdFaultCode);
                     console.log('obdFaultCodeInfo : ' + obdFaultCodeInfo);
@@ -854,12 +959,29 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Low voltage
                     console.log('*********************Start Low voltage*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
                     var batteryVolt = parseInt(effectiveData.substring(60, 62), 16) / 10;
 
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
                     data["batteryVolt"] = batteryVolt;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                            alertData["alertTypeId"] = new MongoObjectId("5991465195dfe43d4ca834b8");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {
+                                "batteryVolt": batteryVolt
+                            }
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -870,12 +992,29 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Vibration after ignition off
                     console.log('*********************Start Vibration after ignition off*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
                     var peekValue = parseInt(effectiveData.substring(60, 64), 16);
 
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
                     data["peekValue"] = peekValue;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                            alertData["alertTypeId"] = new MongoObjectId("5991466495dfe43d4ca834b9");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {
+                                "peekValue": peekValue
+                            }
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -890,12 +1029,29 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Suspected collision
                     console.log('*********************Start Suspected collision*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
-                    var sollisionValue = parseInt(effectiveData.substring(60, 62), 16) / 10;
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
+                    var collisionValue = parseInt(effectiveData.substring(60, 62), 16) / 10;
 
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
-                    data["sollisionValue"] = sollisionValue;
+                    data["collisionValue"] = collisionValue;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                            alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {
+                                "collisionValue": collisionValue
+                            }
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -906,10 +1062,25 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
                     //Device pulled out
                     console.log('*********************Start Device pulled out*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var gpsPosition = formatGPS(effectiveData.substring(12, 60)); //TODO
+                    var gpsPosition = formatGPS(effectiveData.substring(12, 60), deviceId, false); //TODO
 
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                            alertData["alertTypeId"] = new MongoObjectId("5991469095dfe43d4ca834bb");
+                            alertData["reportTime"] = occurTime;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {}
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
@@ -934,7 +1105,7 @@ function publishMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
     return data;
 }
 
-function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
+function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMinor) {
     var common = new Common();
 
     var data = {};
@@ -1013,152 +1184,178 @@ function responseMessageHandle(effectiveData, dataTypeMajor, dataTypeMinor) {
             var start = 4;
             var end = 8;
             var eom = false;
-            while (!eom) {
-                var paramNo = effectiveData.substring(start, end);
-                start = end;
-                switch (paramNo) {
-                    case "f000":
-                        //Should not be here, this one only for set.
-                        break;
-                    case "0001":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                        break;
-                    case "0002":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                        break;
-                    case "0003":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
-                        break;
-                    case "0004":
-                        end += 4;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                        break;
-                    case "0005":
-                        end += 2;
-                        var value = parseInt(effectiveData.substring(start, end), 16);
-                        data["0x" + paramNo] = (isNaN(value) ? 0 : value);
-                        break;
-                    case "0006":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                        break;
-                    case "0007":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                        break;
-                    case "0008":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                        break;
-                    case "0009":
-                        end += 4;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                        break;
-                    case "000a":
-                        end += 2;
-                        if (effectiveData.substring(start, end) == "00") {
-                            data["0x" + paramNo] = "Not allowed to report the speed";
-                        } else if (effectiveData.substring(start, end) == "01") {
-                            data["0x" + paramNo] = "Allowed to report the speed";
-                        }
-                        break;
-                    case "000b":
-                        end += 4;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                        break;
-                    case "000c":
-                        end += 4;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                        break;
-                    case "0200":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0201":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0202":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0203":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0204":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0205":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0206":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "0207":
-                        end += 2;
-                        if (effectiveData.substring(start, end) == "00") {
-                            data["0x" + paramNo] = "Not controlled by the server";
-                        } else if (effectiveData.substring(start, end) == "01") {
-                            data["0x" + paramNo] = "HOTSPOT on";
-                        } else {
-                            data["0x" + paramNo] = "HOTSPOT off";
-                        }
-
-                        break;
-                    case "0208":
-                        end += 2;
-                        data["0x" + paramNo] = effectiveData.substring(start, end);
-                        break;
-                    case "0209":
-                        end += 1;
-                        var count = parseInt(effectiveData.substring(start, end), 16);
-                        start = end;
-                        end += count;
-                        data["0x" + paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                        break;
-                    case "020a":
-                        end += 2;
-                        data["0x" + paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                        break;
-                    case "0300":
-                        end += 2;
-                        data["0x" + paramNo] = effectiveData.substring(start, end);
-                        break;
+            MongoClient.connect(url, function(err, db) {
+                while (!eom) {
+                    var paramNo = effectiveData.substring(start, end);
+                    paramNo = "0x" + paramNo + "0000";
+                    start = end;
+                    switch (paramNo) {
+                        case "0xf0000000":
+                            //Should not be here, this one only for set.
+                            break;
+                        case "0x00010000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid acceleration", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00020000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid deceleration", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00030000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of sharp turn", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00040000":
+                            end += 4;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Fatigue driving", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00050000":
+                            end += 2;
+                            var value = parseInt(effectiveData.substring(start, end), 16);
+                            data[paramNo] = (isNaN(value) ? 0 : value);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Over speed", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00060000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Low voltage", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00070000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wake vibration level", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00080000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of suspected collision", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x00090000":
+                            end += 4;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of exceed idle", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x000a0000":
+                            end += 2;
+                            if (effectiveData.substring(start, end) == "00") {
+                                data[paramNo] = "Not allowed to report the speed";
+                            } else if (effectiveData.substring(start, end) == "01") {
+                                data[paramNo] = "Allowed to report the speed";
+                            }
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "If allowed to report the speed", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x000b0000":
+                            end += 4;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "GPS report frequency", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x000c0000":
+                            end += 4;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Report frequency of vehicle data flow", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02000000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Change the reporting address and port", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02010000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi client ip address & subnet", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02020000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi SSID", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02030000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi Password", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02040000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi  router APN", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02050000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem DNS servers", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02060000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem APN", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02070000":
+                            end += 2;
+                            if (effectiveData.substring(start, end) == "00") {
+                                data[paramNo] = "Not controlled by the server";
+                            } else if (effectiveData.substring(start, end) == "01") {
+                                data[paramNo] = "HOTSPOT on";
+                            } else {
+                                data[paramNo] = "HOTSPOT off";
+                            }
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi on / Off", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02080000":
+                            end += 2;
+                            data[paramNo] = effectiveData.substring(start, end);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry network type", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x02090000":
+                            end += 1;
+                            var count = parseInt(effectiveData.substring(start, end), 16);
+                            start = end;
+                            end += count;
+                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Operator name", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x020a0000":
+                            end += 2;
+                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Signal strength", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                        case "0x03000000":
+                            end += 2;
+                            data[paramNo] = effectiveData.substring(start, end);
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "The current status of the accelerator self-learning", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            break;
+                    }
+                    if (end >= effectiveData.length) {
+                        eom = true;
+                    }
+                    start = end;
+                    end += 4;
                 }
-                if (end >= effectiveData.length) {
-                    eom = true;
-                }
-                start = end;
-                end += 4;
-            }
+            });
             break;
         case "04":
             //Inquiry log
@@ -1313,7 +1510,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     return finalHex;
 }
 
-function formatGPS(gpsValue) {
+function formatGPS(gpsValue, deviceId, isRouting) {
     var common = new Common();
     var gpsData = {};
     var possitionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
@@ -1353,6 +1550,17 @@ function formatGPS(gpsValue) {
         gpsData["VDOP"] = parseInt(byte13t15.substring(14, 36), 2) / 10;
     }
 
+    if (isRouting) {
+        gpsData["gpsType"] = "routing";
+        gpsData["tripId"] = null;
+    } else {
+        gpsData["gpsType"] = "reference";
+    }
+
+    if (deviceId) {
+        gpsData["deviceId"] = deviceId;
+    }
+
     return gpsData;
 }
 
@@ -1365,6 +1573,42 @@ function formatDrivingDistance(drivingDistance) {
     drivingDistanceData["mileage"] = parseInt(rawData.substring(1, rawData.length), 2);
 
     return drivingDistanceData;
+}
+
+function insertMany(collection, data, callback) {
+    MongoClient.connect(url, function(err, db) {
+        db.collection(collection).insertMany(data, function(err, result) {
+            if (err) {
+                console.log("Error when write to mongodb: " + err);
+            }
+            console.log(result.insertedCount + " record has been saved to mongodb");
+            callback(result.insertedIds);
+            db.close();
+        });
+    });
+}
+
+function insertOne(collection, data, callback) {
+    MongoClient.connect(url, function(err, db) {
+        db.collection(collection).insertOne(data, function(err, result) {
+            if (err) {
+                console.log("Error when write to mongodb: " + err);
+            }
+            console.log(result.insertedCount + " record has been saved to mongodb");
+            callback(result.insertedId);
+            db.close();
+        });
+    });
+}
+
+function insert(db, collection, data, callback) {
+    db.collection(collection).insertOne(data, function(err, result) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
+        }
+        console.log(result.insertedCount + " record has been saved to mongodb");
+        callback(result.insertedId);
+    });
 }
 
 module.exports = ZTEDataService;
