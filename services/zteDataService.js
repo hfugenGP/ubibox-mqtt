@@ -347,7 +347,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                         console.log("Error when write to mongodb: " + err);
                     }
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: "receivedDateText" }, { upsert: true });
+                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: receivedDateText }, { upsert: true });
                 });
             });
 
@@ -372,7 +372,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     }
                     console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
 
-                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: "receivedDateText" }, { upsert: true });
+                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: receivedDateText }, { upsert: true });
 
                     var client = redis.createClient();
                     client.publish("zteDeviceResponse", JSON.stringify({
