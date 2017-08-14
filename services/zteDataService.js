@@ -9,6 +9,7 @@ const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const MongoObjectId = require('mongodb').ObjectID;
 const redis = require("redis");
+const exec = require('child_process').exec;
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
@@ -436,12 +437,12 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 data["totalDrivingTime"] = totalDrivingTime;
                                 data["status"] = "New";
                                 insert(db, 'Trips', data, function(insertedId) {
-                                    // var cmd = 'php ' + config.artisanURL + ' device ' + insertedId;
-                                    // exec(cmd, function(error, stdout, stderr) {
-                                    //     if (error) console.log(error);
-                                    //     if (stdout) console.log(stdout);
-                                    //     if (stderr) console.log(stderr);
-                                    // });
+                                    var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.id;
+                                    exec(cmd, function(error, stdout, stderr) {
+                                        if (error) console.log(error);
+                                        if (stdout) console.log(stdout);
+                                        if (stderr) console.log(stderr);
+                                    });
                                     db.close();
                                 });
                             });
