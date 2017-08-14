@@ -42,10 +42,10 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
         case "02":
             //Set parameters
             Object.keys(params).forEach(function(key, value) {
-                if (key == "0x0208" ||
-                    key == "0x0209" ||
-                    key == "0x020a" ||
-                    key == "0x0300") {
+                if (key == "0x02080000" ||
+                    key == "0x02090000" ||
+                    key == "0x020a0000" ||
+                    key == "0x03000000") {
                     return false;
                 }
                 mainMessage += key.substring(2, key.length);
@@ -76,10 +76,9 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         break;
                     case "0x00080000":
                         mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
-
                         break;
                     case "0x00090000":
-                        mainMessage += common.recorrectHexString(params[key].toString(16), 2);
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
                         break;
                     case "0x000a0000":
                         if (params[key]) {
@@ -795,6 +794,15 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["reportingDate"] = reportingDate;
                     data["failureCode"] = failureCode;
 
+                    var alertData = {};
+                    alertData["deviceId"] = deviceId;
+                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                    alertData["alertTypeId"] = new MongoObjectId("599177f6e55de693e45b7175");
+                    alertData["reportTime"] = reportingDate;
+                    alertData["gpsPosition"] = null;
+                    alertData["value"] = { "failureCode": failureCode }
+                    insertOne('Alert', alertData, function() {});
+
                     console.log('reportingDate : ' + reportingDate);
                     console.log('failureCode : ' + failureCode);
                     console.log('*********************End Device bug*********************');
@@ -836,6 +844,21 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                     data["timeNoLocation"] = timeNoLocation;
                     data["gpsPosition"] = gpsPosition;
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                            var alertData = {};
+                            alertData["deviceId"] = deviceId;
+                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                            alertData["alertTypeId"] = new MongoObjectId("5991780ae55de693e45b7176");
+                            alertData["reportTime"] = timeNoLocation;
+                            alertData["gpsPosition"] = insertedId;
+                            alertData["value"] = {}
+                            insert(db, 'Alert', alertData, function(insertedId) {
+                                db.close();
+                            });
+                        });
+                    });
 
                     console.log('timeNoLocation : ' + timeNoLocation);
                     console.log('gpsPosition : ' + gpsPosition);
