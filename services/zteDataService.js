@@ -416,26 +416,45 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     var totalFuelConsumption = parseInt(effectiveData.substring(152, 160), 16);
                     var totalDrivingTime = parseInt(effectiveData.substring(160, 168), 16);
 
+                    data["ignitionOnTime"] = ignitionOnTime;
+                    data["gpsWhenIgnitionOn"] = gpsWhenIgnitionOn;
+                    data["ignitionOffTime"] = ignitionOffTime;
+                    data["gpsWhenIgnitionOff"] = gpsWhenIgnitionOff;
+                    data["drivingDistance"] = drivingDistance;
+                    data["drivingFuelConsumption"] = drivingFuelConsumption;
+                    data["maxSpeed"] = maxSpeed;
+                    data["idleTime"] = idleTime;
+                    data["idleFuelConsumption"] = idleFuelConsumption;
+                    data["numberRapidAcce"] = numberRapidAcce;
+                    data["numberRapidDece"] = numberRapidDece;
+                    data["numberRapidSharpTurn"] = numberRapidSharpTurn;
+                    data["totalMileage"] = totalMileage;
+                    data["totalFuelConsumption"] = totalFuelConsumption;
+                    data["totalDrivingTime"] = totalDrivingTime;
+
+                    var tripData = {};
+                    tripData["deviceId"] = deviceId;
+
                     MongoClient.connect(url, function(err, db) {
                         insert(db, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
-                            data["ignitionOnTime"] = ignitionOnTime;
-                            data["gpsWhenIgnitionOn"] = insertedId
+                            tripData["ignitionOnTime"] = ignitionOnTime;
+                            tripData["gpsWhenIgnitionOn"] = insertedId
                             insert(db, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
-                                data["ignitionOffTime"] = ignitionOffTime;
-                                data["gpsWhenIgnitionOff"] = insertedId;
-                                data["drivingDistance"] = drivingDistance;
-                                data["drivingFuelConsumption"] = drivingFuelConsumption;
-                                data["maxSpeed"] = maxSpeed;
-                                data["idleTime"] = idleTime;
-                                data["idleFuelConsumption"] = idleFuelConsumption;
-                                data["numberRapidAcce"] = numberRapidAcce;
-                                data["numberRapidDece"] = numberRapidDece;
-                                data["numberRapidSharpTurn"] = numberRapidSharpTurn;
-                                data["totalMileage"] = totalMileage;
-                                data["totalFuelConsumption"] = totalFuelConsumption;
-                                data["totalDrivingTime"] = totalDrivingTime;
-                                data["status"] = "New";
-                                insert(db, 'Trips', data, function(insertedId) {
+                                tripData["ignitionOffTime"] = ignitionOffTime;
+                                tripData["gpsWhenIgnitionOff"] = insertedId;
+                                tripData["drivingDistance"] = drivingDistance;
+                                tripData["drivingFuelConsumption"] = drivingFuelConsumption;
+                                tripData["maxSpeed"] = maxSpeed;
+                                tripData["idleTime"] = idleTime;
+                                tripData["idleFuelConsumption"] = idleFuelConsumption;
+                                tripData["numberRapidAcce"] = numberRapidAcce;
+                                tripData["numberRapidDece"] = numberRapidDece;
+                                tripData["numberRapidSharpTurn"] = numberRapidSharpTurn;
+                                tripData["totalMileage"] = totalMileage;
+                                tripData["totalFuelConsumption"] = totalFuelConsumption;
+                                tripData["totalDrivingTime"] = totalDrivingTime;
+                                tripData["status"] = "New";
+                                insert(db, 'Trips', tripData, function(insertedId) {
                                     var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.id;
                                     exec(cmd, function(error, stdout, stderr) {
                                         if (error) console.log(error);
