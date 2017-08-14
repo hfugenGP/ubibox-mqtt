@@ -634,7 +634,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         "turn": turn
                     }
 
-                    insertOne("Alert", alertData, null);
+                    insertOne("Alert", alertData, function() {});
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Exceed idle*********************');
@@ -654,7 +654,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, null);
+                    insertOne("Alert", alertData, function() {});
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Driving tired*********************');
@@ -681,7 +681,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                 i++;
             }
 
-            insertMany('GPSData', gps, null);
+            insertMany('GPSData', gps, function() {});
             console.log('*********************End GPS data*********************');
             break;
         case "03":
@@ -947,7 +947,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         "privateFaultCodeInfo": privateFaultCodeInfo
                     }
 
-                    insertOne("Alert", alertData, null);
+                    insertOne("Alert", alertData, function() {});
 
                     console.log('occurTime : ' + occurTime);
                     console.log('obdFaultCode : ' + obdFaultCode);
