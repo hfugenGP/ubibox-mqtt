@@ -678,6 +678,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                 gps.push(gpsData);
                 start = end;
                 end += 36;
+                i++;
             }
 
             insertMany('GPSData', gps, null);
