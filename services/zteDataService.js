@@ -1651,10 +1651,10 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
 function formatGPS(gpsValue, deviceId, isRouting) {
     var common = new Common();
     var gpsData = {};
-    var possitionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
-    gpsData["possitionTime"] = possitionTime;
+    var positionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
+    gpsData["positionTime"] = positionTime;
     var statusFlags = Array.from(common.hex2bits(gpsValue.substring(8, 10)));
-    gpsData["possitionSource"] = statusFlags[0] = '1' ? "GSM" : "GPS";
+    gpsData["positionSource"] = statusFlags[0] = '1' ? "GSM" : "GPS";
     gpsData["dataValidity"] = statusFlags[1] = '1' ? "Last time" : "Real time";
     gpsData["numberOfSatellites"] = parseInt("" + statusFlags[4] + statusFlags[5] + statusFlags[6] + statusFlags[7], 2);
 
