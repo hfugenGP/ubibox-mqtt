@@ -370,7 +370,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
-                    console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
 
                     db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { deviceId: deviceId, lastUpdated: receivedDateText }, { upsert: true });
 
@@ -1719,7 +1719,7 @@ function insertMany(collection, data, callback) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
-            console.log(result.insertedCount + " record has been saved to mongodb");
+            // console.log(result.insertedCount + " record has been saved to mongodb");
             callback(result.insertedIds);
             db.close();
         });
@@ -1732,7 +1732,7 @@ function insertOne(collection, data, callback) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
-            console.log(result.insertedCount + " record has been saved to mongodb");
+            // console.log(result.insertedCount + " record has been saved to mongodb");
             callback(result.insertedId);
             db.close();
         });
@@ -1744,7 +1744,7 @@ function insert(db, collection, data, callback) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
-        console.log(result.insertedCount + " record has been saved to mongodb");
+        // console.log(result.insertedCount + " record has been saved to mongodb");
         callback(result.insertedId);
     });
 }
