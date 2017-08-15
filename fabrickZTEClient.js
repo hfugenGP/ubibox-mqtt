@@ -214,7 +214,9 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 }
 
                 pendingDeviceMessages[deviceId].push(messageCallback);
+                console.log('Message: ' + messageCallback);
                 console.log('Device is offline, message pushed to queue');
+                console.log('Queue: ' + pendingDeviceMessages[deviceId]);
                 // lock.acquire("pendingDeviceMessagesLock", function(done) {
                 //     if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
                 //         pendingDeviceMessages[deviceId] == undefined) {
