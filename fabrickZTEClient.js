@@ -185,49 +185,51 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             var deviceId = data["deviceId"];
             var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["parameters"]);
 
-            if (connectingDevices.hasOwnProperty(deviceId) &&
-                connectingDevices[deviceId] != undefined) {
-                var buffer = Buffer.from(messageCallback, "hex");
-                var sock = connectingDevices[deviceId];
-                // Write the data back to the socket, the client will receive it as data from the server
-                sock.write(buffer, function(err) {
-                    if (err) {
-                        console.log('Sock write error : ' + err);
-                        console.log('*****************************************************************');
+            if (messageCallback) {
+                if (connectingDevices.hasOwnProperty(deviceId) &&
+                    connectingDevices[deviceId] != undefined) {
+                    var buffer = Buffer.from(messageCallback, "hex");
+                    var sock = connectingDevices[deviceId];
+                    // Write the data back to the socket, the client will receive it as data from the server
+                    sock.write(buffer, function(err) {
+                        if (err) {
+                            console.log('Sock write error : ' + err);
+                            console.log('*****************************************************************');
+                        }
+                        console.log('Message already sent to Device');
+                    });
+                    // lock.acquire("connectingDevicesLock", function(done) {
+                    //     var buffer = Buffer.from(messageCallback, "hex");
+                    //     var sock = connectingDevices[deviceId];
+                    //     // Write the data back to the socket, the client will receive it as data from the server
+                    //     sock.write(buffer, function(err) {
+                    //         if (err) {
+                    //             console.log('Sock write error : ' + err);
+                    //             console.log('*****************************************************************');
+                    //         }
+                    //         console.log('Message already sent to Device');
+                    //     });
+                    // });
+                } else {
+                    if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
+                        pendingDeviceMessages[deviceId] == undefined) {
+                        pendingDeviceMessages[deviceId] = new Array();
                     }
-                    console.log('Message already sent to Device');
-                });
-                // lock.acquire("connectingDevicesLock", function(done) {
-                //     var buffer = Buffer.from(messageCallback, "hex");
-                //     var sock = connectingDevices[deviceId];
-                //     // Write the data back to the socket, the client will receive it as data from the server
-                //     sock.write(buffer, function(err) {
-                //         if (err) {
-                //             console.log('Sock write error : ' + err);
-                //             console.log('*****************************************************************');
-                //         }
-                //         console.log('Message already sent to Device');
-                //     });
-                // });
-            } else {
-                if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
-                    pendingDeviceMessages[deviceId] == undefined) {
-                    pendingDeviceMessages[deviceId] = new Array();
+
+                    pendingDeviceMessages[deviceId].push(messageCallback);
+                    // console.log('Message: ' + messageCallback);
+                    console.log('Device is offline, message pushed to queue');
+                    console.log('Queue: ' + pendingDeviceMessages[deviceId]);
+                    // lock.acquire("pendingDeviceMessagesLock", function(done) {
+                    //     if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
+                    //         pendingDeviceMessages[deviceId] == undefined) {
+                    //         pendingDeviceMessages[deviceId] = new Array();
+                    //     }
+
+                    //     pendingDeviceMessages[deviceId].push(messageCallback);
+                    //     console.log('Device is offline, message pushed to queue');
+                    // });
                 }
-
-                pendingDeviceMessages[deviceId].push(messageCallback);
-                // console.log('Message: ' + messageCallback);
-                console.log('Device is offline, message pushed to queue');
-                console.log('Queue: ' + pendingDeviceMessages[deviceId]);
-                // lock.acquire("pendingDeviceMessagesLock", function(done) {
-                //     if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
-                //         pendingDeviceMessages[deviceId] == undefined) {
-                //         pendingDeviceMessages[deviceId] = new Array();
-                //     }
-
-                //     pendingDeviceMessages[deviceId].push(messageCallback);
-                //     console.log('Device is offline, message pushed to queue');
-                // });
             }
             break;
         case 'config/fabrick.io/ZTE/Devices':
