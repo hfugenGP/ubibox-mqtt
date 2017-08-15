@@ -95,16 +95,18 @@ function handleDeviceConnetion(sock) {
             var pendingMessages = pendingDeviceMessages[deviceId];
             pendingDeviceMessages[deviceId] = undefined;
             _.each(pendingMessages, function(message) {
-                var messageString = message.toString();
-                console.log('Process delay message : ' + messageString);
-                var buffer = Buffer.from(messageString, "hex");
-                // Write the data back to the socket, the client will receive it as data from the server
-                sock.write(buffer, function(err) {
-                    if (err) {
-                        console.log('Sock write error : ' + err);
-                        console.log('*****************************************************************');
-                    }
-                });
+                if (message !== false) {
+                    var messageString = message.toString();
+                    console.log('Process delay message : ' + messageString);
+                    var buffer = Buffer.from(messageString, "hex");
+                    // Write the data back to the socket, the client will receive it as data from the server
+                    sock.write(buffer, function(err) {
+                        if (err) {
+                            console.log('Sock write error : ' + err);
+                            console.log('*****************************************************************');
+                        }
+                    });
+                }
             });
 
             //     // lock.acquire("pendingDeviceMessagesLock", function(done) {
@@ -214,7 +216,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 }
 
                 pendingDeviceMessages[deviceId].push(messageCallback);
-                console.log('Message: ' + messageCallback);
+                // console.log('Message: ' + messageCallback);
                 console.log('Device is offline, message pushed to queue');
                 console.log('Queue: ' + pendingDeviceMessages[deviceId]);
                 // lock.acquire("pendingDeviceMessagesLock", function(done) {
