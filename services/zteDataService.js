@@ -973,62 +973,70 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     console.log('*********************Start DTC code*********************');
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
                     console.log('occurTime : ' + occurTime);
-                    var alerts = {};
+                    var alerts = new Array();
                     var obdFaultCodeCount = parseInt(effectiveData.substring(12, 14), 16);
                     var i = 1;
-                    var start = 14;
-                    var end = 20
-                    while (i <= obdFaultCodeCount) {
-                        var obdFaultCode = effectiveData.substring(start, end);
-                        var alertData = {
-                            "deviceId": deviceId,
-                            "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                            "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
-                            "reportTime": occurTime,
-                            "gpsPosition": null,
-                            "value": {
-                                "codeType": "obd",
-                                "stateCode": obdFaultCode.substring(4, 6),
-                                "faultCode": "P" + obdFaultCode.substring(0, 4)
-                            }
-                        }
+                    var start = 12;
+                    var end = 14;
 
-                        console.log('obdStateCode : ' + obdFaultCode.substring(4, 6));
-                        console.log('obdFaultCode : ' + "P" + obdFaultCode.substring(0, 4));
-                        alerts.push(alertData);
-                        i++;
+                    if (obdFaultCodeCount != 0) {
                         start = end;
                         end += 6;
+                        while (i <= obdFaultCodeCount) {
+                            var obdFaultCode = effectiveData.substring(start, end);
+                            var alertData = {
+                                "deviceId": deviceId,
+                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "reportTime": occurTime,
+                                "gpsPosition": null,
+                                "value": {
+                                    "codeType": "obd",
+                                    "stateCode": obdFaultCode.substring(4, 6),
+                                    "faultCode": "P" + obdFaultCode.substring(0, 4)
+                                }
+                            }
+
+                            console.log('obdStateCode : ' + obdFaultCode.substring(4, 6));
+                            console.log('obdFaultCode : ' + "P" + obdFaultCode.substring(0, 4));
+                            alerts.push(alertData);
+                            i++;
+                            start = end;
+                            end += 6;
+                        }
                     }
+
 
                     start = end;
                     end += 2;
                     var privateFaultCodeCount = parseInt(effectiveData.substring(start, end), 16);
-
-                    i = 1;
-                    start = end;
-                    end += 8;
-                    while (i <= privateFaultCodeCount) {
-                        var privateFaultCode = effectiveData.substring(start, end);
-                        var alertData = {
-                            "deviceId": deviceId,
-                            "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                            "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
-                            "reportTime": occurTime,
-                            "gpsPosition": null,
-                            "value": {
-                                "codeType": "private",
-                                "stateCode": null,
-                                "faultCode": privateFaultCode
-                            }
-                        }
-
-                        console.log('privateFaultCode : ' + privateFaultCode);
-                        alerts.push(alertData);
-                        i++;
+                    if (privateFaultCodeCount != 0) {
+                        i = 1;
                         start = end;
                         end += 8;
+                        while (i <= privateFaultCodeCount) {
+                            var privateFaultCode = effectiveData.substring(start, end);
+                            var alertData = {
+                                "deviceId": deviceId,
+                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "reportTime": occurTime,
+                                "gpsPosition": null,
+                                "value": {
+                                    "codeType": "private",
+                                    "stateCode": null,
+                                    "faultCode": privateFaultCode
+                                }
+                            }
+
+                            console.log('privateFaultCode : ' + privateFaultCode);
+                            alerts.push(alertData);
+                            i++;
+                            start = end;
+                            end += 8;
+                        }
                     }
+
                     insertMany("Alert", alerts, function() {});
                     console.log('*********************End DTC code*********************');
                     break;
@@ -1219,23 +1227,76 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
         case "01":
             //Vehicle detection
             console.log('*********************Start Vehicle detection*********************');
+            //DTC code
+            console.log('*********************Start DTC code*********************');
             var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-            var obdFaultCode = effectiveData.substring(12, 14);
-            var obdFaultCodeInfo = effectiveData.substring(14, 20);
-            var privateFaultCode = effectiveData.substring(20, 22);
-            var privateFaultCodeInfo = effectiveData.substring(22, 30);
-
-            data["occurTime"] = occurTime;
-            data["obdFaultCode"] = obdFaultCode;
-            data["obdFaultCodeInfo"] = obdFaultCodeInfo;
-            data["privateFaultCode"] = privateFaultCode;
-            data["privateFaultCodeInfo"] = privateFaultCodeInfo;
-
             console.log('occurTime : ' + occurTime);
-            console.log('obdFaultCode : ' + obdFaultCode);
-            console.log('obdFaultCodeInfo : ' + obdFaultCodeInfo);
-            console.log('privateFaultCode : ' + privateFaultCode);
-            console.log('privateFaultCodeInfo : ' + privateFaultCodeInfo);
+            var alerts = new Array();
+            var obdFaultCodeCount = parseInt(effectiveData.substring(12, 14), 16);
+            var i = 1;
+            var start = 12;
+            var end = 14;
+
+            if (obdFaultCodeCount != 0) {
+                start = end;
+                end += 6;
+                while (i <= obdFaultCodeCount) {
+                    var obdFaultCode = effectiveData.substring(start, end);
+                    var alertData = {
+                        "deviceId": deviceId,
+                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                        "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                        "reportTime": occurTime,
+                        "gpsPosition": null,
+                        "value": {
+                            "codeType": "obd",
+                            "stateCode": obdFaultCode.substring(4, 6),
+                            "faultCode": "P" + obdFaultCode.substring(0, 4)
+                        }
+                    }
+
+                    console.log('obdStateCode : ' + obdFaultCode.substring(4, 6));
+                    console.log('obdFaultCode : ' + "P" + obdFaultCode.substring(0, 4));
+                    alerts.push(alertData);
+                    i++;
+                    start = end;
+                    end += 6;
+                }
+            }
+
+
+            start = end;
+            end += 2;
+            var privateFaultCodeCount = parseInt(effectiveData.substring(start, end), 16);
+
+            if (privateFaultCodeCount != 0) {
+                i = 1;
+                start = end;
+                end += 8;
+                while (i <= privateFaultCodeCount) {
+                    var privateFaultCode = effectiveData.substring(start, end);
+                    var alertData = {
+                        "deviceId": deviceId,
+                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                        "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                        "reportTime": occurTime,
+                        "gpsPosition": null,
+                        "value": {
+                            "codeType": "private",
+                            "stateCode": null,
+                            "faultCode": privateFaultCode
+                        }
+                    }
+
+                    console.log('privateFaultCode : ' + privateFaultCode);
+                    alerts.push(alertData);
+                    i++;
+                    start = end;
+                    end += 8;
+                }
+            }
+
+            insertMany("Alert", alerts, function() {});
             console.log('*********************End Vehicle detection*********************');
             break;
         case "02":

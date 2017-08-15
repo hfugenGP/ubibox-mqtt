@@ -20,9 +20,10 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var lock = new AsyncLock();
-var connectingDevices = new Array();
+var connectingDevices = {};
+var deviceAddress = {};
 var subcribedDevices = new Array();
-var pendingDeviceMessages = new Array();
+var pendingDeviceMessages = {};
 
 // Create a server instance, and chain the listen function to it
 // The function passed to net.createServer() becomes the event handler for the 'connection' event
@@ -49,10 +50,9 @@ function handleDeviceConnetion(sock) {
 
         var deviceId = hexData.substring(24, 54);
 
-        if (!connectingDevices.hasOwnProperty(deviceId) ||
-            connectingDevices[deviceId] == undefined) {
-            connectingDevices[deviceId] = sock;
-        }
+        deviceAddress[sock.remoteAddress + ':' + sock.remotePort] = deviceId;
+        connectingDevices[deviceId] = sock;
+
         // lock.acquire("connectingDevicesLock", function(done) {
         //     if (!connectingDevices.hasOwnProperty(deviceId) ||
         //         connectingDevices[deviceId] == undefined) {
@@ -90,40 +90,40 @@ function handleDeviceConnetion(sock) {
         console.log('');
         console.log('');
 
-        // if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
-        //     pendingDeviceMessages[deviceId] != undefined) {
-        //     _.each(pendingDeviceMessages[deviceId], function(message) {
-        //         var buffer = Buffer.from(message, "hex");
-        //         // Write the data back to the socket, the client will receive it as data from the server
-        //         sock.write(buffer, function(err) {
-        //             if (err) {
-        //                 console.log('Sock write error : ' + err);
-        //                 console.log('*****************************************************************');
-        //             }
-        //         });
-        //     });
+        if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
+            pendingDeviceMessages[deviceId] != undefined) {
+            var pendingMessages = pendingDeviceMessages[deviceId];
+            pendingDeviceMessages[deviceId] = undefined;
+            _.each(pendingMessages, function(message) {
+                var buffer = Buffer.from(message, "hex");
+                // Write the data back to the socket, the client will receive it as data from the server
+                sock.write(buffer, function(err) {
+                    if (err) {
+                        console.log('Sock write error : ' + err);
+                        console.log('*****************************************************************');
+                    }
+                });
+            });
 
-        //     pendingDeviceMessages[deviceId] = undefined;
-
-        //     // lock.acquire("pendingDeviceMessagesLock", function(done) {
-        //     //     pendingDeviceMessages[deviceId].forEach(function(element) {
-        //     //         var buffer = Buffer.from(element, "hex");
-        //     //         // Write the data back to the socket, the client will receive it as data from the server
-        //     //         sock.write(buffer, function(err) {
-        //     //             if (err) {
-        //     //                 console.log('Sock write error : ' + err);
-        //     //                 console.log('*****************************************************************');
-        //     //             }
-        //     //         });
-        //     //     });
-        //     // });
-        // }
+            //     // lock.acquire("pendingDeviceMessagesLock", function(done) {
+            //     //     pendingDeviceMessages[deviceId].forEach(function(element) {
+            //     //         var buffer = Buffer.from(element, "hex");
+            //     //         // Write the data back to the socket, the client will receive it as data from the server
+            //     //         sock.write(buffer, function(err) {
+            //     //             if (err) {
+            //     //                 console.log('Sock write error : ' + err);
+            //     //                 console.log('*****************************************************************');
+            //     //             }
+            //     //         });
+            //     //     });
+            //     // });
+        }
     });
 
     // Add a 'close' event handler to this instance of socket
     sock.on('close', function(data) {
         console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
-        connectingDevices[deviceId] = undefined;
+        connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
         // lock.acquire("connectingDevicesLock", function(done) {
         //     connectingDevices[deviceId] = undefined;
         // });
@@ -131,7 +131,7 @@ function handleDeviceConnetion(sock) {
 
     sock.on('error', function(data) {
         console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
-        connectingDevices[deviceId] = undefined;
+        connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
         // lock.acquire("connectingDevicesLock", function(done) {
         //     connectingDevices[deviceId] = undefined;
         // });
