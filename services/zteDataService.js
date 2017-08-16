@@ -7,7 +7,7 @@ const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
-const MongoObjectId = require('mongodb').ObjectID;
+// const MongoObjectId = require('mongodb').ObjectID;
 const redis = require("redis");
 const exec = require('child_process').exec;
 
@@ -438,10 +438,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     MongoClient.connect(url, function(err, db) {
                         insert(db, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
                             tripData["ignitionOnTime"] = ignitionOnTime;
-                            tripData["gpsWhenIgnitionOn"] = insertedId
+                            tripData["gpsWhenIgnitionOn"] = insertedId.id
                             insert(db, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
                                 tripData["ignitionOffTime"] = ignitionOffTime;
-                                tripData["gpsWhenIgnitionOff"] = insertedId;
+                                tripData["gpsWhenIgnitionOff"] = insertedId.id;
                                 tripData["drivingDistance"] = drivingDistance;
                                 tripData["drivingFuelConsumption"] = drivingFuelConsumption;
                                 tripData["maxSpeed"] = maxSpeed;
@@ -540,10 +540,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                            alertData["alertTypeId"] = "5991469c95dfe43d4ca834bc";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {
                                 "speedBeforeAcc": speedBeforeAcc,
                                 "speedAfterAcc": speedAfterAcc,
@@ -581,10 +581,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                            alertData["alertTypeId"] = "599146ab95dfe43d4ca834bd";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {
                                 "speedBeforeDec": speedBeforeDec,
                                 "speedAfterDec": speedAfterDec,
@@ -618,10 +618,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                            alertData["alertTypeId"] = "599146b695dfe43d4ca834be";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {
                                 "turn": turn
                             }
@@ -645,8 +645,8 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                     var alertData = {};
                     alertData["deviceId"] = deviceId;
-                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                    alertData["alertTypeId"] = new MongoObjectId("599146c295dfe43d4ca834bf");
+                    alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                    alertData["alertTypeId"] = "599146c295dfe43d4ca834bf";
                     alertData["reportTime"] = occurTime;
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {
@@ -667,8 +667,8 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                     var alertData = {};
                     alertData["deviceId"] = deviceId;
-                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                    alertData["alertTypeId"] = new MongoObjectId("599146cd95dfe43d4ca834c0");
+                    alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                    alertData["alertTypeId"] = "599146cd95dfe43d4ca834c0";
                     alertData["reportTime"] = occurTime;
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
@@ -815,8 +815,8 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                     var alertData = {};
                     alertData["deviceId"] = deviceId;
-                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                    alertData["alertTypeId"] = new MongoObjectId("599177f6e55de693e45b7175");
+                    alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                    alertData["alertTypeId"] = "599177f6e55de693e45b7175";
                     alertData["reportTime"] = reportingDate;
                     alertData["gpsPosition"] = null;
                     alertData["value"] = { "failureCode": failureCode }
@@ -868,10 +868,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("5991780ae55de693e45b7176");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
+                            alertData["alertTypeId"] = "5991780ae55de693e45b7176";
                             alertData["reportTime"] = timeNoLocation;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
@@ -986,8 +986,8 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             var obdFaultCode = effectiveData.substring(start, end);
                             var alertData = {
                                 "deviceId": deviceId,
-                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertCategoryId": "5991411f0e8828a2ff3d1049",
+                                "alertTypeId": "5991463795dfe43d4ca834b7",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "value": {
@@ -1018,8 +1018,8 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             var privateFaultCode = effectiveData.substring(start, end);
                             var alertData = {
                                 "deviceId": deviceId,
-                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertCategoryId": "5991411f0e8828a2ff3d1049",
+                                "alertTypeId": "5991463795dfe43d4ca834b7",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "value": {
@@ -1055,10 +1055,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991465195dfe43d4ca834b8");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
+                            alertData["alertTypeId"] = "5991465195dfe43d4ca834b8";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {
                                 "batteryVolt": batteryVolt
                             }
@@ -1088,10 +1088,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991466495dfe43d4ca834b9");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
+                            alertData["alertTypeId"] = "5991466495dfe43d4ca834b9";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {
                                 "peekValue": peekValue
                             }
@@ -1125,10 +1125,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
+                            alertData["alertTypeId"] = "5991468295dfe43d4ca834ba";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {
                                 "collisionValue": collisionValue
                             }
@@ -1156,10 +1156,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, 'GPSData', gpsPosition, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991469095dfe43d4ca834bb");
+                            alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
+                            alertData["alertTypeId"] = "5991469095dfe43d4ca834bb";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
+                            alertData["gpsPosition"] = insertedId.id;
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
@@ -1244,8 +1244,8 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                     var obdFaultCode = effectiveData.substring(start, end);
                     var alertData = {
                         "deviceId": deviceId,
-                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                        "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                        "alertCategoryId": "5991411f0e8828a2ff3d1049",
+                        "alertTypeId": "5991463795dfe43d4ca834b7",
                         "reportTime": occurTime,
                         "gpsPosition": null,
                         "value": {
@@ -1277,8 +1277,8 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                     var privateFaultCode = effectiveData.substring(start, end);
                     var alertData = {
                         "deviceId": deviceId,
-                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                        "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                        "alertCategoryId": "5991411f0e8828a2ff3d1049",
+                        "alertTypeId": "5991463795dfe43d4ca834b7",
                         "reportTime": occurTime,
                         "gpsPosition": null,
                         "value": {

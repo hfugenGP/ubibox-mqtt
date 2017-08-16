@@ -188,8 +188,15 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 });
 
 function processWifiMessage(gatewayName, topic, message, packet) {
-    var rawData = message.toString();
-    console.log('Message received from Wifi ' + rawData);
+    console.log('Message received from Wifi ' + message);
+    var rawData;
+    try {
+        var jsonObject = JSON.parse(message);
+        rawData = json_object['data'];
+    } catch (e) {
+        rawData = message.toString();
+    }
+
     var extId = rawData.substring(0, 8);
 
     //'MAC-f3104211'
@@ -216,9 +223,9 @@ function processLoraMessage(gatewayName, topic, message, packet) {
     var rawData = json_object['data'];
     var extId = rawData.substring(0, 8);
     if (lora_topics["MAC-" + extId]) {
-        lora_topics["MAC-" + extId].forEach(function(element) {
-            console.log('Delegate message "' + rawData + '" to topic "' + element + '" on fabrick gateway.');
-            fabrick_Broker.publish(element, rawData, { qos: 1, retain: false });
+        lora_topics["MAC-" + extId].forEach(function(topic) {
+            console.log('Delegate message to topic "' + topic + '" on fabrick gateway.');
+            fabrick_Broker.publish(topic, message, { qos: 1, retain: false });
         }, this);
     }
 
