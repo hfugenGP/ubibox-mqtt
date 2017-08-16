@@ -217,6 +217,7 @@ function processLoraMessage(gatewayName, topic, message, packet) {
     var extId = rawData.substring(0, 8);
     if (lora_topics["MAC-" + extId]) {
         lora_topics["MAC-" + extId].forEach(function(element) {
+            console.log('Delegate message "' + rawData + '" to topic "' + element + '" on fabrick gateway.');
             fabrick_Broker.publish(element, rawData, { qos: 1, retain: false });
         }, this);
     }
