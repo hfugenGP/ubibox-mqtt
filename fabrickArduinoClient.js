@@ -188,13 +188,14 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 });
 
 function processWifiMessage(gatewayName, topic, message, packet) {
-    console.log('Message received from Wifi ' + message);
     var rawData;
     try {
         var json_object = JSON.parse(message);
         rawData = json_object['data'];
+        console.log('Message delegated from Lora ' + message);
     } catch (e) {
         rawData = message.toString();
+        console.log('Message received from Wifi ' + message);
     }
 
     var extId = rawData.substring(0, 8);
