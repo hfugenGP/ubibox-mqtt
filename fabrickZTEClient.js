@@ -113,7 +113,7 @@ function handleDeviceConnetion(sock) {
                 });
             }
             console.log('Pending Message unlocked');
-            deviceListLock.unlock();
+            pendingMessageLock.unlock();
         });
     });
 
@@ -214,7 +214,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                         console.log('Device is offline, message pushed to queue');
                         console.log('Queue: ' + pendingDeviceMessages[deviceId]);
                         console.log('Pending Message unlocked');
-                        deviceListLock.unlock();
+                        pendingMessageLock.unlock();
                     });
                 }
             }
