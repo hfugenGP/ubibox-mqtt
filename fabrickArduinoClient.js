@@ -9,12 +9,13 @@ var subcribe_devices = new Array();
 var subcribe_gateways = new Array();
 var subcribe_brokers = new Array();
 var subcribe_topics = new Array();
+var lora_topics = new Array();
 
 var fabrick_gateway = {
     id: "Fabrick Arduino Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Lora/Gateways': 1, 'config/fabrick.io/Arduino/Wifi/Gateways': 1 }
+    topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Devices/LoraTopics': 1, 'config/fabrick.io/Arduino/Lora/Gateways': 1, 'config/fabrick.io/Arduino/Wifi/Gateways': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -169,6 +170,17 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             console.log(subcribe_devices);
             break;
 
+        case 'config/fabrick.io/Arduino/Devices/LoraTopics':
+            var json_object = JSON.parse(message);
+            while (lora_topics.length) {
+                lora_topics.pop();
+            }
+            json_object.forEach(function(element) {
+                lora_topics['MAC-' + element['device'].toLowerCase()] = [element['topic']];
+            });
+            console.log(subcribe_devices);
+            break;
+
         default:
             // Handle all message returned for devices
             processWifiMessage(gatewayName, topic, message, packet);
@@ -202,24 +214,31 @@ function processLoraMessage(gatewayName, topic, message, packet) {
     var json_object = JSON.parse(message);
     console.log('Message received from Lora ' + message);
     var rawData = json_object['data'];
-    if (rawData) {
-        var extId = rawData.substring(0, 8);
-
-        if (!subcribe_devices["MAC-" + extId]) {
-            console.log('No handler for device on extId %s', extId);
-            return;
-        }
-
-        var publishMessage = generateMessage(extId, rawData);
-        if (publishMessage) {
-            console.log('Message received from gateway ' + gatewayName);
-            console.log(publishMessage);
-            console.log("-----------------------------------");
-
-            // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
-            fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
-        }
+    var extId = rawData.substring(0, 8);
+    if (lora_topics["MAC-" + extId]) {
+        lora_topics["MAC-" + extId].forEach(function(element) {
+            fabrick_Broker.publish(element, rawData, { qos: 1, retain: false });
+        }, this);
     }
+
+    // if (rawData) {
+    //     var extId = rawData.substring(0, 8);
+
+    //     if (!subcribe_devices["MAC-" + extId]) {
+    //         console.log('No handler for device on extId %s', extId);
+    //         return;
+    //     }
+
+    //     var publishMessage = generateMessage(extId, rawData);
+    //     if (publishMessage) {
+    //         console.log('Message received from gateway ' + gatewayName);
+    //         console.log(publishMessage);
+    //         console.log("-----------------------------------");
+
+    //         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
+    //         fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
+    //     }
+    // }
 }
 
 function generateMessage(extId, rawData) {
