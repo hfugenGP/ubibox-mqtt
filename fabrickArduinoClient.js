@@ -78,7 +78,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             var json_object = JSON.parse(message);
             json_object.forEach(function(element) {
                 var gateway = {
-                    id: element['id'],
+                    id: element['id'] + " Arduino Listener",
                     protocol: element['protocol'],
                     host: element['host'],
                     port: element['port'],
