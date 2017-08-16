@@ -191,7 +191,7 @@ function processWifiMessage(gatewayName, topic, message, packet) {
     console.log('Message received from Wifi ' + message);
     var rawData;
     try {
-        var jsonObject = JSON.parse(message);
+        var json_object = JSON.parse(message);
         rawData = json_object['data'];
     } catch (e) {
         rawData = message.toString();
