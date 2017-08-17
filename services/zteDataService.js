@@ -438,10 +438,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     MongoClient.connect(url, function(err, db) {
                         insert(db, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
                             tripData["ignitionOnTime"] = ignitionOnTime;
-                            tripData["gpsWhenIgnitionOn"] = insertedId.id
+                            tripData["gpsWhenIgnitionOn"] = insertedId.toHexString();
                             insert(db, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
                                 tripData["ignitionOffTime"] = ignitionOffTime;
-                                tripData["gpsWhenIgnitionOff"] = insertedId.id;
+                                tripData["gpsWhenIgnitionOff"] = insertedId.toHexString();
                                 tripData["drivingDistance"] = drivingDistance;
                                 tripData["drivingFuelConsumption"] = drivingFuelConsumption;
                                 tripData["maxSpeed"] = maxSpeed;
@@ -455,7 +455,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 tripData["totalDrivingTime"] = totalDrivingTime;
                                 tripData["status"] = "New";
                                 insert(db, 'Trips', tripData, function(insertedId) {
-                                    var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.id;
+                                    var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
                                     exec(cmd, function(error, stdout, stderr) {
                                         if (error) console.log(error);
                                         if (stdout) console.log(stdout);
@@ -763,6 +763,21 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         insert(db, "VehicleHistoricalStatus", data, function() {
                             db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, data, { upsert: true });
                         });
+
+                        // if (speed != "N/A") {
+                        //     db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(setting) {
+                        //         if (setting.value < speed) {
+                        //             var alertData = {};
+                        //             alertData["deviceId"] = deviceId;
+                        //             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
+                        //             alertData["alertTypeId"] = "599177f6e55de693e45b7175"; //TODO update overspeed alert type
+                        //             alertData["reportTime"] = reportTime;
+                        //             alertData["gpsPosition"] = null;
+                        //             alertData["value"] = { "reportSpeed": speed, "speedLimit": setting.value, "alertMessage": "Device catched over speed at " + speed + " km/h." }
+                        //             insertOne('Alert', alertData, function() {});
+                        //         }
+                        //     })
+                        // }
                     });
 
                     console.log('reportTime : ' + reportTime);
@@ -871,7 +886,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1048";
                             alertData["alertTypeId"] = "5991780ae55de693e45b7176";
                             alertData["reportTime"] = timeNoLocation;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
@@ -1058,7 +1073,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
                             alertData["alertTypeId"] = "5991465195dfe43d4ca834b8";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["value"] = {
                                 "batteryVolt": batteryVolt
                             }
@@ -1091,7 +1106,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
                             alertData["alertTypeId"] = "5991466495dfe43d4ca834b9";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["value"] = {
                                 "peekValue": peekValue
                             }
@@ -1128,7 +1143,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
                             alertData["alertTypeId"] = "5991468295dfe43d4ca834ba";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["value"] = {
                                 "collisionValue": collisionValue
                             }
@@ -1159,7 +1174,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
                             alertData["alertTypeId"] = "5991469095dfe43d4ca834bb";
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
