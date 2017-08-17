@@ -453,7 +453,6 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 tripData["totalMileage"] = totalMileage;
                                 tripData["totalFuelConsumption"] = totalFuelConsumption;
                                 tripData["totalDrivingTime"] = totalDrivingTime;
-                                tripData["status"] = "New";
                                 insert(db, 'Trips', tripData, function(insertedId) {
                                     var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
                                     exec(cmd, function(error, stdout, stderr) {
