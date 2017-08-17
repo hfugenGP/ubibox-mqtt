@@ -78,7 +78,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
                         break;
                     case "0x00090000":
-                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
                         break;
                     case "0x000a0000":
                         if (params[key]) {
@@ -88,10 +88,10 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                         }
                         break;
                     case "0x000b0000":
-                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
                         break;
                     case "0x000c0000":
-                        mainMessage += common.recorrectHexString(params[key].toString(16), 4);
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
                         break;
                     case "0x02000000":
                         var hexBytes = common.hex_from_chars(params[key]);
