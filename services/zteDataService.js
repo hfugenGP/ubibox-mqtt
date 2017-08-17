@@ -652,7 +652,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         "turn": turn
                     }
 
-                    insertOne("Alert", alertData, function() {});
+                    insertOne("Alert", alertData, function(insertedId) {});
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Exceed idle*********************');
@@ -672,7 +672,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function() {});
+                    insertOne("Alert", alertData, function(insertedId) {});
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Driving tired*********************');
@@ -698,8 +698,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                 end += 36;
                 i++;
             }
+            if (gps.count > 0) {
+                insertMany('GPSData', gps, function(insertedIds) {});
+            }
 
-            insertMany('GPSData', gps, function() {});
             console.log('*********************End GPS data*********************');
             break;
         case "03":
@@ -759,7 +761,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["totalDrivingTime"] = totalDrivingTime;
 
                     MongoClient.connect(url, function(err, db) {
-                        insert(db, "VehicleHistoricalStatus", data, function() {
+                        insert(db, "VehicleHistoricalStatus", data, function(insertedId) {
                             db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, data, { upsert: true });
                         });
 
@@ -773,7 +775,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         //             alertData["reportTime"] = reportTime;
                         //             alertData["gpsPosition"] = null;
                         //             alertData["value"] = { "reportSpeed": speed, "speedLimit": setting.value, "alertMessage": "Device catched over speed at " + speed + " km/h." }
-                        //             insertOne('Alert', alertData, function() {});
+                        //             insertOne('Alert', alertData, function(insertedId) {});
                         //         }
                         //     })
                         // }
@@ -834,7 +836,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     alertData["reportTime"] = reportingDate;
                     alertData["gpsPosition"] = null;
                     alertData["value"] = { "failureCode": failureCode }
-                    insertOne('Alert', alertData, function() {});
+                    insertOne('Alert', alertData, function(insertedId) {});
 
                     console.log('reportingDate : ' + reportingDate);
                     console.log('failureCode : ' + failureCode);
@@ -1050,8 +1052,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             end += 8;
                         }
                     }
+                    if (alerts.count > 0) {
+                        insertMany("Alert", alerts, function(insertedIds) {});
+                    }
 
-                    insertMany("Alert", alerts, function() {});
                     console.log('*********************End DTC code*********************');
                     break;
                 case "01":
@@ -1310,7 +1314,10 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                 }
             }
 
-            insertMany("Alert", alerts, function() {});
+            if (alerts.count > 0) {
+                insertMany("Alert", alerts, function(insertedIds) {});
+            }
+
             console.log('*********************End Vehicle detection*********************');
             break;
         case "02":
@@ -1348,48 +1355,49 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                         case "0x00010000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid acceleration", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid acceleration", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00020000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid deceleration", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid deceleration", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00030000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of sharp turn", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of sharp turn", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00040000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Fatigue driving", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Fatigue driving", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00050000":
                             end += 2;
                             var value = parseInt(effectiveData.substring(start, end), 16);
                             data[paramNo] = (isNaN(value) ? 0 : value);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Over speed", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            //Device not support
+                            // db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Over speed", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00060000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Low voltage", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Low voltage", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00070000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wake vibration level", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wake vibration level", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00080000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of suspected collision", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of suspected collision", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x00090000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of exceed idle", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of exceed idle", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x000a0000":
                             end += 2;
@@ -1398,17 +1406,17 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             } else if (effectiveData.substring(start, end) == "01") {
                                 data[paramNo] = "Allowed to report the speed";
                             }
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "If allowed to report the speed", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "If allowed to report the speed", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x000b0000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "GPS report frequency", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "GPS report frequency", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x000c0000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Report frequency of vehicle data flow", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Report frequency of vehicle data flow", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02000000":
                             end += 1;
@@ -1416,7 +1424,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Change the reporting address and port", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Change the reporting address and port", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02010000":
                             end += 1;
@@ -1424,7 +1432,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi client ip address & subnet", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi client ip address & subnet", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02020000":
                             end += 1;
@@ -1432,7 +1440,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi SSID", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi SSID", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02030000":
                             end += 1;
@@ -1440,7 +1448,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi Password", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi Password", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02040000":
                             end += 1;
@@ -1448,7 +1456,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi  router APN", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi  router APN", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02050000":
                             end += 1;
@@ -1456,7 +1464,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem DNS servers", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem DNS servers", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02060000":
                             end += 1;
@@ -1464,7 +1472,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem APN", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem APN", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02070000":
                             end += 2;
@@ -1475,12 +1483,12 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             } else {
                                 data[paramNo] = "HOTSPOT off";
                             }
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi on / Off", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi on / Off", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02080000":
                             end += 2;
                             data[paramNo] = effectiveData.substring(start, end);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry network type", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry network type", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x02090000":
                             end += 1;
@@ -1488,17 +1496,17 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Operator name", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Operator name", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x020a0000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Signal strength", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Signal strength", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                         case "0x03000000":
                             end += 2;
                             data[paramNo] = effectiveData.substring(start, end);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "The current status of the accelerator self-learning", settingCode: paramNo, value: data[paramNo] }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "The current status of the accelerator self-learning", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
                             break;
                     }
                     if (end >= effectiveData.length) {
@@ -1728,12 +1736,11 @@ function formatDrivingDistance(drivingDistance) {
 }
 
 function insertMany(collection, data, callback) {
-    MongoClient.connect(url, function(err, db) {
+    MongoClient.connect(url, function(connectionErr, db) {
         db.collection(collection).insertMany(data, function(err, result) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
-            // console.log(result.insertedCount + " record has been saved to mongodb");
             callback(result.insertedIds);
             db.close();
         });
@@ -1741,12 +1748,11 @@ function insertMany(collection, data, callback) {
 }
 
 function insertOne(collection, data, callback) {
-    MongoClient.connect(url, function(err, db) {
+    MongoClient.connect(url, function(connectionErr, db) {
         db.collection(collection).insertOne(data, function(err, result) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
-            // console.log(result.insertedCount + " record has been saved to mongodb");
             callback(result.insertedId);
             db.close();
         });
@@ -1758,7 +1764,6 @@ function insert(db, collection, data, callback) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
-        // console.log(result.insertedCount + " record has been saved to mongodb");
         callback(result.insertedId);
     });
 }

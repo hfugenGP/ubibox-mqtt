@@ -120,22 +120,22 @@ function handleDeviceConnetion(sock) {
     // Add a 'close' event handler to this instance of socket
     sock.on('close', function(data) {
         console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
-        deviceListLock.writeLock(function() {
-            console.log('Device List writeLock');
-            connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-            console.log('Device List writeLock');
-            deviceListLock.unlock();
-        });
+        // deviceListLock.writeLock(function() {
+        //     console.log('Device List writeLock');
+        connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
+        //     console.log('Device List writeLock');
+        //     deviceListLock.unlock();
+        // });
     });
 
     sock.on('error', function(data) {
         console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
-        deviceListLock.writeLock(function() {
-            console.log('Device List writeLock');
-            connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-            console.log('Device List writeLock');
-            deviceListLock.unlock();
-        });
+        // deviceListLock.writeLock(function() {
+        //     console.log('Device List writeLock');
+        connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
+        //     console.log('Device List writeLock');
+        //     deviceListLock.unlock();
+        // });
     });
 };
 
