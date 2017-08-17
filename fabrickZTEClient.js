@@ -57,7 +57,7 @@ function handleDeviceConnetion(sock) {
         //     console.log('Device List readLock');
         deviceAddress[sock.remoteAddress + ':' + sock.remotePort] = deviceId;
         connectingDevices[deviceId] = sock;
-        console.log('Device List unlocked');
+        // console.log('Device List unlocked');
         //     deviceListLock.unlock();
         // });
 

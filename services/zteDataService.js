@@ -765,20 +765,33 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, data, { upsert: true });
                         });
 
-                        // if (speed != "N/A") {
-                        //     db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(setting) {
-                        //         if (setting.value < speed) {
-                        //             var alertData = {};
-                        //             alertData["deviceId"] = deviceId;
-                        //             alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
-                        //             alertData["alertTypeId"] = "599177f6e55de693e45b7175"; //TODO update overspeed alert type
-                        //             alertData["reportTime"] = reportTime;
-                        //             alertData["gpsPosition"] = null;
-                        //             alertData["value"] = { "reportSpeed": speed, "speedLimit": setting.value, "alertMessage": "Device catched over speed at " + speed + " km/h." }
-                        //             insertOne('Alert', alertData, function(insertedId) {});
-                        //         }
-                        //     })
-                        // }
+                        if (speed != "N/A") {
+                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(setting) {
+                                if (setting && setting.value < speed) {
+                                    // var alertData = {};
+                                    // alertData["deviceId"] = deviceId;
+                                    // alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
+                                    // alertData["alertTypeId"] = "599177f6e55de693e45b7175"; //TODO update overspeed alert type
+                                    // alertData["reportTime"] = reportTime;
+                                    // alertData["gpsPosition"] = null;
+                                    // alertData["value"] = { "reportSpeed": speed, "speedLimit": setting.value, "alertMessage": "Device catched over speed at " + speed + " km/h." }
+
+                                    var alertData = {
+                                        "deviceId": deviceId,
+                                        "alertCategoryId": "5991411f0e8828a2ff3d1049",
+                                        "alertTypeId": "5991463795dfe43d4ca834b7",
+                                        "reportTime": reportTime,
+                                        "gpsPosition": null,
+                                        "value": {
+                                            "codeType": "obd",
+                                            "stateCode": "00",
+                                            "faultCode": "P0219" //Over speed code
+                                        }
+                                    }
+                                    insertOne('Alert', alertData, function(insertedId) {});
+                                }
+                            })
+                        }
                     });
 
                     console.log('reportTime : ' + reportTime);
