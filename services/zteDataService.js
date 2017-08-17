@@ -803,7 +803,8 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                         "value": {
                                             "codeType": "obd",
                                             "stateCode": "00",
-                                            "faultCode": "P0219" //Over speed code
+                                            "faultCode": "P0219", //Over speed code
+                                            "customMessage": "You have exceed the speed limit of " + setting.value + "km/h"
                                         }
                                     }
                                     insertOne('Alert', alertData, function(insertedId) {});
@@ -1072,7 +1073,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 "value": {
                                     "codeType": "private",
                                     "stateCode": null,
-                                    "faultCode": privateFaultCode
+                                    "faultCode": privateFaultCodeprivateFaultCode
                                 }
                             }
 
