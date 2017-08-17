@@ -762,7 +762,25 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                     MongoClient.connect(url, function(err, db) {
                         insert(db, "VehicleHistoricalStatus", data, function(insertedId) {
-                            db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, data, { upsert: true });
+                            var vehicleData = {};
+                            vehicleData["deviceId"] = deviceId;
+                            vehicleData["reportTime"] = reportTime;
+                            vehicleData["rpm"] = rpm;
+                            vehicleData["speed"] = speed;
+                            vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
+                            vehicleData["throttlePosition"] = throttlePosition;
+                            vehicleData["engineDuty"] = engineDuty;
+                            vehicleData["intakeAirFlow"] = intakeAirFlow;
+                            vehicleData["intakeAirTemp"] = intakeAirTemp;
+                            vehicleData["intakeAirPressure"] = intakeAirPressure;
+                            vehicleData["batteryVolt"] = batteryVolt;
+                            vehicleData["fli"] = fli;
+                            vehicleData["dt"] = dt;
+                            vehicleData["mli"] = mli;
+                            vehicleData["totalMileage"] = totalMileage;
+                            vehicleData["totalFuelConsumption"] = totalFuelConsumption;
+                            vehicleData["totalDrivingTime"] = totalDrivingTime;
+                            db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, vehicleData, { upsert: true });
                         });
 
                         if (speed != "N/A") {
