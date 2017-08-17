@@ -543,6 +543,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "5991469c95dfe43d4ca834bc";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.id;
+                            alertData["status"] = "Pending";
                             alertData["value"] = {
                                 "speedBeforeAcc": speedBeforeAcc,
                                 "speedAfterAcc": speedAfterAcc,
@@ -584,6 +585,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "599146ab95dfe43d4ca834bd";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.id;
+                            alertData["status"] = "Pending";
                             alertData["value"] = {
                                 "speedBeforeDec": speedBeforeDec,
                                 "speedAfterDec": speedAfterDec,
@@ -621,6 +623,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "599146b695dfe43d4ca834be";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.id;
+                            alertData["status"] = "Pending";
                             alertData["value"] = {
                                 "turn": turn
                             }
@@ -785,21 +788,14 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                         if (speed != "N/A") {
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(setting) {
-                                if (setting && setting.value < speed) {
-                                    // var alertData = {};
-                                    // alertData["deviceId"] = deviceId;
-                                    // alertData["alertCategoryId"] = "5991411f0e8828a2ff3d1049";
-                                    // alertData["alertTypeId"] = "599177f6e55de693e45b7175"; //TODO update overspeed alert type
-                                    // alertData["reportTime"] = reportTime;
-                                    // alertData["gpsPosition"] = null;
-                                    // alertData["value"] = { "reportSpeed": speed, "speedLimit": setting.value, "alertMessage": "Device catched over speed at " + speed + " km/h." }
-
+                                if (setting && parseInt(setting.value) < speed) {
                                     var alertData = {
                                         "deviceId": deviceId,
                                         "alertCategoryId": "5991411f0e8828a2ff3d1049",
                                         "alertTypeId": "5991463795dfe43d4ca834b7",
                                         "reportTime": reportTime,
                                         "gpsPosition": null,
+                                        "status": "Pending",
                                         "value": {
                                             "codeType": "obd",
                                             "stateCode": "00",
@@ -867,6 +863,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     alertData["alertTypeId"] = "599177f6e55de693e45b7175";
                     alertData["reportTime"] = reportingDate;
                     alertData["gpsPosition"] = null;
+                    alertData["status"] = "Pending";
                     alertData["value"] = { "failureCode": failureCode }
                     insertOne('Alert', alertData, function(insertedId) {});
 
@@ -920,6 +917,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "5991780ae55de693e45b7176";
                             alertData["reportTime"] = timeNoLocation;
                             alertData["gpsPosition"] = insertedId.toHexString();
+                            alertData["status"] = "Pending";
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
@@ -1109,6 +1107,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "5991465195dfe43d4ca834b8";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
+                            alertData["status"] = "Pending";
                             alertData["value"] = {
                                 "batteryVolt": batteryVolt
                             }
@@ -1142,6 +1141,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "5991466495dfe43d4ca834b9";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
+                            alertData["status"] = "Pending";
                             alertData["value"] = {
                                 "peekValue": peekValue
                             }
@@ -1179,6 +1179,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "5991468295dfe43d4ca834ba";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
+                            alertData["status"] = "Pending";
                             alertData["value"] = {
                                 "collisionValue": collisionValue
                             }
@@ -1210,6 +1211,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertTypeId"] = "5991469095dfe43d4ca834bb";
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
+                            alertData["status"] = "Pending";
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
