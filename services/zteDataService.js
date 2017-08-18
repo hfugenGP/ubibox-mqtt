@@ -510,7 +510,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -546,7 +546,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -778,7 +778,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -957,7 +957,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -992,7 +992,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -1057,7 +1057,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -1090,7 +1090,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -1120,7 +1120,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
@@ -1240,7 +1240,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
                     });
 
