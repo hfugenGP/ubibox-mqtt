@@ -584,6 +584,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.id;
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {
                                 "speedBeforeAcc": speedBeforeAcc,
                                 "speedAfterAcc": speedAfterAcc,
@@ -626,6 +627,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.id;
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {
                                 "speedBeforeDec": speedBeforeDec,
                                 "speedAfterDec": speedAfterDec,
@@ -664,6 +666,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.id;
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {
                                 "turn": turn
                             }
@@ -845,7 +848,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             vehicleData["intakeAirTemp"] = intakeAirTemp;
                             vehicleData["intakeAirPressure"] = intakeAirPressure;
                             vehicleData["batteryVolt"] = batteryVolt;
-                            vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"]
+                            vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
                             vehicleData["fli"] = fli;
                             vehicleData["dt"] = dt;
                             vehicleData["mli"] = mli;
@@ -865,6 +868,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                         "reportTime": reportTime,
                                         "gpsPosition": null,
                                         "status": "Pending",
+                                        "readStatus": "Unread",
                                         "value": {
                                             "codeType": "obd",
                                             "stateCode": "00",
@@ -934,6 +938,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     alertData["reportTime"] = reportingDate;
                     alertData["gpsPosition"] = null;
                     alertData["status"] = "Pending";
+                    alertData["readStatus"] = "Unread";
                     alertData["value"] = { "failureCode": failureCode }
                     insertOne('Alert', alertData, function(insertedId) {});
 
@@ -1027,6 +1032,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = timeNoLocation;
                             alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
@@ -1287,6 +1293,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "status": "Pending",
+                                "readStatus": "Unread",
                                 "value": {
                                     "codeType": "obd",
                                     "stateCode": obdFaultCode.substring(4, 6),
@@ -1319,6 +1326,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "status": "Pending",
+                                "readStatus": "Unread",
                                 "value": {
                                     "codeType": "private",
                                     "stateCode": null,
@@ -1359,6 +1367,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {
                                 "batteryVolt": batteryVolt
                             }
@@ -1393,6 +1402,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {
                                 "peekValue": peekValue
                             }
@@ -1431,6 +1441,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {
                                 "collisionValue": collisionValue
                             }
@@ -1466,6 +1477,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["reportTime"] = occurTime;
                             alertData["gpsPosition"] = insertedId.toHexString();
                             alertData["status"] = "Pending";
+                            alertData["readStatus"] = "Unread";
                             alertData["value"] = {}
                             insert(db, 'Alert', alertData, function(insertedId) {
                                 db.close();
@@ -1559,6 +1571,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                         "reportTime": occurTime,
                         "gpsPosition": null,
                         "status": "Pending",
+                        "readStatus": "Unread",
                         "value": {
                             "codeType": "obd",
                             "stateCode": obdFaultCode.substring(4, 6),
@@ -1593,6 +1606,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                         "reportTime": occurTime,
                         "gpsPosition": null,
                         "status": "Pending",
+                        "readStatus": "Unread",
                         "value": {
                             "codeType": "private",
                             "stateCode": null,
