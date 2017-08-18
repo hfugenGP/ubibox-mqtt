@@ -494,6 +494,26 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["timeOfIgnitionOn"] = timeOfIgnitionOn;
                     data["informationOfDTC"] = informationOfDTC;
 
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966b6721f9bc39c4eb900b";
+                    historicalData["reportTime"] = timeOfIgnitionOn;
+                    historicalData["value"] = {
+                        "typeOfIgnitionOn": typeOfIgnitionOn,
+                        "informationOfDTC": informationOfDTC
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
                     console.log('typeOfIgnitionOn : ' + typeOfIgnitionOn);
                     console.log('timeOfIgnitionOn : ' + timeOfIgnitionOn);
                     console.log('informationOfDTC : ' + informationOfDTC);
@@ -509,6 +529,26 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["typeOfIgnitionOff"] = typeOfIgnitionOff;
                     data["timeOfIgnitionOff"] = timeOfIgnitionOff;
                     data["informationOfDTC"] = informationOfDTC;
+
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966b7ad63375278131e63b";
+                    historicalData["reportTime"] = timeOfIgnitionOff;
+                    historicalData["value"] = {
+                        "typeOfIgnitionOff": typeOfIgnitionOff,
+                        "informationOfDTC": informationOfDTC
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
 
                     console.log('typeOfIgnitionOff : ' + typeOfIgnitionOff);
                     console.log('timeOfIgnitionOff : ' + timeOfIgnitionOff);
@@ -721,6 +761,27 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["numberOfVinCode"] = numberOfVinCode;
                     data["vinValue"] = vinValue;
 
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966b86d63375278131e63c";
+                    historicalData["reportTime"] = common.dateToUTCText(new Date());
+                    historicalData["value"] = {
+                        "typeComProtocol": typeComProtocol,
+                        "numberOfVinCode": numberOfVinCode,
+                        "vinValue": vinValue
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
                     console.log('typeComProtocol : ' + typeComProtocol);
                     console.log('numberOfVinCode : ' + numberOfVinCode);
                     console.log('vinValue : ' + vinValue);
@@ -832,22 +893,23 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
         case "04":
             //Report the terminal device information, include: IMSI，device failure, sleep, wake, no location long time，modem update status, WIFI credentials.
             switch (dataTypeMinor) {
-                case "00":
-                    //IMSI
-                    console.log('*********************Start IMSI*********************');
-                    var reportingDate = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var lengthOfIMSI = parseInt(effectiveData.substring(12, 14), 16);
-                    var IMSI = parseInt(effectiveData.substring(14, 14 + (lengthOfIMSI * 2)), 16);
+                //No longer have, moved to device info
+                // case "00":
+                //     //IMSI
+                //     console.log('*********************Start IMSI*********************');
+                //     var reportingDate = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+                //     var lengthOfIMSI = parseInt(effectiveData.substring(12, 14), 16);
+                //     var IMSI = parseInt(effectiveData.substring(14, 14 + (lengthOfIMSI * 2)), 16);
 
-                    data["reportingDate"] = reportingDate;
-                    data["lengthOfIMSI"] = lengthOfIMSI;
-                    data["IMSI"] = IMSI;
+                //     data["reportingDate"] = reportingDate;
+                //     data["lengthOfIMSI"] = lengthOfIMSI;
+                //     data["IMSI"] = IMSI;
 
-                    console.log('reportingDate : ' + reportingDate);
-                    console.log('lengthOfIMSI : ' + lengthOfIMSI);
-                    console.log('IMSI : ' + IMSI);
-                    console.log('*********************End IMSI*********************');
-                    break;
+                //     console.log('reportingDate : ' + reportingDate);
+                //     console.log('lengthOfIMSI : ' + lengthOfIMSI);
+                //     console.log('IMSI : ' + IMSI);
+                //     console.log('*********************End IMSI*********************');
+                //     break;
                 case "01":
                     //Device bug
                     console.log('*********************Start Device bug*********************');
@@ -880,6 +942,25 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["sleepTime"] = sleepTime;
                     data["failureCode"] = failureCode;
 
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966b93d63375278131e63d";
+                    historicalData["reportTime"] = sleepTime;
+                    historicalData["value"] = {
+                        "failureCode": failureCode
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
                     console.log('sleepTime : ' + sleepTime);
                     console.log('failureCode : ' + failureCode);
                     console.log('*********************End Sleep*********************');
@@ -894,6 +975,26 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["wakeUpTime"] = wakeUpTime;
                     data["wakeUpVoltage"] = wakeUpVoltage;
                     data["wakeUpType"] = wakeUpType;
+
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966ba0d63375278131e63e";
+                    historicalData["reportTime"] = wakeUpTime;
+                    historicalData["value"] = {
+                        "wakeUpVoltage": wakeUpVoltage,
+                        "wakeUpType": wakeUpType
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
 
                     console.log('wakeUpTime : ' + wakeUpTime);
                     console.log('wakeUpVoltage : ' + wakeUpVoltage);
@@ -940,6 +1041,26 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["timeLastPoweredOff"] = timeLastPoweredOff;
                     data["typeOfPowerOn"] = typeOfPowerOn;
 
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966bacd63375278131e63f";
+                    historicalData["reportTime"] = timePoweredOn;
+                    historicalData["value"] = {
+                        "timeLastPoweredOff": timeLastPoweredOff,
+                        "typeOfPowerOn": typeOfPowerOn
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
                     console.log('timePoweredOn : ' + timePoweredOn);
                     console.log('timeLastPoweredOff : ' + timeLastPoweredOff);
                     console.log('typeOfPowerOn : ' + typeOfPowerOn);
@@ -954,6 +1075,25 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["reportingTime"] = reportingTime;
                     data["upgradeState"] = upgradeState;
 
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966bb9d63375278131e640";
+                    historicalData["reportTime"] = reportingTime;
+                    historicalData["value"] = {
+                        "upgradeState": upgradeState
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
                     console.log('reportingTime : ' + reportingTime);
                     console.log('upgradeState : ' + upgradeState);
                     console.log('*********************End Upgrade status*********************');
@@ -965,49 +1105,151 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                     data["acceleratorCalibrationStatus"] = acceleratorCalibrationStatus;
 
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966bc5d63375278131e641";
+                    historicalData["reportTime"] = common.dateToUTCText(new Date());
+                    historicalData["value"] = {
+                        "acceleratorCalibrationStatus": acceleratorCalibrationStatus
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
                     console.log('acceleratorCalibrationStatus : ' + acceleratorCalibrationStatus);
                     console.log('*********************End calibration*********************');
                     break;
-                case "08":
-                    //Upgrade status of Modem FOTA
-                    console.log('*********************Start status of Modem FOTA*********************');
-                    var statusIndication = effectiveData.substring(4, 6);
-                    var softwareVersion = effectiveData.substring(6);
+                    // case "08":
+                    //     //Upgrade status of Modem FOTA
+                    //     console.log('*********************Start status of Modem FOTA*********************');
+                    //     var statusIndication = effectiveData.substring(4, 6);
+                    //     var softwareVersion = effectiveData.substring(6);
 
-                    data["statusIndication"] = statusIndication;
-                    data["softwareVersion"] = softwareVersion;
+                    //     data["statusIndication"] = statusIndication;
+                    //     data["softwareVersion"] = softwareVersion;
 
-                    console.log('statusIndication : ' + statusIndication);
-                    console.log('softwareVersion : ' + softwareVersion);
-                    console.log('*********************End status of Modem FOTA*********************');
-                    break;
-                case "09":
-                    //Modem reset to factory configuration
-                    console.log('*********************Start Modem reset*********************');
-                    var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
-                    var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
-                    var wifiSSID = common.chars_from_hex(effectiveData.substring(6, wifiSSIDEndPosition));
+                    //     console.log('statusIndication : ' + statusIndication);
+                    //     console.log('softwareVersion : ' + softwareVersion);
+                    //     console.log('*********************End status of Modem FOTA*********************');
+                    //     break;
+                    // case "09":
+                    //     //Modem reset to factory configuration
+                    //     console.log('*********************Start Modem reset*********************');
+                    //     var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
+                    //     var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
+                    //     var wifiSSID = common.chars_from_hex(effectiveData.substring(6, wifiSSIDEndPosition));
 
-                    var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
-                    var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
-                    var wifiPassword = common.chars_from_hex(effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition));
+                    //     var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
+                    //     var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
+                    //     var wifiPassword = common.chars_from_hex(effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition));
 
-                    var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
+                    //     var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
 
-                    var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
-                    var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
-                    var wifiAPN = common.chars_from_hex(effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition));
+                    //     var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
+                    //     var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
+                    //     var wifiAPN = common.chars_from_hex(effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition));
 
-                    data["wifiSSID"] = wifiSSID;
-                    data["wifiPassword"] = wifiPassword;
-                    data["wifiOpenState"] = wifiOpenState;
-                    data["wifiAPN"] = wifiAPN;
+                    //     data["wifiSSID"] = wifiSSID;
+                    //     data["wifiPassword"] = wifiPassword;
+                    //     data["wifiOpenState"] = wifiOpenState;
+                    //     data["wifiAPN"] = wifiAPN;
 
-                    console.log('wifiSSID : ' + wifiSSID);
-                    console.log('wifiPassword : ' + wifiPassword);
-                    console.log('wifiOpenState : ' + wifiOpenState);
-                    console.log('wifiAPN : ' + wifiAPN);
-                    console.log('*********************End Modem reset*********************');
+                    //     console.log('wifiSSID : ' + wifiSSID);
+                    //     console.log('wifiPassword : ' + wifiPassword);
+                    //     console.log('wifiOpenState : ' + wifiOpenState);
+                    //     console.log('wifiAPN : ' + wifiAPN);
+                    //     console.log('*********************End Modem reset*********************');
+                    //     break;
+                case "0c":
+                    //Device Info
+                    console.log('*********************Start Device Info*********************');
+                    var reportingTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+                    data["reportingTime"] = reportingTime;
+
+                    console.log('reportingTime : ' + reportingTime);
+                    var start = 12;
+                    var end = 14;
+                    var length = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += length * 2;
+                    var phoneNumber = "+" + parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += 2;
+                    length = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += length * 2;
+                    var ICCID = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += 2;
+                    length = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += length * 2;
+                    var IMSI = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += 2;
+                    length = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += length * 2;
+                    var wifiMac = common.chars_from_hex(effectiveData.substring(start, end));
+
+                    start = end;
+                    end += 2;
+                    length = parseInt(effectiveData.substring(start, end), 16);
+
+                    start = end;
+                    end += length * 2;
+                    var btMac = common.chars_from_hex(effectiveData.substring(start, end));
+
+                    data["phoneNumber"] = phoneNumber;
+                    data["ICCID"] = ICCID;
+                    data["IMSI"] = IMSI;
+                    data["wifiMac"] = wifiMac;
+                    data["btMac"] = btMac;
+
+                    var historicalData = {};
+                    historicalData["deviceId"] = deviceId;
+                    historicalData["deviceDataTypeId"] = "59966bd0d63375278131e642";
+                    historicalData["reportTime"] = reportingTime;
+                    historicalData["value"] = {
+                        "phoneNumber": phoneNumber,
+                        "ICCID": ICCID,
+                        "IMSI": IMSI,
+                        "wifiMac": wifiMac,
+                        "btMac": btMac
+                    };
+
+                    MongoClient.connect(url, function(err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                            var deviceData = {};
+                            deviceData["deviceId"] = deviceId;
+                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                            deviceData["reportTime"] = historicalData["reportTime"];
+                            deviceData["value"] = historicalData["value"];
+                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, vehicleData, { upsert: true });
+                        });
+                    });
+
+                    console.log('phoneNumber : ' + phoneNumber);
+                    console.log('ICCID : ' + ICCID);
+                    console.log('IMSI : ' + IMSI);
+                    console.log('wifiMac : ' + wifiMac);
+                    console.log('btMac : ' + btMac);
+                    console.log('*********************End Device Info*********************');
                     break;
             }
             break;
@@ -1194,6 +1436,9 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     console.log('sollisionValue : ' + sollisionValue);
                     console.log('*********************End Suspected collision*********************');
                     break;
+                case "06":
+                    //Preserve
+                    break;
                 case "07":
                     //Device pulled out
                     console.log('*********************Start Device pulled out*********************');
@@ -1222,6 +1467,10 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     console.log('occurTime : ' + occurTime);
                     console.log('gpsPosition : ' + gpsPosition);
                     console.log('*********************End Device pulled out*********************');
+                    break;
+                case "08":
+                    //Suspected towed
+                    //Document missing
                     break;
             }
             break;
