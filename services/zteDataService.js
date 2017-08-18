@@ -811,12 +811,18 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["rpm"] = rpm;
                     data["speed"] = speed;
                     data["engineCoolantTemperature"] = engineCoolantTemperature;
+                    // High temperature (>115C) will trigger over_heat alert with message
+                    // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
+                    data["engineCoolantTemperatureStatus"] = engineCoolantTemperature <= 115 ? "Normal" : "Warning";
                     data["throttlePosition"] = throttlePosition;
                     data["engineDuty"] = engineDuty;
                     data["intakeAirFlow"] = intakeAirFlow;
                     data["intakeAirTemp"] = intakeAirTemp;
                     data["intakeAirPressure"] = intakeAirPressure;
                     data["batteryVolt"] = batteryVolt;
+                    // Low battery voltage (<10.2V) will trigger low_voltage alert with message
+                    // "Warning. Weak Battery. Please check.". Voltage <10.2 will also trigger the warning icon in app car status page for lowest voltage.
+                    data["batteryVoltStatus"] = batteryVolt >= 10.2 ? "Normal" : "Warning";
                     data["fli"] = fli;
                     data["dt"] = dt;
                     data["mli"] = mli;
@@ -832,12 +838,14 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             vehicleData["rpm"] = rpm;
                             vehicleData["speed"] = speed;
                             vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
+                            vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
                             vehicleData["throttlePosition"] = throttlePosition;
                             vehicleData["engineDuty"] = engineDuty;
                             vehicleData["intakeAirFlow"] = intakeAirFlow;
                             vehicleData["intakeAirTemp"] = intakeAirTemp;
                             vehicleData["intakeAirPressure"] = intakeAirPressure;
                             vehicleData["batteryVolt"] = batteryVolt;
+                            vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"]
                             vehicleData["fli"] = fli;
                             vehicleData["dt"] = dt;
                             vehicleData["mli"] = mli;
@@ -1278,6 +1286,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 "alertTypeId": "5991463795dfe43d4ca834b7",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
+                                "status": "Pending",
                                 "value": {
                                     "codeType": "obd",
                                     "stateCode": obdFaultCode.substring(4, 6),
@@ -1294,7 +1303,6 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                         }
                     }
 
-
                     start = end;
                     end += 2;
                     var privateFaultCodeCount = parseInt(effectiveData.substring(start, end), 16);
@@ -1310,6 +1318,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 "alertTypeId": "5991463795dfe43d4ca834b7",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
+                                "status": "Pending",
                                 "value": {
                                     "codeType": "private",
                                     "stateCode": null,
@@ -1549,6 +1558,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                         "alertTypeId": "5991463795dfe43d4ca834b7",
                         "reportTime": occurTime,
                         "gpsPosition": null,
+                        "status": "Pending",
                         "value": {
                             "codeType": "obd",
                             "stateCode": obdFaultCode.substring(4, 6),
@@ -1582,6 +1592,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
                         "alertTypeId": "5991463795dfe43d4ca834b7",
                         "reportTime": occurTime,
                         "gpsPosition": null,
+                        "status": "Pending",
                         "value": {
                             "codeType": "private",
                             "stateCode": null,
