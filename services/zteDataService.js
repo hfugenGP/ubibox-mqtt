@@ -1,5 +1,6 @@
 "use strict";
 
+var _ = require('lodash');
 const Common = require('../lib/common');
 const config = require('../config/conf');
 const SimpleCrypto = require('../lib/simpleCrypto');
@@ -10,6 +11,7 @@ const MongoClient = require('mongodb').MongoClient;
 // const MongoObjectId = require('mongodb').ObjectID;
 const redis = require("redis");
 const exec = require('child_process').exec;
+const q = require('q');
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
@@ -447,15 +449,31 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 tripData["totalMileage"] = totalMileage;
                                 tripData["totalFuelConsumption"] = totalFuelConsumption;
                                 tripData["totalDrivingTime"] = totalDrivingTime;
-                                insert(db, 'Trips', tripData, function(insertedId) {
-                                    var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
-                                    exec(cmd, function(error, stdout, stderr) {
-                                        if (error) console.log(error);
-                                        if (stdout) console.log(stdout);
-                                        if (stderr) console.log(stderr);
+                                tripData["routing"] = new Array();
+                                var gpsPoints = db.collection('GPSData').find({ deviceId: deviceId, gpsType: "routing", tripId: null });
+                                var promises = gpsPoints.map(function(p) {
+                                    tripData["routing"].push(p._id.toHexString());
+                                    return tripData;
+                                }.bind({ tripData: tripData })); // run the function over all items.
+
+                                q.all(promises).then(function(data) {
+                                    insert(db, 'Trips', tripData, function(insertedId) {
+                                        db.collection('GPSData').update({ deviceId: deviceId, gpsType: "routing", tripId: null }, { tripId: insertedId.toHexString() }, {
+                                            upsert: true,
+                                            multi: true
+                                        });
+
+                                        var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
+                                        exec(cmd, function(error, stdout, stderr) {
+                                            if (error) console.log(error);
+                                            if (stdout) console.log(stdout);
+                                            if (stderr) console.log(stderr);
+                                        });
+                                        db.close();
                                     });
-                                    db.close();
-                                });
+                                }.bind({ tripData: tripData, db: db, deviceId: deviceId }));
+
+
                             });
                         });
                     });
