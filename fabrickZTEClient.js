@@ -46,7 +46,7 @@ function handleDeviceConnetion(sock) {
         var hexData = buff.toString('hex');
         var common = new Common();
 
-        console.log('************************New data received************************');
+        console.log('***********************Start data received***********************');
         console.log('Address : ' + sock.remoteAddress + ':' + sock.remotePort);
         console.log('Received : ' + new Date());
         console.log('DATA : ' + hexData);
@@ -66,11 +66,11 @@ function handleDeviceConnetion(sock) {
             return;
         }
 
-        console.log('*****************************************************************');
-
+        console.log('************************End data received************************');
+        console.log('************************Start data reply*************************');
         var messageCallback = zteDataService.generateReply(hexData);
         if (!messageCallback) {
-            console.log('************************End data received************************');
+            console.log('************************End data reply************************');
             console.log('');
             console.log('');
             console.log('');

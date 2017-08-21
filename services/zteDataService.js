@@ -311,7 +311,6 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     }
 
     var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
-    console.log('cal checksumHex : ' + calculatedCheckSumHex);
     if (calculatedCheckSumHex.length == 6) {
         calculatedCheckSumHex = '00' + calculatedCheckSumHex;
     } else if (calculatedCheckSumHex.length == 7) {
@@ -333,9 +332,6 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             this.dataTypeMajor = effectiveData.substring(0, 2); //41
             this.dataTypeMinor = effectiveData.substring(2, 4); //42
 
-            console.log('dataTypeMajor : ' + this.dataTypeMajor);
-            console.log('dataTypeMinor : ' + this.dataTypeMinor);
-
             deviceData["MajorDataTypeId"] = this.dataTypeMajor;
             deviceData["MinorDataTypeId"] = this.dataTypeMinor;
             deviceData["Data"] = publishMessageHandle(deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
@@ -354,11 +350,9 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             break;
         case "04":
             // Handle response message from devices
+            console.log("*************Response for frameId '" + frameId + "'*************");
             var majorType = effectiveData.substring(0, 2); //41
             var minorType = effectiveData.substring(2, 4); //42
-
-            console.log('dataTypeMajor : ' + majorType);
-            console.log('dataTypeMinor : ' + minorType);
 
             deviceData["MajorDataTypeId"] = majorType;
             deviceData["MinorDataTypeId"] = minorType;
@@ -1504,7 +1498,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
         case "F1":
             //Server report the data from the terminal device
             console.log('**********Server report the data from the terminal device***************');
-            console.log('*Not supported yet');
+            console.log('*Not supported yet*');
             console.log('**********Server report the data from the terminal device***************');
             break;
     }
@@ -1549,8 +1543,6 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
         case "01":
             //Vehicle detection
             console.log('*********************Start Vehicle detection*********************');
-            //DTC code
-            console.log('*********************Start DTC code*********************');
             var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
             console.log('occurTime : ' + occurTime);
             var alerts = new Array();
@@ -1963,19 +1955,13 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
 
     var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
-    // ciphertext = ciphertext.substring(0, tobeEncrypted.length);
 
-    console.log('frameType : ' + frameType);
     console.log('frameID : ' + frameId);
 
     var beforeEncrypted = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + tobeEncrypted + config.zte.frameEnd;
-    console.log('Raw response : ' + beforeEncrypted);
+    console.log('Response message: ' + beforeEncrypted);
 
-    var finalHex = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
-
-    console.log('Final response : ' + finalHex);
-
-    return finalHex;
+    return config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
 }
 
 function formatGPS(gpsValue, deviceId, isRouting) {
