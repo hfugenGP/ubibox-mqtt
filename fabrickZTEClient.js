@@ -86,7 +86,7 @@ function handleDeviceConnetion(sock) {
                 console.log('*****************************************************************');
             }
         });
-        console.log('************************End data received************************');
+        console.log('************************End data reply************************');
         console.log('');
         console.log('');
         console.log('');
