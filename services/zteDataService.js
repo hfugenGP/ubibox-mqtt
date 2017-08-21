@@ -458,7 +458,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                                 q.all(promises).then(function(data) {
                                     insert(db, 'Trips', tripData, function(insertedId) {
-                                        db.collection('GPSData').update({ deviceId: deviceId, gpsType: "routing", tripId: null }, { tripId: insertedId.toHexString() }, {
+                                        db.collection('GPSData').update({ deviceId: deviceId, gpsType: "routing", tripId: null }, { $set: { tripId: insertedId.toHexString() } }, {
                                             upsert: true,
                                             multi: true
                                         });
