@@ -258,45 +258,102 @@ function generateMessage(extId, rawData) {
     var common = new Common();
 
     var data = {};
-
-    var frameCount = rawData.substring(8, 10);
-    var dataChannel = rawData.substring(10, 12);
-    var dataType = rawData.substring(12, 14);
-
-    console.log('frameCount : ' + frameCount);
-    console.log('dataChannel : ' + dataChannel);
-    console.log('dataType : ' + dataType);
-
     data["payload"] = [rawData];
 
-    switch (dataType) {
-        case '64': // generic sensor
-            switch (dataChannel) {
-                case '00':
-                    var sound = parseInt('0x' + rawData.substring(14, 18));
-                    data["sound"] = [(sound * 5) / 1024, 'V'];
-                    break;
-                case '01':
-                    var ultrasonic = parseInt('0x' + rawData.substring(14, 18));
-                    data["ultrasonic"] = [ultrasonic, 'cm'];
-                    break;
-                case '02':
-                    var pm25 = parseInt('0x' + rawData.substring(14, 18));
-                    data["pm25"] = [pm25, 'ug/m3'];
-                    break;
-            }
-            break;
-        case '67': //'temp sensor'
-            var temperature = parseInt('0x' + rawData.substring(14, 18));
-            data["temperature"] = [temperature / 10, '°C'];
+    var frameCount = parseInt(rawData.substring(8, 10));
+    console.log('frameCount : ' + frameCount);
+    var i = 1;
+    var start = 8;
+    var end = 10;
+    var dataChannel, dataType = "";
+    while (i <= frameCount) {
+        start = end;
+        end += 2;
+        dataChannel = rawData.substring(start, end);
+        start = end;
+        end += 2;
+        dataType = rawData.substring(start, start);
 
-            break;
-        case '68': //'hum sensor'
-            var hum = parseInt('0x' + rawData.substring(14, 16));
-            data["humidity"] = [hum / 2, '%RH'];
-            break;
-        default:
-            console.log('DataType "' + dataType + '" is not support for current Arduino device on MAC %s', extId);
+        switch (dataType) {
+            case '64': // generic sensor
+                switch (dataChannel) {
+                    case '00':
+                        start = end;
+                        end += 4;
+                        var sound = parseInt('0x' + rawData.substring(start, end));
+                        data["sound"] = [(sound * 5) / 1024, 'V'];
+                        break;
+                    case '01':
+                        start = end;
+                        end += 4;
+                        var ultrasonic = parseInt('0x' + rawData.substring(start, end));
+                        data["ultrasonic"] = [ultrasonic, 'cm'];
+                        break;
+                    case '02':
+                        start = end;
+                        end += 4;
+                        var pm25 = parseInt('0x' + rawData.substring(start, end));
+                        data["pm25"] = [pm25, 'ug/m3'];
+                        break;
+                    case '03': //eCO2
+                        start = end;
+                        end += 4;
+                        var eCO2 = parseInt('0x' + rawData.substring(start, end));
+                        data["eCO2"] = [eCO2, 'ppm'];
+                        break;
+                    case '04': //TV0C
+                        start = end;
+                        end += 4;
+                        var TV0C = parseInt('0x' + rawData.substring(start, end));
+                        data["TV0C"] = [TV0C, 'ppb'];
+                        break;
+                }
+                break;
+            case '65': //Illuminator sensor
+                start = end;
+                end += 6;
+                var illuminance = parseInt('0x' + rawData.substring(start, end));
+                data["illuminance"] = [illuminance, 'lux'];
+                break;
+            case '67': //'temp sensor'
+                start = end;
+                end += 4;
+                var temperature = parseInt('0x' + rawData.substring(start, end));
+                data["temperature"] = [temperature / 10, '°C'];
+                break;
+            case '68': //'hum sensor'
+                start = end;
+                end += 2;
+                var hum = parseInt('0x' + rawData.substring(start, end));
+                data["humidity"] = [hum / 2, '%RH'];
+                break;
+            case '71': // Accelerometer
+                start = end;
+                end += 4;
+                var acce = parseInt('0x' + rawData.substring(start, end));
+                data["acce"] = [acce, 'g'];
+                break;
+            case '72': //Magnetometer
+                start = end;
+                end += 4;
+                var mag = parseInt('0x' + rawData.substring(start, end));
+                data["mag"] = [mag, 'gauss'];
+                break;
+            case '73': //Barometer //Pressure
+                start = end;
+                end += 4;
+                var pressure = parseInt('0x' + rawData.substring(start, end));
+                data["pressure"] = [pressure, 'hPa'];
+                break;
+            case '86': //Gyrometer
+                start = end;
+                end += 4;
+                var gyro = parseInt('0x' + rawData.substring(start, end));
+                data["gyro"] = [gyro, 'dps'];
+                break;
+            default:
+                console.log('DataType "' + dataType + '" is not support for current Arduino device on MAC %s', extId);
+        }
     }
 
     message["data"] = data;
