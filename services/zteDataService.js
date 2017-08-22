@@ -293,12 +293,13 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
         "MessageId": frameId,
         "RawData": hexData,
         "DecryptedData": fullDecryptedMessage,
+        "EffectiveData": effectiveData,
         "CreatedDateTime": receivedDateText
     };
 
     // Use connect method to connect to the Server
     MongoClient.connect(url, function(err, db) {
-        db.collection('DeviceHistoricalDataDebug').insertOne(deviceData, function(err, r) {
+        db.collection('DeviceMessageLogsDebug').insertOne(deviceData, function(err, r) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
@@ -340,7 +341,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
-                db.collection('DeviceHistoricalDataTemp').insertOne(deviceData, function(err, r) {
+                db.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
@@ -362,7 +363,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
-                db.collection('DeviceHistoricalDataTemp').insertOne(deviceData, function(err, r) {
+                db.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
@@ -748,7 +749,12 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                 i++;
             }
             if (gps.count > 0) {
-                insertMany('GPSData', gps, function(insertedIds) {});
+                insertMany('GPSData', gps, function(insertedIds) {
+                    var client = redis.createClient();
+                    client.publish("zteGPSData", JSON.stringify({
+                        "deviceId": deviceId
+                    }));
+                });
             }
 
             console.log('*********************End GPS data*********************');
