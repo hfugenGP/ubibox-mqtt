@@ -267,6 +267,8 @@ function generateMessage(extId, rawData) {
     console.log('dataChannel : ' + dataChannel);
     console.log('dataType : ' + dataType);
 
+    data["payload"] = [rawData];
+
     switch (dataType) {
         case '64': // generic sensor
             switch (dataChannel) {
@@ -294,8 +296,7 @@ function generateMessage(extId, rawData) {
             data["humidity"] = [hum / 2, '%RH'];
             break;
         default:
-            console.log('No handler for device on MAC %s', extId);
-            return;
+            console.log('DataType "' + dataType + '" is not support for current Arduino device on MAC %s', extId);
     }
 
     message["data"] = data;
