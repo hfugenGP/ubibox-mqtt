@@ -317,9 +317,9 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                         if (dataChannel == "00") {
                             data['windDirection'] = [parseInt(value, 16), '°'];
                         } else if (dataChannel == "01") {
-                            data['windSpeedAvg'] = [parseInt(value, 16) / 100, 'm/s'];
+                            data['windSpeedAvg'] = [parseInt(value, 16) / 1000, 'm/s'];
                         } else if (dataChannel == "02") {
-                            data['windSpeedMax'] = [parseInt(value, 16) / 100, 'm/s'];
+                            data['windSpeedMax'] = [parseInt(value, 16) / 1000, 'm/s'];
                         }
                         break;
                     case "67":
@@ -327,9 +327,9 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                         break;
                     case "77":
                         if (dataChannel == "00") {
-                            data["rainPerHour"] = [parseInt(value, 16) / 100, 'mm'];
+                            data["rainPerHour"] = [parseInt(value, 16), 'mm'];
                         } else if (dataChannel == "01") {
-                            data["rainPerDay"] = [parseInt(value, 16) / 100, 'mm'];
+                            data["rainPerDay"] = [parseInt(value, 16), 'mm'];
                         }
                         break;
                     case "68":
