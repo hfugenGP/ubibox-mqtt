@@ -41,7 +41,7 @@ MongoClient.connect(url, function(err, db) {
             });
 
             console.log("Process trip: " + JSON.stringify(trip));
-            console.log("Process trip id: " + trip._id.str);
+            console.log("Process trip id: " + trip._id.toString());
         });
     });
 
