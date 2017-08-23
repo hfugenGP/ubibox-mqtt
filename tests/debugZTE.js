@@ -35,10 +35,15 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 MongoClient.connect(url, function(err, db) {
     var trips = db.collection("Trips").find();
 
-    trips.forEach(function(trip) {
-        db.collection('GPSData').updateMany({ deviceId: trip.deviceId, gpsType: "routing", positionTime: { $gt: trip.ignitionOnTime, $lt: trip.ignitionOffTime }, }, { $set: { tripId: trip._id } }, {
+    var trip = trips.hasNext() ? trips.next() : null;
+
+    while (trip != null) {
+        var copyTrip = trip;
+        db.collection('GPSData').updateMany({ deviceId: copyTrip.deviceId, gpsType: "routing", positionTime: { $gte: copyTrip.ignitionOnTime, $lte: copyTrip.ignitionOffTime }, }, { $set: { tripId: copyTrip._id } }, {
             upsert: true,
             multi: true
         });
-    }, this);
+
+        trip = trips.hasNext() ? trips.next() : null;
+    }
 });
