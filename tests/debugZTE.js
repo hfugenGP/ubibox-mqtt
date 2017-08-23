@@ -33,14 +33,16 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 // console.log('************************End data received************************');
 
 MongoClient.connect(url, function(err, db) {
-    db.collection("Trips").find({}).toArray(function(err, trip) {
-        db.collection('GPSData').updateMany({ deviceId: trip.deviceId, gpsType: "routing", positionTime: { $gte: trip.ignitionOnTime, $lte: trip.ignitionOffTime }, }, { $set: { tripId: trip._id } }, {
-            upsert: true,
-            multi: true
-        });
+    db.collection("Trips").find({}).toArray(function(err, trips) {
+        trips.forEach(function(trip) {
+            db.collection('GPSData').updateMany({ deviceId: trip.deviceId, gpsType: "routing", positionTime: { $gte: trip.ignitionOnTime, $lte: trip.ignitionOffTime }, }, { $set: { tripId: trip._id } }, {
+                upsert: true,
+                multi: true
+            });
 
-        console.log("Process trip: " + JSON.stringify(trip));
-        console.log("Process trip id: " + trip._id.str);
+            console.log("Process trip: " + JSON.stringify(trip));
+            console.log("Process trip id: " + trip._id.str);
+        });
     });
 
     // var trip = trips.hasNext() ? trips.next() : null;
