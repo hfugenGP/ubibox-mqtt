@@ -354,6 +354,7 @@ function generateMessage(extId, rawData) {
             default:
                 console.log('DataType "' + dataType + '" is not support for current Arduino device on MAC %s', extId);
         }
+        i++;
     }
 
     message["data"] = data;
