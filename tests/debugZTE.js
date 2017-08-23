@@ -44,6 +44,8 @@ MongoClient.connect(url, function(err, db) {
             multi: true
         });
 
+        console.log("Process trip: " + copyTrip._id);
+
         trip = trips.hasNext() ? trips.next() : null;
     }
 });
