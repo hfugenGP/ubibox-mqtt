@@ -33,11 +33,7 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 // console.log('************************End data received************************');
 
 MongoClient.connect(url, function(err, db) {
-    var trips = db.collection("Trips").find();
-
-    var trip = trips.hasNext() ? trips.next() : null;
-
-    while (trip != null) {
+    db.collection("Trips").find({}).toArray(function(err, trip) {
         var copyTrip = trip;
         db.collection('GPSData').updateMany({ deviceId: copyTrip.deviceId, gpsType: "routing", positionTime: { $gte: copyTrip.ignitionOnTime, $lte: copyTrip.ignitionOffTime }, }, { $set: { tripId: copyTrip._id } }, {
             upsert: true,
@@ -45,7 +41,19 @@ MongoClient.connect(url, function(err, db) {
         });
 
         console.log("Process trip: " + copyTrip._id);
+    });
 
-        trip = trips.hasNext() ? trips.next() : null;
-    }
+    // var trip = trips.hasNext() ? trips.next() : null;
+
+    // while (trip != null) {
+    //     var copyTrip = trip;
+    //     db.collection('GPSData').updateMany({ deviceId: copyTrip.deviceId, gpsType: "routing", positionTime: { $gte: copyTrip.ignitionOnTime, $lte: copyTrip.ignitionOffTime }, }, { $set: { tripId: copyTrip._id } }, {
+    //         upsert: true,
+    //         multi: true
+    //     });
+
+    //     console.log("Process trip: " + copyTrip._id);
+
+    //     trip = trips.hasNext() ? trips.next() : null;
+    // }
 });
