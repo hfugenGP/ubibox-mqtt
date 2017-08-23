@@ -226,7 +226,7 @@ function processLoraMessage(gatewayName, topic, message, packet) {
     if (lora_topics["MAC-" + extId]) {
         lora_topics["MAC-" + extId].forEach(function(topic) {
             console.log('Delegate message to topic "' + topic + '" on fabrick gateway.');
-            fabrick_Broker.publish(topic, message, { qos: 1, retain: false });
+            fabrick_Broker.publish(topic, message, { qos: 1, retain: true });
         }, this);
     }
 
