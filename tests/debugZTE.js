@@ -34,13 +34,13 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 MongoClient.connect(url, function(err, db) {
     db.collection("Trips").find({}).toArray(function(err, trip) {
-        var copyTrip = trip;
-        db.collection('GPSData').updateMany({ deviceId: copyTrip.deviceId, gpsType: "routing", positionTime: { $gte: copyTrip.ignitionOnTime, $lte: copyTrip.ignitionOffTime }, }, { $set: { tripId: copyTrip._id } }, {
+        db.collection('GPSData').updateMany({ deviceId: trip.deviceId, gpsType: "routing", positionTime: { $gte: trip.ignitionOnTime, $lte: trip.ignitionOffTime }, }, { $set: { tripId: trip._id } }, {
             upsert: true,
             multi: true
         });
 
-        console.log("Process trip: " + copyTrip._id);
+        console.log("Process trip: " + JSON.stringify(trip));
+        console.log("Process trip id: " + trip._id.str);
     });
 
     // var trip = trips.hasNext() ? trips.next() : null;
