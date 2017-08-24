@@ -262,17 +262,17 @@ function generateMessage(extId, rawData) {
 
     var frameCount = parseInt(rawData.substring(8, 10));
     console.log('frameCount : ' + frameCount);
-    var i = 1;
+    var i = 0;
     var start = 8;
     var end = 10;
     var dataChannel, dataType = "";
-    while (i <= frameCount) {
+    while (i < frameCount) {
         start = end;
         end += 2;
         dataChannel = rawData.substring(start, end);
         start = end;
         end += 2;
-        dataType = rawData.substring(start, start);
+        dataType = rawData.substring(start, end);
 
         switch (dataType) {
             case '64': // generic sensor
