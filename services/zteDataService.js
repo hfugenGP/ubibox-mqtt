@@ -584,7 +584,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                             alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId;
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {
@@ -627,7 +627,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                             alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId;
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {
@@ -666,7 +666,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                             alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
                             alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId.id;
+                            alertData["gpsPosition"] = insertedId;
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {
