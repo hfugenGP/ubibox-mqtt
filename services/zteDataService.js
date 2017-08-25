@@ -739,7 +739,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
             var gps = new Array();
             while (i <= numberOfPackage) {
                 var gpsData = formatGPS(effectiveData.substring(start, end), deviceId, true);
-                console.log('gpsData ' + i + ' : ' + gpsData);
+                console.log('gpsData ' + i + ' : ' + JSON.stringify(gpsData));
                 data["gpsData" + i] = gpsData;
                 gps.push(gpsData);
                 start = end;
