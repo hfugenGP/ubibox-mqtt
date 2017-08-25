@@ -746,7 +746,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                 end += 36;
                 i++;
             }
-            if (gps.count > 0) {
+            if (gps.length > 0) {
                 insertMany('GPSData', gps, function(insertedIds) {
                     var client = redis.createClient();
                     client.publish("zteGPSData", JSON.stringify({
