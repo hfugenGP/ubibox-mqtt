@@ -287,7 +287,7 @@ function generateMessage(extId, rawData) {
                         start = end;
                         end += 4;
                         var ultrasonic = parseInt('0x' + rawData.substring(start, end));
-                        data["ultrasonic"] = [ultrasonic, 'cm'];
+                        data["ultrasonic"] = [ultrasonic, 'Volt'];
                         break;
                     case '02':
                         start = end;
