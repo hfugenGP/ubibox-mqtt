@@ -201,19 +201,19 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
                     case "fuel":
                         mainMessage += params[key].toString(16);
                         break;
-                    case "eDisp":
+                    case "edisp":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
-                    case "eEffi":
+                    case "eeffi":
                         mainMessage += params[key].toString(16);
                         break;
-                    case "mixedRFC":
+                    case "mixedrfc":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
-                    case "highSFC":
+                    case "highsfc":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
-                    case "lowSFC":
+                    case "lowsfc":
                         mainMessage += (parseFloat(params[key]) * 10).toString(16);
                         break;
                 }
@@ -821,21 +821,26 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["rpm"] = rpm;
                     data["speed"] = speed;
                     data["engineCoolantTemperature"] = engineCoolantTemperature;
+                    data["engineCoolantTemperatureStatus"] = "N/A";
+                    if (engineCoolantTemperature != "N/A") {
+                        data["engineCoolantTemperatureStatus"] = engineCoolantTemperature <= 115 ? "Normal" : "Warning";
+                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(setting) {
+                            if (setting && parseFloat(setting.value) < engineCoolantTemperature) {
+                                var alertData = {};
+                                alertData["deviceId"] = deviceId;
+                                alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                                alertData["alertTypeId"] = new MongoObjectId("599cfb516b8f82252a0c4d25");
+                                alertData["reportTime"] = reportTime;
+                                alertData["gpsPosition"] = null;
+                                alertData["status"] = "Pending";
+                                alertData["readStatus"] = "Unread";
+                                alertData["value"] = { "engineCoolantTemperature": engineCoolantTemperature, "heatLimit": parseFloat(setting.value) }
+                            }
+                        })
+                    }
                     // High temperature (>115C) will trigger over_heat alert with message
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
-                    data["engineCoolantTemperatureStatus"] = engineCoolantTemperature <= 115 ? "Normal" : "Warning";
-                    if (engineCoolantTemperature > 115) {
-                        var alertData = {};
-                        alertData["deviceId"] = deviceId;
-                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                        alertData["alertTypeId"] = new MongoObjectId("599cfb516b8f82252a0c4d25");
-                        alertData["reportTime"] = reportTime;
-                        alertData["gpsPosition"] = null;
-                        alertData["status"] = "Pending";
-                        alertData["readStatus"] = "Unread";
-                        alertData["value"] = { "engineCoolantTemperature": engineCoolantTemperature, "heatLimit": 115 }
-                        insertOne('Alert', alertData, function(insertedId) {});
-                    }
+
                     data["throttlePosition"] = throttlePosition;
                     data["engineDuty"] = engineDuty;
                     data["intakeAirFlow"] = intakeAirFlow;
