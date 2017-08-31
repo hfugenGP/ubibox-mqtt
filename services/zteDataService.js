@@ -12,6 +12,7 @@ const MongoObjectId = require('mongodb').ObjectID;
 const redis = require("redis");
 const exec = require('child_process').exec;
 const q = require('q');
+const fs = require('fs');
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
@@ -38,6 +39,15 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
     mainMessage += request;
 
     switch (request) {
+        case "00":
+            //Notify new fw available to upgrade
+            var serverAddressData = common.hex_from_chars(config.zte.serverAddress);
+            var serverAddressDataLength = common.recorrectHexString((serverAddressData.length / 2).toString(16), 2);
+            var fileNameData = common.hex_from_chars(config.zte.currentFWVersion);
+            var fileNameDataLength = common.recorrectHexString((fileNameData.length / 2).toString(16), 2);
+
+            mainMessage += serverAddressDataLength + serverAddressData + fileNameDataLength + fileNameData;
+            break;
         case "01":
             //Vehicle detection //Just requestType is ok
             break;
@@ -1519,13 +1529,74 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     break;
             }
             break;
-        case "F0":
+        case "f0":
             //Device report the data from platform server
             console.log('**********Device report the data from platform server***************');
-            console.log('*Not supported yet*');
+            switch (dataTypeMinor) {
+                case "01":
+                    // Request update package
+                    console.log('*********************Start Request update package*********************');
+                    var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+
+                    var start = 12;
+                    var end = 14;
+                    var fileNameDataLength = parseInt(effectiveData.substring(start, end), 16);
+                    start = end;
+                    end += fileNameDataLength * 2;
+                    var fileNameData = common.chars_from_hex(effectiveData.substring(start, end));
+                    start = end;
+                    end += 8;
+                    var fileStartingPosition = parseInt(effectiveData.substring(start, end), 16);
+                    start = end;
+                    end += 4;
+                    var requestLengthInBytes = parseInt(effectiveData.substring(start, end), 16);
+                    this.UpdatePackage.fileName = fileNameData;
+                    this.UpdatePackage.fileNameLength = fileNameDataLength;
+                    this.UpdatePackage.fileStartingPosition = fileStartingPosition;
+                    this.UpdatePackage.requestLengthInBytes = requestLengthInBytes;
+
+                    console.log('reportTime : ' + reportTime);
+                    console.log('fileNameLength : ' + fileNameDataLength);
+                    console.log('fileName : ' + fileNameData);
+                    console.log('fileStartingPosition : ' + fileStartingPosition);
+                    console.log('requestLengthInBytes : ' + requestLengthInBytes);
+
+                    data["reportTime"] = reportTime;
+                    data["fileNameLength"] = fileNameDataLength;
+                    data["fileName"] = fileNameData;
+                    data["fileStartingPosition"] = fileStartingPosition;
+                    data["requestLengthInBytes"] = requestLengthInBytes;
+                    console.log('*********************End Request update package*********************');
+                    break;
+                case "02":
+                    // Request AGPS data
+                    break;
+                case "03":
+                    // Update package verification
+                    console.log('*********************Start Package Verification*********************');
+                    var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+                    var start = 12;
+                    var end = 14;
+                    var fileNameDataLength = parseInt(effectiveData.substring(start, end), 16);
+                    start = end;
+                    end += fileNameDataLength * 2;
+                    var fileNameData = common.chars_from_hex(effectiveData.substring(start, end));
+                    this.VerifyPackage.fileName = fileNameData;
+                    this.VerifyPackage.fileNameLength = fileNameDataLength;
+
+                    console.log('reportTime : ' + reportTime);
+                    console.log('fileNameLength : ' + fileNameDataLength);
+                    console.log('fileName : ' + fileNameData);
+
+                    data["reportTime"] = reportTime;
+                    data["fileNameLength"] = fileNameDataLength;
+                    data["fileName"] = fileNameData;
+                    console.log('*********************End Package Verification*********************');
+                    break;
+            }
             console.log('**********Device report the data from platform server***************');
             break;
-        case "F1":
+        case "f1":
             //Server report the data from the terminal device
             console.log('**********Server report the data from the terminal device***************');
             console.log('*Not supported yet*');
@@ -1920,6 +1991,35 @@ ZTEDataService.prototype.generateReply = function(hexData) {
             returnFrameType = "04";
             dataLength = "0002";
             mainMessage = this.dataTypeMajor + this.dataTypeMinor;
+            if (this.dataTypeMajor == "f0") {
+                switch (this.dataTypeMinor) {
+                    case "01":
+                        var fwData = common.recorrectHexString(this.UpdatePackage.fileStartingPosition.toString(16), 8);
+                        var buff = fs.readFileSync('./assets/' + this.UpdatePackage.fileName);
+                        var dataPortion = buff.toString('hex');
+                        var start = this.UpdatePackage.fileStartingPosition;
+                        var end = start + this.UpdatePackage.requestLengthInBytes * 2;
+                        if (end > dataPortion.length) {
+                            end = dataPortion.length;
+                        }
+                        fwData += dataPortion.substring(start, end);
+                        var checksumBuffer = Buffer.from(fwData, "hex");
+                        var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
+                        fwData = checksumHex + fwData;
+                        mainMessage += fwData;
+                        break;
+                    case "02":
+                        break;
+                    case "03":
+                        var verifyData = this.VerifyPackage.fileNameLength + this.VerifyPackage.fileName;
+                        var buff = fs.readFileSync('./assets/' + this.VerifyPackage.fileName);
+                        var dataPortion = buff.toString('hex');
+                        var len = dataPortion.length / 2;
+                        verifyData += common.recorrectHexString(len.toString(16), 8);
+                        mainMessage += verifyData;
+                        break;
+                }
+            }
             break;
 
         case '04':
@@ -1972,12 +2072,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
 
     var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameId + dataLength + mainMessage;
     var checksumBuffer = Buffer.from(checksum, "hex");
-    var checksumHex = adler32.sum(checksumBuffer).toString(16);
-    if (checksumHex.length == 6) {
-        checksumHex = '00' + checksumHex;
-    } else if (checksumHex.length == 7) {
-        checksumHex = '0' + checksumHex;
-    }
+    var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
     tobeEncrypted += checksumHex;
 
     var key = CryptoJS.enc.Hex.parse(encryptionKey);
