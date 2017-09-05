@@ -846,6 +846,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                     alertData["status"] = "Pending";
                                     alertData["readStatus"] = "Unread";
                                     alertData["value"] = { "engineCoolantTemperature": engineCoolantTemperature, "heatLimit": parseFloat(setting.value) }
+                                    insert(db, 'Alert', alertData, function() {});
                                 }
                             });
                         });
@@ -912,7 +913,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                             "customMessage": "You have exceed the speed limit of " + setting.value + "km/h"
                                         }
                                     }
-                                    insertOne('Alert', alertData, function(insertedId) {});
+                                    insert(db, 'Alert', alertData, function() {});
                                 }
                             })
                         }
