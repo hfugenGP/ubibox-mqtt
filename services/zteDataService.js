@@ -834,22 +834,6 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["engineCoolantTemperatureStatus"] = "N/A";
                     if (engineCoolantTemperature != "N/A") {
                         data["engineCoolantTemperatureStatus"] = engineCoolantTemperature <= 115 ? "Normal" : "Warning";
-                        MongoClient.connect(url, function(err, db) {
-                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(setting) {
-                                if (setting && parseFloat(setting.value) < engineCoolantTemperature) {
-                                    var alertData = {};
-                                    alertData["deviceId"] = deviceId;
-                                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                                    alertData["alertTypeId"] = new MongoObjectId("599cfb516b8f82252a0c4d25");
-                                    alertData["reportTime"] = reportTime;
-                                    alertData["gpsPosition"] = null;
-                                    alertData["status"] = "Pending";
-                                    alertData["readStatus"] = "Unread";
-                                    alertData["value"] = { "engineCoolantTemperature": engineCoolantTemperature, "heatLimit": parseFloat(setting.value) }
-                                    insert(db, 'Alert', alertData, function() {});
-                                }
-                            });
-                        });
                     }
                     // High temperature (>115C) will trigger over_heat alert with message
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
@@ -913,9 +897,30 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                             "customMessage": "You have exceed the speed limit of " + setting.value + "km/h"
                                         }
                                     }
-                                    insert(db, 'Alert', alertData, function() {});
+                                    insert(db, 'Alert', alertData, function(insertedId) {});
                                 }
                             })
+                        }
+
+                        if (engineCoolantTemperature != "N/A") {
+                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(setting) {
+                                if (setting && parseInt(setting.value) < engineCoolantTemperature) {
+                                    var alertData = {
+                                        "deviceId": deviceId,
+                                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
+                                        "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
+                                        "reportTime": reportTime,
+                                        "gpsPosition": null,
+                                        "status": "Pending",
+                                        "readStatus": "Unread",
+                                        "value": {
+                                            "engineCoolantTemperature": engineCoolantTemperature,
+                                            "heatLimit": parseFloat(setting.value)
+                                        }
+                                    }
+                                    insert(db, 'Alert', alertData, function(insertedId) {});
+                                }
+                            });
                         }
                     });
 
