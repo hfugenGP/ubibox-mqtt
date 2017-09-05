@@ -881,7 +881,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                         if (speed != "N/A") {
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(setting) {
-                                if (setting && parseInt(setting.value) < speed) {
+                                if (setting && parseInt(setting["value"]) < speed) {
                                     var alertData = {
                                         "deviceId": deviceId,
                                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
@@ -904,7 +904,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                         if (engineCoolantTemperature != "N/A") {
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(setting) {
-                                if (setting && parseInt(setting.value) < engineCoolantTemperature) {
+                                if (setting && parseInt(setting["value"]) < engineCoolantTemperature) {
                                     var alertData = {
                                         "deviceId": deviceId,
                                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
