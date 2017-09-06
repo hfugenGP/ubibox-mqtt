@@ -849,7 +849,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     // High temperature (>115C) will trigger over_heat alert with message
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
                     MongoClient.connect(url, function(err, db) {
-                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(speedSetting) {
+                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(err, speedSetting) {
                             if (speed != "N/A" && speedSetting != null && parseInt(speedSetting["value"]) < speed) {
                                 console.log('******************Saving OverSpeed Alert******************');
                                 var alertData = {
@@ -870,7 +870,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 insert(db, 'Alert', alertData, function(insertedId) {});
                             }
 
-                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(tempSetting) {
+                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(err, tempSetting) {
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
                                     console.log('******************Saving Overheat Alert******************');
                                     data["engineCoolantTemperatureStatus"] = "Warning";
