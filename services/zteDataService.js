@@ -850,6 +850,11 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
                     MongoClient.connect(url, function(err, db) {
                         db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(err, speedSetting) {
+                            console.log('******************Saving OverSpeed Alert******************');
+                            console.log('speed' + speed);
+                            console.log('speedSetting' + speedSetting);
+                            console.log('speedSettingValue' + speedSetting["value"]);
+                            console.log('******************Saving OverSpeed Alert******************');
                             if (speed != "N/A" && speedSetting != null && parseInt(speedSetting["value"]) < speed) {
                                 console.log('******************Saving OverSpeed Alert******************');
                                 var alertData = {
@@ -871,6 +876,11 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                             }
 
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(err, tempSetting) {
+                                console.log('******************Saving Overheat Alert******************');
+                                console.log('engineCoolantTemperature' + engineCoolantTemperature);
+                                console.log('tempSetting' + tempSetting);
+                                console.log('tempSettingValue' + tempSetting["value"]);
+                                console.log('******************Saving Overheat Alert******************');
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
                                     console.log('******************Saving Overheat Alert******************');
                                     data["engineCoolantTemperatureStatus"] = "Warning";
