@@ -706,9 +706,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     alertData["alertTypeId"] = new MongoObjectId("599146c295dfe43d4ca834bf");
                     alertData["reportTime"] = occurTime;
                     alertData["gpsPosition"] = null;
-                    alertData["value"] = {
-                        "turn": turn
-                    }
+                    alertData["value"] = {}
 
                     insertOne("Alert", alertData, function(insertedId) {});
 
@@ -831,21 +829,13 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["rpm"] = rpm;
                     data["speed"] = speed;
                     data["engineCoolantTemperature"] = engineCoolantTemperature;
-                    data["engineCoolantTemperatureStatus"] = "N/A";
-                    if (engineCoolantTemperature != "N/A") {
-                        data["engineCoolantTemperatureStatus"] = engineCoolantTemperature <= 115 ? "Normal" : "Warning";
-                    }
-                    // High temperature (>115C) will trigger over_heat alert with message
-                    // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
-
+                    data["engineCoolantTemperatureStatus"] = "Normal";
                     data["throttlePosition"] = throttlePosition;
                     data["engineDuty"] = engineDuty;
                     data["intakeAirFlow"] = intakeAirFlow;
                     data["intakeAirTemp"] = intakeAirTemp;
                     data["intakeAirPressure"] = intakeAirPressure;
                     data["batteryVolt"] = batteryVolt;
-                    // Low battery voltage (<10.2V) will trigger low_voltage alert with message
-                    // "Warning. Weak Battery. Please check.". Voltage <10.2 will also trigger the warning icon in app car status page for lowest voltage.
                     data["batteryVoltStatus"] = batteryVolt >= 10.2 ? "Normal" : "Warning";
                     data["fli"] = fli;
                     data["dt"] = dt;
@@ -854,57 +844,34 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     data["totalFuelConsumption"] = totalFuelConsumption;
                     data["totalDrivingTime"] = totalDrivingTime;
 
+                    // Low battery voltage (<10.2V) will trigger low_voltage alert with message
+                    // "Warning. Weak Battery. Please check.". Voltage <10.2 will also trigger the warning icon in app car status page for lowest voltage.
+                    // High temperature (>115C) will trigger over_heat alert with message
+                    // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
                     MongoClient.connect(url, function(err, db) {
-                        insert(db, "VehicleHistoricalStatus", data, function(insertedId) {
-                            var vehicleData = {};
-                            vehicleData["deviceId"] = deviceId;
-                            vehicleData["reportTime"] = reportTime;
-                            vehicleData["rpm"] = rpm;
-                            vehicleData["speed"] = speed;
-                            vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
-                            vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
-                            vehicleData["throttlePosition"] = throttlePosition;
-                            vehicleData["engineDuty"] = engineDuty;
-                            vehicleData["intakeAirFlow"] = intakeAirFlow;
-                            vehicleData["intakeAirTemp"] = intakeAirTemp;
-                            vehicleData["intakeAirPressure"] = intakeAirPressure;
-                            vehicleData["batteryVolt"] = batteryVolt;
-                            vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
-                            vehicleData["fli"] = fli;
-                            vehicleData["dt"] = dt;
-                            vehicleData["mli"] = mli;
-                            vehicleData["totalMileage"] = totalMileage;
-                            vehicleData["totalFuelConsumption"] = totalFuelConsumption;
-                            vehicleData["totalDrivingTime"] = totalDrivingTime;
-                            db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, vehicleData, { upsert: true });
-                        });
-
-                        if (speed != "N/A") {
-                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(setting) {
-                                if (setting && parseInt(setting["value"]) < speed) {
-                                    var alertData = {
-                                        "deviceId": deviceId,
-                                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                                        "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
-                                        "reportTime": reportTime,
-                                        "gpsPosition": null,
-                                        "status": "Pending",
-                                        "readStatus": "Unread",
-                                        "value": {
-                                            "codeType": "obd",
-                                            "stateCode": "00",
-                                            "faultCode": "P0219", //Over speed code
-                                            "customMessage": "You have exceed the speed limit of " + setting.value + "km/h"
-                                        }
+                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(speedSetting) {
+                            if (speed != "N/A" && speedSetting && parseInt(speedSetting["value"]) < speed) {
+                                var alertData = {
+                                    "deviceId": deviceId,
+                                    "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                    "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                    "reportTime": reportTime,
+                                    "gpsPosition": null,
+                                    "status": "Pending",
+                                    "readStatus": "Unread",
+                                    "value": {
+                                        "codeType": "obd",
+                                        "stateCode": "00",
+                                        "faultCode": "P0219", //Over speed code
+                                        "customMessage": "You have exceed the speed limit of " + setting.value + "km/h"
                                     }
-                                    insert(db, 'Alert', alertData, function(insertedId) {});
                                 }
-                            })
-                        }
+                                insert(db, 'Alert', alertData, function(insertedId) {});
+                            }
 
-                        if (engineCoolantTemperature != "N/A") {
-                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(setting) {
-                                if (setting && parseInt(setting["value"]) < engineCoolantTemperature) {
+                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(tempSetting) {
+                                if (engineCoolantTemperature != "N/A" && tempSetting && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
+                                    data["engineCoolantTemperatureStatus"] = "Warning";
                                     var alertData = {
                                         "deviceId": deviceId,
                                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
@@ -920,8 +887,32 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                     }
                                     insert(db, 'Alert', alertData, function(insertedId) {});
                                 }
+
+                                insert(db, "VehicleHistoricalStatus", data, function(insertedId) {
+                                    var vehicleData = {};
+                                    vehicleData["deviceId"] = deviceId;
+                                    vehicleData["reportTime"] = reportTime;
+                                    vehicleData["rpm"] = rpm;
+                                    vehicleData["speed"] = speed;
+                                    vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
+                                    vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
+                                    vehicleData["throttlePosition"] = throttlePosition;
+                                    vehicleData["engineDuty"] = engineDuty;
+                                    vehicleData["intakeAirFlow"] = intakeAirFlow;
+                                    vehicleData["intakeAirTemp"] = intakeAirTemp;
+                                    vehicleData["intakeAirPressure"] = intakeAirPressure;
+                                    vehicleData["batteryVolt"] = batteryVolt;
+                                    vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
+                                    vehicleData["fli"] = fli;
+                                    vehicleData["dt"] = dt;
+                                    vehicleData["mli"] = mli;
+                                    vehicleData["totalMileage"] = totalMileage;
+                                    vehicleData["totalFuelConsumption"] = totalFuelConsumption;
+                                    vehicleData["totalDrivingTime"] = totalDrivingTime;
+                                    db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, vehicleData, { upsert: true });
+                                });
                             });
-                        }
+                        });
                     });
 
                     console.log('reportTime : ' + reportTime);
