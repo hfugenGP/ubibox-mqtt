@@ -851,6 +851,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     MongoClient.connect(url, function(err, db) {
                         db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(speedSetting) {
                             if (speed != "N/A" && speedSetting && parseInt(speedSetting["value"]) < speed) {
+                                console.log('******************Saving OverSpeed Alert******************');
                                 var alertData = {
                                     "deviceId": deviceId,
                                     "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
@@ -871,6 +872,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
 
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(tempSetting) {
                                 if (engineCoolantTemperature != "N/A" && tempSetting && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
+                                    console.log('******************Saving Overheat Alert******************');
                                     data["engineCoolantTemperatureStatus"] = "Warning";
                                     var alertData = {
                                         "deviceId": deviceId,
@@ -888,6 +890,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                     insert(db, 'Alert', alertData, function(insertedId) {});
                                 }
 
+                                console.log('******************Saving Vehicle Status******************');
                                 insert(db, "VehicleHistoricalStatus", data, function(insertedId) {
                                     var vehicleData = {};
                                     vehicleData["deviceId"] = deviceId;
