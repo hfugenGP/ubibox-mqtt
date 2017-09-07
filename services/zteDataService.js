@@ -850,11 +850,11 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
                     MongoClient.connect(url, function(err, db) {
                         db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(err, speedSetting) {
-                            console.log('******************Saving OverSpeed Alert******************');
+                            console.log('******************Checking OverSpeed Alert******************');
                             console.log('speed' + speed);
                             console.log('speedSetting' + speedSetting);
                             console.log('speedSettingValue' + speedSetting["value"]);
-                            console.log('******************Saving OverSpeed Alert******************');
+                            console.log('******************Checking OverSpeed Alert******************');
                             if (speed != "N/A" && speedSetting != null && parseInt(speedSetting["value"]) < speed) {
                                 console.log('******************Saving OverSpeed Alert******************');
                                 var alertData = {
@@ -869,20 +869,20 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                         "codeType": "obd",
                                         "stateCode": "00",
                                         "faultCode": "P0219", //Over speed code
-                                        "customMessage": "You have exceed the speed limit of " + setting.value + "km/h"
+                                        "customMessage": "You have exceed the speed limit of " + speedSetting["value"] + "km/h"
                                     }
                                 }
                                 insert(db, 'Alert', alertData, function(insertedId) {});
                             }
 
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(err, tempSetting) {
-                                console.log('******************Saving Overheat Alert******************');
+                                console.log('******************Checking Overheat Alert******************');
                                 console.log('engineCoolantTemperature' + engineCoolantTemperature);
                                 console.log('tempSetting' + tempSetting);
                                 console.log('tempSettingValue' + tempSetting["value"]);
-                                console.log('******************Saving Overheat Alert******************');
+                                console.log('******************Checking Overheat Alert******************');
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
-                                    console.log('******************Saving Overheat Alert******************');
+                                    console.log('******************Checking Overheat Alert******************');
                                     data["engineCoolantTemperatureStatus"] = "Warning";
                                     var alertData = {
                                         "deviceId": deviceId,
@@ -894,7 +894,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                         "readStatus": "Unread",
                                         "value": {
                                             "engineCoolantTemperature": engineCoolantTemperature,
-                                            "heatLimit": parseFloat(setting.value)
+                                            "heatLimit": parseInt(tempSetting["value"])
                                         }
                                     }
                                     insert(db, 'Alert', alertData, function(insertedId) {});
