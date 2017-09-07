@@ -217,6 +217,19 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
 
             break;
         case 13: //Farm sensors / 3e 010 000 18c 272 142 000 // 40 180 2AE 1F4 0BD 185 AA 0
+            var adjustment = {};
+            // Temp - Hum - Soil Mois - PH - Soil EC
+            adjustment["MAC-05000153"] = [0, 0, 0, 0, -286]; //farm 1
+            adjustment["MAC-0400067c"] = [0, 15, 0, 1.5, 0]; //farm 11
+            adjustment["MAC-05000154"] = [0, 21, 0, 1.5, 0]; //farm 3
+            adjustment["MAC-05000151"] = [0, 20, 0, 2.7, 300]; //farm 4
+            adjustment["MAC-05000152"] = [0, 18, 0, 1.5, 0]; //farm 6
+            adjustment["MAC-05000158"] = [4, 9, 0, 1.5, -110]; //farm 7
+            adjustment["MAC-05000155"] = [0, 18, 27, 1.3, 0]; //farm 8
+            adjustment["MAC-05000159"] = [0, 18, 0, 1.5, -189]; //farm 9
+            adjustment["MAC-040006d8"] = [0, 14, -37, 1.5, 0]; //farm 10
+            adjustment["MAC-05000157"] = [10, 0, 37, 2.4, 0]; //farm 5
+
             var binaryData = common.hex2bits(rawData);
             var ph = parseInt(common.hex2bits(rawData.substring(0, 2)), 2); //parseInt(binaryData.substring(0, 8), 2); 2d 00101101 45
             var soilElectrical = parseInt(common.hex2bits(rawData.substring(2, 5)), 2); //parseInt(binaryData.substring(8, 20), 2); 00a 000000001010 10
@@ -226,24 +239,33 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             var soilMoisture = parseInt(common.hex2bits(rawData.substring(14, 17)), 2); //parseInt(binaryData.substring(56, 68), 2); 0f5 000011110101 245
             var batteryLevel = parseInt(common.hex2bits(rawData.substring(17, 19)), 2); //parseInt(binaryData.substring(68, 76), 2);
 
-            var phValue = (14 * ph) / 256;
-            var soilElectricalValue = (20000 * soilElectrical) / 1024;
+            var phValue = common.roundFloat((14 * ph) / 256, 2);
+            var soilElectricalValue = common.roundFloat((20000 * soilElectrical) / 1024, 2);
             if (soilTemperature != 0) {
                 var soilTemperatureValue = ((120 * soilTemperature) / 1024) - 40;
                 data['soilTemperature'] = [common.roundFloat(soilTemperatureValue, 2), '°C'];
             }
 
-            var airTemperatureValue = ((90 * airTemperature) / 1024) - 10;
-            var airHumidityValue = (100 * airHumidity) / 1024;
-            var soilMoistureValue = (100 * soilMoisture) / 1024;
-            var batteryLevelValue = (5 * batteryLevel) / 256;
+            var airTemperatureValue = common.roundFloat(((90 * airTemperature) / 1024) - 10, 2);
+            var airHumidityValue = common.roundFloat((100 * airHumidity) / 1024, 2);
+            var soilMoistureValue = common.roundFloat((100 * soilMoisture) / 1024, 2);
+            var batteryLevelValue = common.roundFloat((5 * batteryLevel) / 256, 2);
 
-            data['ph'] = [common.roundFloat(phValue, 2), 'pH'];
-            data['soilElectrical'] = [common.roundFloat(soilElectricalValue, 2), 'us/cm'];
-            data['airTemperature'] = [common.roundFloat(airTemperatureValue, 2), '°C'];
-            data['airHumidity'] = [common.roundFloat(airHumidityValue, 2), '%RH'];
-            data['soilMoisture'] = [common.roundFloat(soilMoistureValue, 2), '%'];
-            data['batteryLevel'] = [common.roundFloat(batteryLevelValue, 2), 'V'];
+            var adjustmentValue = adjustment['MAC-' + macAddr];
+            if (adjustmentValue) {
+                airTemperatureValue += adjustmentValue[0];
+                airHumidityValue += adjustmentValue[1];
+                soilMoistureValue += adjustmentValue[2];
+                phValue += adjustmentValue[3];
+                soilElectricalValue += adjustmentValue[4];
+            }
+
+            data['ph'] = [phValue, 'pH'];
+            data['soilElectrical'] = [soilElectricalValue, 'us/cm'];
+            data['airTemperature'] = [airTemperatureValue, '°C'];
+            data['airHumidity'] = [airHumidityValue, '%RH'];
+            data['soilMoisture'] = [soilMoistureValue, '%'];
+            data['batteryLevel'] = [batteryLevelValue, 'V'];
 
             break;
         case 14: //Turbo Parking Sensor
