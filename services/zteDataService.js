@@ -882,7 +882,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                                 console.log('tempSettingValue' + tempSetting["value"]);
                                 console.log('******************Checking Overheat Alert******************');
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
-                                    console.log('******************Checking Overheat Alert******************');
+                                    console.log('******************Saving Overheat Alert******************');
                                     data["engineCoolantTemperatureStatus"] = "Warning";
                                     var alertData = {
                                         "deviceId": deviceId,
