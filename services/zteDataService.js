@@ -1973,6 +1973,7 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
 }
 
 ZTEDataService.prototype.generateReply = function(hexData) {
+    var common = new Common();
     var deviceId = hexData.substring(24, 54);
     var frameType = this.decryptedHex.substring(16, 18);
     var frameId = this.decryptedHex.substring(18, 22);
