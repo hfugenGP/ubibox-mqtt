@@ -2022,7 +2022,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                     case "02":
                         break;
                     case "03":
-                        var verifyData = this.VerifyPackage.fileNameLength + this.VerifyPackage.fileName;
+                        var verifyData = common.recorrectHexString(this.VerifyPackage.fileNameLength.toString(16), 2) + common.hex_from_chars(this.VerifyPackage.fileName);
                         var buff = fs.readFileSync('./assets/MCU_' + this.VerifyPackage.fileName);
                         var dataPortion = buff.toString('hex');
                         var len = dataPortion.length / 2;
