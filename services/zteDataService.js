@@ -1589,6 +1589,7 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     start = end;
                     end += fileNameDataLength * 2;
                     var fileNameData = common.chars_from_hex(effectiveData.substring(start, end));
+                    this.VerifyPackage = {};
                     this.VerifyPackage.fileName = fileNameData;
                     this.VerifyPackage.fileNameLength = fileNameDataLength;
 
