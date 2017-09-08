@@ -347,7 +347,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
             deviceData["MajorDataTypeId"] = this.dataTypeMajor;
             deviceData["MinorDataTypeId"] = this.dataTypeMinor;
-            deviceData["Data"] = publishMessageHandle(deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
+            deviceData["Data"] = publishMessageHandle(this, deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
@@ -394,7 +394,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     return true;
 }
 
-function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMinor) {
+function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, dataTypeMinor) {
     var common = new Common();
 
     var data = {};
@@ -1558,10 +1558,11 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     start = end;
                     end += 4;
                     var requestLengthInBytes = parseInt(effectiveData.substring(start, end), 16);
-                    this.UpdatePackage.fileName = fileNameData;
-                    this.UpdatePackage.fileNameLength = fileNameDataLength;
-                    this.UpdatePackage.fileStartingPosition = fileStartingPosition;
-                    this.UpdatePackage.requestLengthInBytes = requestLengthInBytes;
+                    that.UpdatePackage = {};
+                    that.UpdatePackage.fileName = fileNameData;
+                    that.UpdatePackage.fileNameLength = fileNameDataLength;
+                    that.UpdatePackage.fileStartingPosition = fileStartingPosition;
+                    that.UpdatePackage.requestLengthInBytes = requestLengthInBytes;
 
                     console.log('reportTime : ' + reportTime);
                     console.log('fileNameLength : ' + fileNameDataLength);
@@ -1589,9 +1590,9 @@ function publishMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMi
                     start = end;
                     end += fileNameDataLength * 2;
                     var fileNameData = common.chars_from_hex(effectiveData.substring(start, end));
-                    this.VerifyPackage = {};
-                    this.VerifyPackage.fileName = fileNameData;
-                    this.VerifyPackage.fileNameLength = fileNameDataLength;
+                    that.VerifyPackage = {};
+                    that.VerifyPackage.fileName = fileNameData;
+                    that.VerifyPackage.fileNameLength = fileNameDataLength;
 
                     console.log('reportTime : ' + reportTime);
                     console.log('fileNameLength : ' + fileNameDataLength);
