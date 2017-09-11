@@ -369,7 +369,7 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
 
             deviceData["MajorDataTypeId"] = majorType;
             deviceData["MinorDataTypeId"] = minorType;
-            deviceData["Data"] = responseMessageHandle(deviceId, effectiveData, majorType, minorType);
+            deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, majorType, minorType);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function(err, db) {
@@ -602,7 +602,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "speedAfterAcc": speedAfterAcc,
                                 "accValue": accValue
                             }
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -645,7 +651,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "speedAfterDec": speedAfterDec,
                                 "decValue": decValue
                             }
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -682,7 +694,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "turn": turn
                             }
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -708,7 +726,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function(insertedId) {});
+                    insertOne("Alert", alertData, function(insertedId) {
+                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        exec(cmd, function(error, stdout, stderr) {
+                            if (error) console.log(error);
+                            if (stdout) console.log(stdout);
+                            if (stderr) console.log(stderr);
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Exceed idle*********************');
@@ -728,7 +753,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function(insertedId) {});
+                    insertOne("Alert", alertData, function(insertedId) {
+                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        exec(cmd, function(error, stdout, stderr) {
+                            if (error) console.log(error);
+                            if (stdout) console.log(stdout);
+                            if (stderr) console.log(stderr);
+                        });
+                    });
 
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Driving tired*********************');
@@ -870,7 +902,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "customMessage": "You have exceed the speed limit of " + speedSetting["value"] + "km/h"
                                     }
                                 }
-                                insert(db, 'Alert', alertData, function(insertedId) {});
+                                insert(db, "Alert", alertData, function(insertedId) {
+                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                    exec(cmd, function(error, stdout, stderr) {
+                                        if (error) console.log(error);
+                                        if (stdout) console.log(stdout);
+                                        if (stderr) console.log(stderr);
+                                    });
+                                });
                             }
 
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(err, tempSetting) {
@@ -893,7 +932,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                             "heatLimit": parseInt(tempSetting["value"])
                                         }
                                     }
-                                    insert(db, 'Alert', alertData, function(insertedId) {});
+                                    insert(db, "Alert", alertData, function(insertedId) {
+                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                        exec(cmd, function(error, stdout, stderr) {
+                                            if (error) console.log(error);
+                                            if (stdout) console.log(stdout);
+                                            if (stderr) console.log(stderr);
+                                        });
+                                    });
                                 }
 
                                 console.log('******************Saving Vehicle Status******************');
@@ -982,7 +1028,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["status"] = "Pending";
                     alertData["readStatus"] = "Unread";
                     alertData["value"] = { "failureCode": failureCode }
-                    insertOne('Alert', alertData, function(insertedId) {});
+                    insertOne("Alert", alertData, function(insertedId) {
+                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        exec(cmd, function(error, stdout, stderr) {
+                            if (error) console.log(error);
+                            if (stdout) console.log(stdout);
+                            if (stderr) console.log(stderr);
+                        });
+                    });
 
                     console.log('reportingDate : ' + reportingDate);
                     console.log('failureCode : ' + failureCode);
@@ -1076,7 +1129,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {}
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -1384,7 +1443,16 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         }
                     }
                     if (alerts.count > 0) {
-                        insertMany("Alert", alerts, function(insertedIds) {});
+                        insertMany("Alert", alerts, function(insertedIds) {
+                            insertedIds.forEach(function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
+                            }, this);
+                        });
                     }
 
                     console.log('*********************End DTC code*********************');
@@ -1413,7 +1481,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "batteryVolt": batteryVolt
                             }
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -1448,7 +1522,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "peekValue": peekValue
                             }
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -1487,7 +1567,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "collisionValue": collisionValue
                             }
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -1521,7 +1607,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {}
-                            insert(db, 'Alert', alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function(insertedId) {
+                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                exec(cmd, function(error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
+                                });
                                 db.close();
                             });
                         });
@@ -1617,7 +1709,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
     return data;
 }
 
-function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeMinor) {
+function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, dataTypeMinor) {
     var common = new Common();
 
     var data = {};
@@ -1726,7 +1818,16 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
             }
 
             if (alerts.count > 0) {
-                insertMany("Alert", alerts, function(insertedIds) {});
+                insertMany("Alert", alerts, function(insertedIds) {
+                    insertedIds.forEach(function(insertedId) {
+                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        exec(cmd, function(error, stdout, stderr) {
+                            if (error) console.log(error);
+                            if (stdout) console.log(stdout);
+                            if (stderr) console.log(stderr);
+                        });
+                    }, this);
+                });
             }
 
             console.log('*********************End Vehicle detection*********************');
@@ -1734,16 +1835,24 @@ function responseMessageHandle(deviceId, effectiveData, dataTypeMajor, dataTypeM
         case "02":
             //Set parameters
             console.log('*********************Start Set parameters*********************');
-            var resultCode = effectiveData.substring(4, 6);
-            var result = "Invalid";
+            var paramName = effectiveData.substring(4, 8);
+            var resultCode = effectiveData.substring(8, 10);
+            var result = "Rejected";
             switch (resultCode) {
                 case "00":
-                    result = "Successful";
+                    result = "Rejected";
                     break;
                 case "01":
-                    result = "Failure";
+                    result = "Accept";
                     break;
             }
+
+            var cmd = 'php ' + config.zte.artisanURL + ' configuration:device-update-status ' + deviceId + ' ' + frameId + ' ' + result;
+            exec(cmd, function(error, stdout, stderr) {
+                if (error) console.log(error);
+                if (stdout) console.log(stdout);
+                if (stderr) console.log(stderr);
+            });
 
             data["result"] = result;
             console.log('Result : ' + result);
