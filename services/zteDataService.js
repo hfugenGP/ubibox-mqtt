@@ -2125,12 +2125,12 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                         var fwData = dataPortion.substring(start, end);
                         var len = fwData.length / 2;
                         var paddingBytes = 4 - (len - (Math.floor(len / 4) * 4));
-                        console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
-                        console.log('paddingBytes needed: ' + paddingBytes);
-                        // for (var i = 0; i < paddingBytes; i++) {
-                        //     fwData += "ff";
-                        // }
-                        console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+                        // console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+                        // console.log('paddingBytes needed: ' + paddingBytes);
+                        // // for (var i = 0; i < paddingBytes; i++) {
+                        // //     fwData += "ff";
+                        // // }
+                        // console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
                         // console.log('fileStartingPosition : ' + fileStartingPosition);
                         // console.log('fwData : ' + fwData);
                         var checksumBuffer = Buffer.from(fwData, "hex");
