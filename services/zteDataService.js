@@ -2201,6 +2201,17 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     }
 
     var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameId + dataLength + mainMessage;
+    console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+    console.log('messageLengthHex : ' + messageLengthHex);
+    console.log('ivHex : ' + ivHex);
+    console.log('deviceId : ' + deviceId);
+    console.log('randomNoiseHex : ' + randomNoiseHex);
+    console.log('frameType : ' + frameType);
+    console.log('frameId : ' + frameId);
+    console.log('dataLength : ' + dataLength);
+    console.log('mainMessage : ' + mainMessage);
+    console.log('checksum : ' + checksum);
+    console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
     var checksumBuffer = Buffer.from(checksum, "hex");
     var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
     tobeEncrypted += checksumHex;
