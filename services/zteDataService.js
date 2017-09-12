@@ -2115,7 +2115,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                 switch (this.dataTypeMinor) {
                     case "01":
                         var fwData = common.recorrectHexString(this.UpdatePackage.fileStartingPosition.toString(16), 8);
-                        var buff = fs.readFileSync('./assets/MCU_' + this.UpdatePackage.fileName);
+                        var buff = fs.readFileSync('./assets/' + this.UpdatePackage.fileName);
                         var dataPortion = buff.toString('hex');
                         var start = this.UpdatePackage.fileStartingPosition;
                         var end = start + this.UpdatePackage.requestLengthInBytes * 2;
