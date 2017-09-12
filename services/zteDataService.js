@@ -1636,10 +1636,10 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                 case "01":
                     // Request update package
                     console.log('*********************Start Request update package*********************');
-                    var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+                    // var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
 
-                    var start = 12;
-                    var end = 14;
+                    var start = 4;
+                    var end = 6;
                     var fileNameDataLength = parseInt(effectiveData.substring(start, end), 16);
                     start = end;
                     end += fileNameDataLength * 2;
@@ -1656,13 +1656,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     that.UpdatePackage.fileStartingPosition = fileStartingPosition;
                     that.UpdatePackage.requestLengthInBytes = requestLengthInBytes;
 
-                    console.log('reportTime : ' + reportTime);
+                    // console.log('reportTime : ' + reportTime);
                     console.log('fileNameLength : ' + fileNameDataLength);
                     console.log('fileName : ' + fileNameData);
                     console.log('fileStartingPosition : ' + fileStartingPosition);
                     console.log('requestLengthInBytes : ' + requestLengthInBytes);
 
-                    data["reportTime"] = reportTime;
+                    // data["reportTime"] = reportTime;
                     data["fileNameLength"] = fileNameDataLength;
                     data["fileName"] = fileNameData;
                     data["fileStartingPosition"] = fileStartingPosition;
@@ -1675,9 +1675,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                 case "03":
                     // Update package verification
                     console.log('*********************Start Package Verification*********************');
-                    var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-                    var start = 12;
-                    var end = 14;
+                    // var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+                    var start = 4;
+                    var end = 6;
                     var fileNameDataLength = parseInt(effectiveData.substring(start, end), 16);
                     start = end;
                     end += fileNameDataLength * 2;
@@ -1686,11 +1686,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     that.VerifyPackage.fileName = fileNameData;
                     that.VerifyPackage.fileNameLength = fileNameDataLength;
 
-                    console.log('reportTime : ' + reportTime);
+                    // console.log('reportTime : ' + reportTime);
                     console.log('fileNameLength : ' + fileNameDataLength);
                     console.log('fileName : ' + fileNameData);
 
-                    data["reportTime"] = reportTime;
+                    // data["reportTime"] = reportTime;
                     data["fileNameLength"] = fileNameDataLength;
                     data["fileName"] = fileNameData;
                     console.log('*********************End Package Verification*********************');
