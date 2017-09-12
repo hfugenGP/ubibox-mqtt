@@ -2195,10 +2195,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     var paddingBytes = 8 - (tobeEncryptedLength - (Math.floor(tobeEncryptedLength / 8) * 8));
     messageLength += paddingBytes;
 
-    var messageLengthHex = messageLength.toString(16);
-    if (messageLengthHex.length == 2) {
-        messageLengthHex = "00" + messageLengthHex;
-    }
+    var messageLengthHex = common.recorrectHexString(messageLength.toString(16), 4);
 
     var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameId + dataLength + mainMessage;
     console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
