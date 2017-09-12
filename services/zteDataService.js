@@ -2127,6 +2127,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                         var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
                         fwData = checksumHex + fwData;
                         mainMessage += fwData;
+                        dataLength = common.recorrectHexString((mainMessage.length / 2).toString(16), 4);
                         break;
                     case "02":
                         break;
@@ -2139,6 +2140,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                         var len = dataPortion.length / 2;
                         verifyData += common.recorrectHexString(len.toString(16), 8);
                         mainMessage += verifyData;
+                        dataLength = common.recorrectHexString((mainMessage.length / 2).toString(16), 4);
                         break;
                 }
             }
