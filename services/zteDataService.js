@@ -2114,7 +2114,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
             if (this.dataTypeMajor == "f0") {
                 switch (this.dataTypeMinor) {
                     case "01":
-                        var fwData = common.recorrectHexString(this.UpdatePackage.fileStartingPosition.toString(16), 8);
+                        var fileStartingPosition = common.recorrectHexString(this.UpdatePackage.fileStartingPosition.toString(16), 8);
                         var buff = fs.readFileSync('./assets/' + this.UpdatePackage.fileName);
                         var dataPortion = buff.toString('hex');
                         var start = this.UpdatePackage.fileStartingPosition;
@@ -2122,12 +2122,18 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                         if (end > dataPortion.length) {
                             end = dataPortion.length;
                         }
-                        fwData += dataPortion.substring(start, end);
+                        var fwData = dataPortion.substring(start, end);
+                        console.log('fileStartingPosition : ' + fileStartingPosition);
+                        console.log('fwData : ' + fwData);
                         var checksumBuffer = Buffer.from(fwData, "hex");
                         var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
-                        fwData = checksumHex + fwData;
+                        fwData = checksumHex + fileStartingPosition + fwData;
                         mainMessage += fwData;
                         dataLength = common.recorrectHexString((mainMessage.length / 2).toString(16), 4);
+
+                        console.log('fwDataFull : ' + fwData);
+                        console.log('fwDataLength : ' + fwData.length);
+                        console.log('messageLength : ' + mainMessage.length);
                         break;
                     case "02":
                         break;
