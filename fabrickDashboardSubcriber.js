@@ -80,7 +80,29 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
                         console.log(r.insertedCount + " record has been saved to mongodb");
 
-                        db.close();
+                        if (json_object.extId == "05000159") {
+                            var cloned_json_object = JSON.parse(JSON.stringify(json_object));
+                            cloned_json_object.extId = "05000153";
+                            var clonedData = {
+                                "extId": "05000153",
+                                "rawData": "cloned_from_05000159",
+                                "data": cloned_json_object,
+                                "receivedDate": receivedDateText,
+                                "status": "New"
+                            }
+
+                            db.collection('GatewayData').insertOne(clonedData, function(err, r) {
+                                if (err) {
+                                    console.log("Error when write to mongodb: " + err);
+                                }
+
+                                console.log(r.insertedCount + " cloned record has been saved to mongodb");
+
+                                db.close();
+                            });
+                        } else {
+                            db.close();
+                        }
                     });
                 });
             }
