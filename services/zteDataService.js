@@ -2115,7 +2115,7 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                 switch (this.dataTypeMinor) {
                     case "01":
                         var fwData = common.recorrectHexString(this.UpdatePackage.fileStartingPosition.toString(16), 8);
-                        var buff = fs.readFileSync('./assets/MCU_' + this.UpdatePackage.fileName);
+                        var buff = fs.readFileSync('./assets/' + this.UpdatePackage.fileName);
                         var dataPortion = buff.toString('hex');
                         var start = this.UpdatePackage.fileStartingPosition;
                         var end = start + this.UpdatePackage.requestLengthInBytes * 2;
@@ -2132,10 +2132,10 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                     case "02":
                         break;
                     case "03":
-                        var fileNameData = common.hex_from_chars('MCU_' + this.VerifyPackage.fileName);
+                        var fileNameData = common.hex_from_chars(this.VerifyPackage.fileName);
                         var fileNameDataLength = common.recorrectHexString((fileNameData.length / 2).toString(16), 2);
                         var verifyData = fileNameDataLength + fileNameData;
-                        var buff = fs.readFileSync('./assets/MCU_' + this.VerifyPackage.fileName);
+                        var buff = fs.readFileSync('./assets/' + this.VerifyPackage.fileName);
                         var dataPortion = buff.toString('hex');
                         var len = dataPortion.length / 2;
                         verifyData += common.recorrectHexString(len.toString(16), 8);
