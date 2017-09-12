@@ -2117,23 +2117,31 @@ ZTEDataService.prototype.generateReply = function(hexData) {
                         var fileStartingPosition = common.recorrectHexString(this.UpdatePackage.fileStartingPosition.toString(16), 8);
                         var buff = fs.readFileSync('./assets/' + this.UpdatePackage.fileName);
                         var dataPortion = buff.toString('hex');
-                        var start = this.UpdatePackage.fileStartingPosition;
+                        var start = this.UpdatePackage.fileStartingPosition * 2;
                         var end = start + this.UpdatePackage.requestLengthInBytes * 2;
                         if (end > dataPortion.length) {
                             end = dataPortion.length;
                         }
                         var fwData = dataPortion.substring(start, end);
-                        console.log('fileStartingPosition : ' + fileStartingPosition);
-                        console.log('fwData : ' + fwData);
+                        var len = fwData.length / 2;
+                        var paddingBytes = 4 - (len - (Math.floor(len / 4) * 4));
+                        console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+                        console.log('paddingBytes needed: ' + paddingBytes);
+                        // for (var i = 0; i < paddingBytes; i++) {
+                        //     fwData += "ff";
+                        // }
+                        console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+                        // console.log('fileStartingPosition : ' + fileStartingPosition);
+                        // console.log('fwData : ' + fwData);
                         var checksumBuffer = Buffer.from(fwData, "hex");
                         var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
                         fwData = checksumHex + fileStartingPosition + fwData;
                         mainMessage += fwData;
                         dataLength = common.recorrectHexString((mainMessage.length / 2).toString(16), 4);
 
-                        console.log('fwDataFull : ' + fwData);
-                        console.log('fwDataLength : ' + fwData.length);
-                        console.log('messageLength : ' + mainMessage.length);
+                        // console.log('fwDataFull : ' + fwData);
+                        // console.log('fwDataLength : ' + fwData.length);
+                        // console.log('messageLength : ' + mainMessage.length);
                         break;
                     case "02":
                         break;
@@ -2198,17 +2206,17 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     var messageLengthHex = common.recorrectHexString(messageLength.toString(16), 4);
 
     var checksum = messageLengthHex + ivHex + deviceId + randomNoiseHex + frameType + frameId + dataLength + mainMessage;
-    console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
-    console.log('messageLengthHex : ' + messageLengthHex);
-    console.log('ivHex : ' + ivHex);
-    console.log('deviceId : ' + deviceId);
-    console.log('randomNoiseHex : ' + randomNoiseHex);
-    console.log('frameType : ' + frameType);
-    console.log('frameId : ' + frameId);
-    console.log('dataLength : ' + dataLength);
-    console.log('mainMessage : ' + mainMessage);
-    console.log('checksum : ' + checksum);
-    console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+    // console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
+    // console.log('messageLengthHex : ' + messageLengthHex);
+    // console.log('ivHex : ' + ivHex);
+    // console.log('deviceId : ' + deviceId);
+    // console.log('randomNoiseHex : ' + randomNoiseHex);
+    // console.log('frameType : ' + frameType);
+    // console.log('frameId : ' + frameId);
+    // console.log('dataLength : ' + dataLength);
+    // console.log('mainMessage : ' + mainMessage);
+    // console.log('checksum : ' + checksum);
+    // console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
     var checksumBuffer = Buffer.from(checksum, "hex");
     var checksumHex = common.recorrectHexString(adler32.sum(checksumBuffer).toString(16), 8);
     tobeEncrypted += checksumHex;
