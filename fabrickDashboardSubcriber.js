@@ -62,6 +62,9 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 "receivedDate": receivedDateText,
                 "status": "New"
             }
+            console.log('Message received on Dashboard service');
+            console.log(data);
+            console.log("-----------------------------------");
             if (json_object.extId == "zigbee-ColorBulb-39009-000193" || json_object.extId == "zigbee-Door-11624-000193") {
                 var buf = Buffer.from(JSON.stringify(data), 'base64');
                 var cmd = 'php ' + config.artisanURL + ' device ' + buf.toString('base64');
