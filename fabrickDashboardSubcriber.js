@@ -47,12 +47,14 @@ fabrick_Broker.onOffline(() => {
 });
 fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
     var json_object = JSON.parse(message);
+    var common = new Common();
 
     switch (topic) {
         case 'client/fabrick.io/device/data':
 
             var receivedDate = new Date(json_object.receivedDate);
-            var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
+            // var receivedDateText = receivedDate.getUTCFullYear() + "-" + (receivedDate.getUTCMonth() + 1) + "-" + receivedDate.getUTCDate() + " " + receivedDate.getUTCHours() + ":" + receivedDate.getUTCMinutes() + ":" + receivedDate.getUTCSeconds();
+            var receivedDateText = common.dateToUTCText(receivedDate);
             var data = {
                 "extId": json_object.extId,
                 "rawData": json_object.rawData,
