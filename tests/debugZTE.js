@@ -8,6 +8,9 @@ const fs = require('fs');
 var CRC32 = require('crc-32');
 var ADLER32 = require('adler-32');
 const adler32 = require('adler32');
+var HI = require('heat-index');
+
+var heatIndex = parseFloat(HI.heatIndex({temperature: 24, humidity: 35})).toFixed(2);
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
