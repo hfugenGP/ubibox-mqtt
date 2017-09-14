@@ -1,6 +1,7 @@
 "use strict";
 
 const Common = require('../lib/common');
+var HI = require('heat-index');
 
 var giotService = function() {};
 
@@ -20,6 +21,8 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
             data["humidity"] = [humidity, '%RH', common.getDataStatus("humidity", humidity)];
+            var heatIndex = HI.heatIndex({temperature: temperature, humidity: humidity});
+            data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             switch (data["deviceType"][0]) {
                 case '01':
@@ -260,6 +263,9 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                 soilElectricalValue += adjustmentValue[4];
             }
 
+            var heatIndex = HI.heatIndex({temperature: airTemperatureValue, humidity: airHumidityValue});
+            data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
+
             data['ph'] = [phValue, 'pH'];
             data['soilElectrical'] = [soilElectricalValue, 'us/cm'];
             data['airTemperature'] = [airTemperatureValue, '°C'];
@@ -369,6 +375,12 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                 start = end;
                 end += 2;
             }
+
+            if(data["temperature"] && data["humidity"]){
+                var heatIndex = HI.heatIndex({temperature: data["temperature"], humidity: data["humidity"]});
+                data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
+            }
+
             break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
