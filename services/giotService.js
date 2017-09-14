@@ -21,7 +21,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
             data["humidity"] = [humidity, '%RH', common.getDataStatus("humidity", humidity)];
-            var heatIndex = HI.heatIndex({temperature: temperature, humidity: humidity});
+            var heatIndex = parseFloat(HI.heatIndex({temperature: temperature, humidity: humidity})).toFixed(2);
             data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             switch (data["deviceType"][0]) {
@@ -263,7 +263,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                 soilElectricalValue += adjustmentValue[4];
             }
 
-            var heatIndex = HI.heatIndex({temperature: airTemperatureValue, humidity: airHumidityValue});
+            var heatIndex = parseFloat(HI.heatIndex({temperature: airTemperatureValue, humidity: airHumidityValue})).toFixed(2);
             data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             data['ph'] = [phValue, 'pH'];
@@ -377,7 +377,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             }
 
             if(data["temperature"] && data["humidity"]){
-                var heatIndex = HI.heatIndex({temperature: data["temperature"], humidity: data["humidity"]});
+                var heatIndex = parseFloat(HI.heatIndex({temperature: data["temperature"], humidity: data["humidity"]})).toFixed(2);
                 data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
             }
 
