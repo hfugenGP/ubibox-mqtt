@@ -1064,6 +1064,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["value"] = historicalData["value"];
                             db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
                         });
+
+                        // Set device as offline since it's sleeping
+                        db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
                     });
 
                     console.log('sleepTime : ' + sleepTime);
