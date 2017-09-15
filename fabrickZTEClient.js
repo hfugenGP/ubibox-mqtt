@@ -61,6 +61,11 @@ function handleDeviceConnetion(sock) {
         //     deviceListLock.unlock();
         // });
 
+        var receivedDateText = common.dateToUTCText(new Date());
+        MongoClient.connect(url, function(err, db) {
+            db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
+        });
+
         if (!zteDataService.processData(hexData, subcribedDevices)) {
             console.log('Fail to process data, return now without callback...');
             return;
@@ -120,22 +125,38 @@ function handleDeviceConnetion(sock) {
     // Add a 'close' event handler to this instance of socket
     sock.on('close', function(data) {
         console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
-        // deviceListLock.writeLock(function() {
-        //     console.log('Device List writeLock');
-        connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-        //     console.log('Device List writeLock');
-        //     deviceListLock.unlock();
-        // });
+        var deviceId = deviceAddress[sock.remoteAddress + ':' + sock.remotePort];
+        if(deviceId)
+        {
+            var receivedDateText = common.dateToUTCText(new Date());
+            // deviceListLock.writeLock(function() {
+            //     console.log('Device List writeLock');
+            connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
+            //     console.log('Device List writeLock');
+            //     deviceListLock.unlock();F
+            // });
+            MongoClient.connect(url, function(err, db) {
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+            });
+        }
     });
 
     sock.on('error', function(data) {
         console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
-        // deviceListLock.writeLock(function() {
-        //     console.log('Device List writeLock');
-        connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-        //     console.log('Device List writeLock');
-        //     deviceListLock.unlock();
-        // });
+        var deviceId = deviceAddress[sock.remoteAddress + ':' + sock.remotePort];
+        if(deviceId)
+        {
+            var receivedDateText = common.dateToUTCText(new Date());
+            // deviceListLock.writeLock(function() {
+            //     console.log('Device List writeLock');
+            connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
+            //     console.log('Device List writeLock');
+            //     deviceListLock.unlock();F
+            // });
+            MongoClient.connect(url, function(err, db) {
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+            });
+        }
     });
 };
 
@@ -224,9 +245,14 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             while (subcribedDevices.length) {
                 subcribedDevices.pop();
             }
-            data.forEach(function(element) {
-                subcribedDevices['ID-' + element['device_id'].toLowerCase()] = element['encryption_key'];
+            MongoClient.connect(url, function(err, db) {
+                data.forEach(function(element) {
+                    var deviceId = element['device_id'].toLowerCase();
+                    subcribedDevices['ID-' + deviceId] = element['encryption_key'];
+                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+                });
             });
+            
             console.log(subcribedDevices);
             break;
         default:
