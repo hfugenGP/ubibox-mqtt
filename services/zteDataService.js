@@ -908,8 +908,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(err, speedSetting) {
                             console.log('******************Checking OverSpeed Alert******************');
                             console.log('speed: ' + speed);
-                            console.log('speedSettingValue: ' + speedSetting["value"]);
                             if (speed != "N/A" && speedSetting != null && parseInt(speedSetting["value"]) < speed) {
+                                console.log('speedSettingValue: ' + speedSetting["value"]);
                                 console.log('******************Saving OverSpeed Alert******************');
                                 var alertData = {
                                     "deviceId": deviceId,
