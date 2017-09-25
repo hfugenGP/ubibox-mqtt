@@ -340,6 +340,33 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     console.log('effectiveData : ' + effectiveData);
 
     switch (frameType) {
+        case "11":
+            deviceData["MajorDataTypeId"] = "99";
+            deviceData["MinorDataTypeId"] = "99";
+            var data = {};
+            data["protocolVersion"] = effectiveData.substring(0, 4);
+            data["hardwareVersion"] = effectiveData.substring(0, 4);
+            var lengthOfSoftwareVersionMCU = common.hex2bits(effectiveData.substring(4,5));
+            data["mcuVersion"] = effectiveData.substring(0, 4);
+            var lengthOfSoftwareVersionModem = common.hex2bits(effectiveData.substring(4,5));
+            data["modemVersion"] = effectiveData.substring(0, 4);
+            deviceData["Data"] = data;
+
+            console.log("protocolVersion: " + data["protocolVersion"]);
+            console.log("hardwareVersion: " + data["hardwareVersion"]);
+            console.log("mcuVersion: " + data["mcuVersion"]);
+            console.log("modemVersion: " + data["modemVersion"]);
+
+            // Use connect method to connect to the Server
+            // MongoClient.connect(url, function(err, db) {
+            //     db.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
+            //         if (err) {
+            //             console.log("Error when write to mongodb: " + err);
+            //         }
+            //         // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+            //     });
+            // });
+            break;
         case "03":
             // Handle publish message from devices
             this.dataTypeMajor = effectiveData.substring(0, 2); //41

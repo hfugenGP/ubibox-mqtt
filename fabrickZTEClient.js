@@ -124,6 +124,7 @@ function handleDeviceConnetion(sock) {
 
     // Add a 'close' event handler to this instance of socket
     sock.on('close', function(data) {
+        var common = new Common();
         console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
         var deviceId = deviceAddress[sock.remoteAddress + ':' + sock.remotePort];
         if(deviceId)
@@ -142,6 +143,7 @@ function handleDeviceConnetion(sock) {
     });
 
     sock.on('error', function(data) {
+        var common = new Common();
         console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
         var deviceId = deviceAddress[sock.remoteAddress + ':' + sock.remotePort];
         if(deviceId)
