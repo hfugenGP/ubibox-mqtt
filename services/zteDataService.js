@@ -939,8 +939,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(err, tempSetting) {
                                 console.log('******************Checking Overheat Alert******************');
                                 console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
-                                console.log('tempSettingValue: ' + tempSetting["value"]);
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
+                                    console.log('tempSettingValue: ' + tempSetting["value"]);
                                     console.log('******************Saving Overheat Alert******************');
                                     data["engineCoolantTemperatureStatus"] = "Warning";
                                     var alertData = {
