@@ -33,10 +33,29 @@ var pendingDeviceMessages = {};
 // The sock object the callback function receives UNIQUE for each connection
 function handleDeviceConnetion(sock) {
     // We have a connection - a socket object is assigned to the connection automatically
-    console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
-
+    console.log('#################CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort + '#################');
     // sock.setEncoding("utf8");
-    sock.setNoDelay(true);
+    // sock.setNoDelay(true);
+
+    sock.on('connect', function(data) {
+        console.log('#################SOCK CONNECTED EVENT: ' + sock.remoteAddress + ':' + sock.remotePort + '#################');
+    });
+
+    sock.on('drain', function(data) {
+        console.log('#################SOCK DRAIN EVENT: ' + sock.remoteAddress + ':' + sock.remotePort + '#################');
+    });
+
+    sock.on('lookup', function(data) {
+        console.log('#################SOCK LOOKUP EVENT: ' + sock.remoteAddress + ':' + sock.remotePort + '#################');
+    });
+
+    sock.on('end', function(data) {
+        console.log('#################SOCK END EVENT: ' + sock.remoteAddress + ':' + sock.remotePort + '#################');
+    });
+
+    sock.on('timeout', function(data) {
+        console.log('#################SOCK TIMEOUT EVENT: ' + sock.remoteAddress + ':' + sock.remotePort + '#################');
+    });
 
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
@@ -87,7 +106,7 @@ function handleDeviceConnetion(sock) {
         // Write the data back to the socket, the client will receive it as data from the server
         sock.write(buffer, function(err) {
             if (err) {
-                console.log('Sock write error : ' + err);
+                console.log('#################Sock write error : ' + err + '#################');
                 console.log('*****************************************************************');
             }
         });
@@ -110,7 +129,7 @@ function handleDeviceConnetion(sock) {
                     // Write the data back to the socket, the client will receive it as data from the server
                     sock.write(buffer, function(err) {
                         if (err) {
-                            console.log('Sock write error : ' + err);
+                            console.log('#################Sock write error : ' + err + '#################');
                             console.log('*****************************************************************');
                         }
                     });
@@ -125,7 +144,7 @@ function handleDeviceConnetion(sock) {
     // Add a 'close' event handler to this instance of socket
     sock.on('close', function(data) {
         var common = new Common();
-        console.log('CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort);
+        console.log('#################CLOSED: ' + sock.remoteAddress + ' ' + sock.remotePort + '#################');
         var deviceId = deviceAddress[sock.remoteAddress + ':' + sock.remotePort];
         if(deviceId)
         {
@@ -144,7 +163,7 @@ function handleDeviceConnetion(sock) {
 
     sock.on('error', function(data) {
         var common = new Common();
-        console.log('ERROR: ' + sock.remoteAddress + ' ' + data);
+        console.log('#################ERROR: ' + sock.remoteAddress + ' ' + data + '#################');
         var deviceId = deviceAddress[sock.remoteAddress + ':' + sock.remotePort];
         if(deviceId)
         {
@@ -163,7 +182,7 @@ function handleDeviceConnetion(sock) {
 };
 
 net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
-    console.log('Server listening on ' + ':' + config.zte.PORT);
+    console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
 });
 
 var zteDataSenderService = new ZTEDataService();

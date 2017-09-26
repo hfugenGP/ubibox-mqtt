@@ -20,9 +20,9 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
-var ZTEDataService = function() {};
+var ZTEDataService = function () { };
 
-ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, deviceId, frameId, requestType, params) {
+ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
 
     if (!subcribedDevices["ID-" + deviceId]) {
@@ -53,7 +53,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "02":
             //Set parameters
-            Object.keys(params).forEach(function(key, value) {
+            Object.keys(params).forEach(function (key, value) {
                 if (key == "0x02080000" ||
                     key == "0x02090000" ||
                     key == "0x020a0000" ||
@@ -188,13 +188,13 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "03":
             //Inquire parameters
-            Object.keys(params).forEach(function(key, value) {
+            Object.keys(params).forEach(function (key, value) {
                 mainMessage += key.substring(2, key.length);
             });
             break;
         case "04":
             //Inquiry log
-            Object.keys(params).forEach(function(key, value) {
+            Object.keys(params).forEach(function (key, value) {
                 mainMessage += key.substring(2, key.length);
             });
             break;
@@ -203,7 +203,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
             break;
         case "06":
             //Set vehicle information
-            Object.keys(params).forEach(function(key, value) {
+            Object.keys(params).forEach(function (key, value) {
                 switch (key) {
                     case "vin":
                         mainMessage += common.chars_from_hex(params[key]);
@@ -248,7 +248,7 @@ ZTEDataService.prototype.generateMessageToDevice = function(subcribedDevices, de
     return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey);
 }
 
-ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
+ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     var common = new Common();
     var simpleCrypto = new SimpleCrypto();
 
@@ -308,8 +308,8 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
     };
 
     // Use connect method to connect to the Server
-    MongoClient.connect(url, function(err, db) {
-        db.collection('DeviceMessageLogsDebug').insertOne(deviceData, function(err, r) {
+    MongoClient.connect(url, function (err, db) {
+        db.collection('DeviceMessageLogsDebug').insertOne(deviceData, function (err, r) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
@@ -344,12 +344,26 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             deviceData["MajorDataTypeId"] = "99";
             deviceData["MinorDataTypeId"] = "99";
             var data = {};
-            data["protocolVersion"] = effectiveData.substring(0, 4);
-            data["hardwareVersion"] = effectiveData.substring(0, 4);
-            var lengthOfSoftwareVersionMCU = common.hex2bits(effectiveData.substring(4,5));
-            data["mcuVersion"] = effectiveData.substring(0, 4);
-            var lengthOfSoftwareVersionModem = common.hex2bits(effectiveData.substring(4,5));
+            var protocolVersionData = common.hex2bits(effectiveData.substring(0, 4));
+            //0040 = 0000 0000 0100 0000 = 0.1.0
+            data["protocolVersion"] = parseInt(protocolVersionData.substring(0, 4), 2) + "." + parseInt(protocolVersionData.substring(4, 10), 2) + "." + parseInt(protocolVersionData.substring(10, 16), 2);
+
+            var hardwareVersionData = common.hex2bits(effectiveData.substring(4, 8));
+            //1040 = 0001 0000 0100 0000 = V1.1.0
+            data["hardwareVersion"] = "V" + parseInt(protocolVersionData.substring(0, 4), 2) + "." + parseInt(protocolVersionData.substring(4, 10), 2) + "." + parseInt(protocolVersionData.substring(10, 16), 2);
+
+            var lengthOfSoftwareVersionMCU = parseInt(common.hex2bits(effectiveData.substring(8, 10)).substring(2, 8), 2);
+            var start = 10;
+            var end = start + lengthOfSoftwareVersionMCU * 2;
+            data["mcuVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
+
+            start = end;
+            end += 2;
+            var lengthOfSoftwareVersionModem = parseInt(common.hex2bits(effectiveData.substring(start, end)).substring(2, 8), 2);
+            start = end;
+            end += lengthOfSoftwareVersionModem * 2;
             data["modemVersion"] = effectiveData.substring(0, 4);
+            
             deviceData["Data"] = data;
 
             console.log("protocolVersion: " + data["protocolVersion"]);
@@ -358,14 +372,15 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             console.log("modemVersion: " + data["modemVersion"]);
 
             // Use connect method to connect to the Server
-            // MongoClient.connect(url, function(err, db) {
-            //     db.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
-            //         if (err) {
-            //             console.log("Error when write to mongodb: " + err);
-            //         }
-            //         // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-            //     });
-            // });
+            MongoClient.connect(url, function (err, db) {
+                db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
+                    if (err) {
+                        console.log("Error when write to mongodb: " + err);
+                    }
+                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { protocolVersion: data["protocolVersion"], hardwareVersion: data["hardwareVersion"], mcuVersion: data["mcuVersion"], modemVersion: data["modemVersion"] } }, { upsert: true });
+                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                });
+            });
             break;
         case "03":
             // Handle publish message from devices
@@ -377,8 +392,8 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             deviceData["Data"] = publishMessageHandle(this, deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
-            MongoClient.connect(url, function(err, db) {
-                db.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
+            MongoClient.connect(url, function (err, db) {
+                db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
@@ -398,8 +413,8 @@ ZTEDataService.prototype.processData = function(hexData, subcribedDevices) {
             deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, majorType, minorType);
 
             // Use connect method to connect to the Server
-            MongoClient.connect(url, function(err, db) {
-                db.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
+            MongoClient.connect(url, function (err, db) {
+                db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
@@ -466,11 +481,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var tripData = {};
                     tripData["deviceId"] = deviceId;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
                             tripData["ignitionOnTime"] = ignitionOnTime;
                             tripData["gpsWhenIgnitionOn"] = insertedId;
-                            insert(db, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
+                            insert(db, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
                                 tripData["ignitionOffTime"] = ignitionOffTime;
                                 tripData["gpsWhenIgnitionOff"] = insertedId;
                                 tripData["drivingDistance"] = drivingDistance;
@@ -484,14 +499,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 tripData["totalMileage"] = totalMileage;
                                 tripData["totalFuelConsumption"] = totalFuelConsumption;
                                 tripData["totalDrivingTime"] = totalDrivingTime;
-                                insert(db, 'Trips', tripData, function(insertedId) {
+                                insert(db, 'Trips', tripData, function (insertedId) {
                                     db.collection('GPSData').updateMany({ deviceId: deviceId, gpsType: "routing", tripId: null }, { $set: { tripId: insertedId } }, {
                                         upsert: true,
                                         multi: true
                                     });
 
                                     var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
-                                    exec(cmd, function(error, stdout, stderr) {
+                                    exec(cmd, function (error, stdout, stderr) {
                                         if (error) console.log(error);
                                         if (stdout) console.log(stdout);
                                         if (stderr) console.log(stderr);
@@ -539,8 +554,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "informationOfDTC": informationOfDTC
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -575,8 +590,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "informationOfDTC": informationOfDTC
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -611,8 +626,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["speedAfterAcc"] = speedAfterAcc;
                     data["accValue"] = accValue;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -626,9 +641,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "speedAfterAcc": speedAfterAcc,
                                 "accValue": accValue
                             }
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -660,8 +675,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["speedAfterDec"] = speedAfterDec;
                     data["decValue"] = decValue;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -675,9 +690,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "speedAfterDec": speedAfterDec,
                                 "decValue": decValue
                             }
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -705,8 +720,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["turn"] = turn;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -718,9 +733,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "turn": turn
                             }
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -750,9 +765,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function(insertedId) {
+                    insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        exec(cmd, function(error, stdout, stderr) {
+                        exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
                             if (stderr) console.log(stderr);
@@ -777,9 +792,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function(insertedId) {
+                    insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        exec(cmd, function(error, stdout, stderr) {
+                        exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
                             if (stderr) console.log(stderr);
@@ -811,7 +826,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                 i++;
             }
             if (gps.length > 0) {
-                insertMany('GPSData', gps, function(insertedIds) {
+                insertMany('GPSData', gps, function (insertedIds) {
                     var client = redis.createClient();
                     client.publish("zteGPSData", JSON.stringify({
                         "deviceId": deviceId
@@ -845,8 +860,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "vinValue": vinValue
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -904,8 +919,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     // "Warning. Weak Battery. Please check.". Voltage <10.2 will also trigger the warning icon in app car status page for lowest voltage.
                     // High temperature (>115C) will trigger over_heat alert with message
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
-                    MongoClient.connect(url, function(err, db) {
-                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function(err, speedSetting) {
+                    MongoClient.connect(url, function (err, db) {
+                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function (err, speedSetting) {
                             console.log('******************Checking OverSpeed Alert******************');
                             console.log('speed: ' + speed);
                             if (speed != "N/A" && speedSetting != null && parseInt(speedSetting["value"]) < speed) {
@@ -926,9 +941,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "customMessage": "You have exceed the speed limit of " + speedSetting["value"] + "km/h"
                                     }
                                 }
-                                insert(db, "Alert", alertData, function(insertedId) {
+                                insert(db, "Alert", alertData, function (insertedId) {
                                     var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                    exec(cmd, function(error, stdout, stderr) {
+                                    exec(cmd, function (error, stdout, stderr) {
                                         if (error) console.log(error);
                                         if (stdout) console.log(stdout);
                                         if (stderr) console.log(stderr);
@@ -936,7 +951,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 });
                             }
 
-                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function(err, tempSetting) {
+                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function (err, tempSetting) {
                                 console.log('******************Checking Overheat Alert******************');
                                 console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
@@ -956,9 +971,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                             "heatLimit": parseInt(tempSetting["value"])
                                         }
                                     }
-                                    insert(db, "Alert", alertData, function(insertedId) {
+                                    insert(db, "Alert", alertData, function (insertedId) {
                                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                        exec(cmd, function(error, stdout, stderr) {
+                                        exec(cmd, function (error, stdout, stderr) {
                                             if (error) console.log(error);
                                             if (stdout) console.log(stdout);
                                             if (stderr) console.log(stderr);
@@ -967,7 +982,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 }
 
                                 console.log('******************Saving Vehicle Status******************');
-                                insert(db, "VehicleHistoricalStatus", data, function(insertedId) {
+                                insert(db, "VehicleHistoricalStatus", data, function (insertedId) {
                                     var vehicleData = {};
                                     vehicleData["deviceId"] = deviceId;
                                     vehicleData["reportTime"] = reportTime;
@@ -1052,9 +1067,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["status"] = "Pending";
                     alertData["readStatus"] = "Unread";
                     alertData["value"] = { "failureCode": failureCode }
-                    insertOne("Alert", alertData, function(insertedId) {
+                    insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        exec(cmd, function(error, stdout, stderr) {
+                        exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
                             if (stderr) console.log(stderr);
@@ -1082,8 +1097,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "failureCode": failureCode
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1120,8 +1135,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "wakeUpType": wakeUpType
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1145,8 +1160,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["timeNoLocation"] = timeNoLocation;
                     data["gpsPosition"] = gpsPosition;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -1156,9 +1171,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {}
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -1192,8 +1207,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "typeOfPowerOn": typeOfPowerOn
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1225,8 +1240,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "upgradeState": upgradeState
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1255,8 +1270,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "acceleratorCalibrationStatus": acceleratorCalibrationStatus
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1269,47 +1284,47 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     console.log('acceleratorCalibrationStatus : ' + acceleratorCalibrationStatus);
                     console.log('*********************End calibration*********************');
                     break;
-                    // case "08":
-                    //     //Upgrade status of Modem FOTA
-                    //     console.log('*********************Start status of Modem FOTA*********************');
-                    //     var statusIndication = effectiveData.substring(4, 6);
-                    //     var softwareVersion = effectiveData.substring(6);
+                // case "08":
+                //     //Upgrade status of Modem FOTA
+                //     console.log('*********************Start status of Modem FOTA*********************');
+                //     var statusIndication = effectiveData.substring(4, 6);
+                //     var softwareVersion = effectiveData.substring(6);
 
-                    //     data["statusIndication"] = statusIndication;
-                    //     data["softwareVersion"] = softwareVersion;
+                //     data["statusIndication"] = statusIndication;
+                //     data["softwareVersion"] = softwareVersion;
 
-                    //     console.log('statusIndication : ' + statusIndication);
-                    //     console.log('softwareVersion : ' + softwareVersion);
-                    //     console.log('*********************End status of Modem FOTA*********************');
-                    //     break;
-                    // case "09":
-                    //     //Modem reset to factory configuration
-                    //     console.log('*********************Start Modem reset*********************');
-                    //     var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
-                    //     var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
-                    //     var wifiSSID = common.chars_from_hex(effectiveData.substring(6, wifiSSIDEndPosition));
+                //     console.log('statusIndication : ' + statusIndication);
+                //     console.log('softwareVersion : ' + softwareVersion);
+                //     console.log('*********************End status of Modem FOTA*********************');
+                //     break;
+                // case "09":
+                //     //Modem reset to factory configuration
+                //     console.log('*********************Start Modem reset*********************');
+                //     var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
+                //     var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
+                //     var wifiSSID = common.chars_from_hex(effectiveData.substring(6, wifiSSIDEndPosition));
 
-                    //     var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
-                    //     var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
-                    //     var wifiPassword = common.chars_from_hex(effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition));
+                //     var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
+                //     var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
+                //     var wifiPassword = common.chars_from_hex(effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition));
 
-                    //     var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
+                //     var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
 
-                    //     var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
-                    //     var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
-                    //     var wifiAPN = common.chars_from_hex(effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition));
+                //     var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
+                //     var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
+                //     var wifiAPN = common.chars_from_hex(effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition));
 
-                    //     data["wifiSSID"] = wifiSSID;
-                    //     data["wifiPassword"] = wifiPassword;
-                    //     data["wifiOpenState"] = wifiOpenState;
-                    //     data["wifiAPN"] = wifiAPN;
+                //     data["wifiSSID"] = wifiSSID;
+                //     data["wifiPassword"] = wifiPassword;
+                //     data["wifiOpenState"] = wifiOpenState;
+                //     data["wifiAPN"] = wifiAPN;
 
-                    //     console.log('wifiSSID : ' + wifiSSID);
-                    //     console.log('wifiPassword : ' + wifiPassword);
-                    //     console.log('wifiOpenState : ' + wifiOpenState);
-                    //     console.log('wifiAPN : ' + wifiAPN);
-                    //     console.log('*********************End Modem reset*********************');
-                    //     break;
+                //     console.log('wifiSSID : ' + wifiSSID);
+                //     console.log('wifiPassword : ' + wifiPassword);
+                //     console.log('wifiOpenState : ' + wifiOpenState);
+                //     console.log('wifiAPN : ' + wifiAPN);
+                //     console.log('*********************End Modem reset*********************');
+                //     break;
                 case "0c":
                     //Device Info
                     console.log('*********************Start Device Info*********************');
@@ -1375,8 +1390,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "btMac": btMac
                     };
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, "DeviceHistoricalData", historicalData, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1470,10 +1485,10 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         }
                     }
                     if (alerts.count > 0) {
-                        insertMany("Alert", alerts, function(insertedIds) {
-                            insertedIds.forEach(function(insertedId) {
+                        insertMany("Alert", alerts, function (insertedIds) {
+                            insertedIds.forEach(function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -1495,8 +1510,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["batteryVolt"] = batteryVolt;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -1508,9 +1523,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "batteryVolt": batteryVolt
                             }
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -1536,8 +1551,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["peekValue"] = peekValue;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -1549,9 +1564,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "peekValue": peekValue
                             }
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -1581,8 +1596,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["collisionValue"] = collisionValue;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -1594,9 +1609,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {
                                 "collisionValue": collisionValue
                             }
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -1623,8 +1638,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
 
-                    MongoClient.connect(url, function(err, db) {
-                        insert(db, 'GPSData', gpsPosition, function(insertedId) {
+                    MongoClient.connect(url, function (err, db) {
+                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -1634,9 +1649,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {}
-                            insert(db, "Alert", alertData, function(insertedId) {
+                            insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                exec(cmd, function(error, stdout, stderr) {
+                                exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -1845,10 +1860,10 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             }
 
             if (alerts.count > 0) {
-                insertMany("Alert", alerts, function(insertedIds) {
-                    insertedIds.forEach(function(insertedId) {
+                insertMany("Alert", alerts, function (insertedIds) {
+                    insertedIds.forEach(function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        exec(cmd, function(error, stdout, stderr) {
+                        exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
                             if (stderr) console.log(stderr);
@@ -1875,7 +1890,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             }
 
             var cmd = 'php ' + config.zte.artisanURL + ' configuration:device-update-status ' + deviceId + ' ' + frameId + ' ' + result;
-            exec(cmd, function(error, stdout, stderr) {
+            exec(cmd, function (error, stdout, stderr) {
                 if (error) console.log(error);
                 if (stdout) console.log(stdout);
                 if (stderr) console.log(stderr);
@@ -1890,7 +1905,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             var start = 4;
             var end = 8;
             var eom = false;
-            MongoClient.connect(url, function(err, db) {
+            MongoClient.connect(url, function (err, db) {
                 while (!eom) {
                     var paramNo = effectiveData.substring(start, end);
                     paramNo = "0x" + paramNo + "0000";
@@ -2108,7 +2123,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
     return data;
 }
 
-ZTEDataService.prototype.generateReply = function(hexData) {
+ZTEDataService.prototype.generateReply = function (hexData) {
     var common = new Common();
     var deviceId = hexData.substring(24, 54);
     var frameType = this.decryptedHex.substring(16, 18);
@@ -2328,8 +2343,8 @@ function formatDrivingDistance(drivingDistance) {
 }
 
 function insertMany(collection, data, callback) {
-    MongoClient.connect(url, function(connectionErr, db) {
-        db.collection(collection).insertMany(data, function(err, result) {
+    MongoClient.connect(url, function (connectionErr, db) {
+        db.collection(collection).insertMany(data, function (err, result) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
@@ -2340,8 +2355,8 @@ function insertMany(collection, data, callback) {
 }
 
 function insertOne(collection, data, callback) {
-    MongoClient.connect(url, function(connectionErr, db) {
-        db.collection(collection).insertOne(data, function(err, result) {
+    MongoClient.connect(url, function (connectionErr, db) {
+        db.collection(collection).insertOne(data, function (err, result) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
             }
@@ -2352,7 +2367,7 @@ function insertOne(collection, data, callback) {
 }
 
 function insert(db, collection, data, callback) {
-    db.collection(collection).insertOne(data, function(err, result) {
+    db.collection(collection).insertOne(data, function (err, result) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
