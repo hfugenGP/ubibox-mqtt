@@ -362,7 +362,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
             var lengthOfSoftwareVersionModem = parseInt(common.hex2bits(effectiveData.substring(start, end)).substring(2, 8), 2);
             start = end;
             end += lengthOfSoftwareVersionModem * 2;
-            data["modemVersion"] = effectiveData.substring(start, end);
+            data["modemVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
 
             deviceData["Data"] = data;
 
