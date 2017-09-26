@@ -3,9 +3,9 @@
 const Common = require('../lib/common');
 var HI = require('heat-index');
 
-var giotService = function() {};
+var giotService = function () { };
 
-giotService.prototype.generateMessage = function(subcribeDevices, macAddr, receivedDate, rawData) {
+giotService.prototype.generateMessage = function (subcribeDevices, macAddr, receivedDate, rawData) {
     var message = { "extId": macAddr };
     message["rawData"] = rawData;
     message["receivedDate"] = new Date();
@@ -21,7 +21,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
             data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
             data["humidity"] = [humidity, '%RH', common.getDataStatus("humidity", humidity)];
-            var heatIndex = parseFloat(HI.heatIndex({temperature: temperature, humidity: humidity})).toFixed(2);
+            var heatIndex = parseFloat(HI.heatIndex({ temperature: temperature, humidity: humidity })).toFixed(2);
             data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             switch (data["deviceType"][0]) {
@@ -263,7 +263,7 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                 soilElectricalValue += adjustmentValue[4];
             }
 
-            var heatIndex = parseFloat(HI.heatIndex({temperature: airTemperatureValue, humidity: airHumidityValue})).toFixed(2);
+            var heatIndex = parseFloat(HI.heatIndex({ temperature: airTemperatureValue, humidity: airHumidityValue })).toFixed(2);
             data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             data['ph'] = [phValue, 'pH'];
@@ -376,11 +376,145 @@ giotService.prototype.generateMessage = function(subcribeDevices, macAddr, recei
                 end += 2;
             }
 
-            if(data["temperature"] && data["humidity"]){
-                var heatIndex = parseFloat(HI.heatIndex({temperature: data["temperature"], humidity: data["humidity"]})).toFixed(2);
+            if (data["temperature"] && data["humidity"]) {
+                var heatIndex = parseFloat(HI.heatIndex({ temperature: data["temperature"], humidity: data["humidity"] })).toFixed(2);
                 data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
             }
 
+            break;
+        case 19: // Sensor Hub (Agriculture)
+            // var deviceId = parseInt(rawData.substring(0, 2), 16);
+            var frameCount = parseInt(rawData.substring(2, 4), 16);
+            var start = 4;
+            var end = 6;
+            while (frameCount > 0) {
+                var dataChannel = rawData.substring(start, end);
+                start = end;
+                end += 2;
+                var dataType = rawData.substring(start, end);
+
+                switch (dataType) {
+                    case "7f":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data["soilEC"] = [parseInt(value, 16) / 100, "us/cm"];
+                        break;
+                    case "c9":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data["soilMoisture"] = [parseInt(value, 16) / 100, "us/cm"];
+                        break;
+                    case "7e":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data["ph"] = [parseInt(value, 16) / 10];
+                        break;
+                    case "67":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['temperature'] = [parseInt(value, 16) / 10, '°C'];
+                        break;
+                    case "68":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['humidity'] = [parseInt(value, 16) / 10, '%'];
+                        break;
+                    case "74":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
+                        break;
+                }
+
+                frameCount--;
+                start = end;
+                end += 2;
+            }
+        case 20: // Sensor Hub (Aquaculture)
+            // var deviceId = parseInt(rawData.substring(0, 2), 16);
+            var frameCount = parseInt(rawData.substring(2, 4), 16);
+            var start = 4;
+            var end = 6;
+            while (frameCount > 0) {
+                var dataChannel = rawData.substring(start, end);
+                start = end;
+                end += 2;
+                var dataType = rawData.substring(start, end);
+
+                switch (dataType) {
+                    case "77":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['waterLevel'] = [parseInt(value, 16) / 100, 'm'];
+                        break;
+                    case "67":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['temperature'] = [parseInt(value, 16) / 10, '°C'];
+                        break;
+                    case "74":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
+                        break;
+                }
+
+                frameCount--;
+                start = end;
+                end += 2;
+            }
+            break;
+        case 21: //Sensor Hub (Environment)
+            // var deviceId = parseInt(rawData.substring(0, 2), 16);
+            var frameCount = parseInt(rawData.substring(2, 4), 16);
+            var start = 4;
+            var end = 6;
+            while (frameCount > 0) {
+                var dataChannel = rawData.substring(start, end);
+                start = end;
+                end += 2;
+                var dataType = rawData.substring(start, end);
+
+                switch (dataType) {
+                    case "ca":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['waterLevel'] = [parseInt(value, 16) / 100, 'm'];
+                        break;
+                    case "67":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['temperature'] = [parseInt(value, 16) / 10, '°C'];
+                        break;
+                    case "68":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['humidity'] = [parseInt(value, 16) / 10, '%'];
+                        break;
+                    case "74":
+                        start = end;
+                        end += 4;
+                        var value = rawData.substring(start, end);
+                        data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
+                        break;
+                }
+
+                frameCount--;
+                start = end;
+                end += 2;
+            }
             break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
