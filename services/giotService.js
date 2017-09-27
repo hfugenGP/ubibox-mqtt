@@ -365,7 +365,7 @@ function ipsoDataFormat(deviceType, rawData) {
     var frameCount = parseInt(rawData.substring(start, end), 16);
     start = end;
     end += 2;
-    
+
     while (frameCount > 0) {
         var dataChannel = rawData.substring(start, end);
         start = end;
@@ -423,7 +423,7 @@ function ipsoDataFormat(deviceType, rawData) {
                 data["soilMoisture"] = [parseInt(value, 16) / 100, "%"];
                 break;
             case "ca":
-                data['pm25'] = [parseInt(value, 16) / 100, 'ug/m3'];
+                data['pm25'] = [parseInt(value, 16), 'ug/m3'];
                 break;
             case "cb":
                 data['dissolvedOxygen'] = [parseInt(value, 16) / 100, 'mg/l'];
