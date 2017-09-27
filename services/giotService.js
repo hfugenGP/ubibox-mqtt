@@ -352,9 +352,20 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
 function ipsoDataFormat(deviceType, rawData) {
     var data = {};
     // var deviceId = parseInt(rawData.substring(0, 2), 16);
-    var frameCount = parseInt(rawData.substring(2, 4), 16);
-    var start = 4;
-    var end = 6;
+    var start, end;
+
+    if (deviceType == 18) {
+        start = 2;
+        end = 4;
+    } else {
+        start = 8;
+        end = 10;
+    }
+
+    var frameCount = parseInt(rawData.substring(start, end), 16);
+    start = end;
+    end += 2;
+    
     while (frameCount > 0) {
         var dataChannel = rawData.substring(start, end);
         start = end;
