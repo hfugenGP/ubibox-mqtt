@@ -14,7 +14,8 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
     var common = new Common();
 
     var data = {};
-    switch (subcribeDevices['MAC-' + macAddr]) {
+    var deviceType = subcribeDevices['MAC-' + macAddr];
+    switch (deviceType) {
         case 1: //'air_sensor'
             data["deviceType"] = [rawData.substring(0, 2)];
             var temperature = parseInt('0x' + rawData.substring(2, 6)) / 100;
@@ -327,194 +328,16 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
 
             break;
         case 18: // Weather station
-            // var deviceId = parseInt(rawData.substring(0, 2), 16);
-            var frameCount = parseInt(rawData.substring(2, 4), 16);
-            var start = 4;
-            var end = 6;
-            while (frameCount > 0) {
-                var dataChannel = rawData.substring(start, end);
-                start = end;
-                end += 2;
-                var dataType = rawData.substring(start, end);
-                start = end;
-                end += 4;
-                var value = rawData.substring(start, end);
-
-                switch (dataType) {
-                    case "84":
-                        if (dataChannel == "00") {
-                            data['windDirection'] = [parseInt(value, 16), '°'];
-                        } else if (dataChannel == "01") {
-                            data['windSpeedAvg'] = [parseInt(value, 16) / 1000, 'm/s'];
-                        } else if (dataChannel == "02") {
-                            data['windSpeedMax'] = [parseInt(value, 16) / 1000, 'm/s'];
-                        }
-                        break;
-                    case "67":
-                        data["temperature"] = [parseInt(value, 16) / 10, '°C'];
-                        break;
-                    case "77":
-                        if (dataChannel == "00") {
-                            data["rainPerHour"] = [parseInt(value, 16), 'mm'];
-                        } else if (dataChannel == "01") {
-                            data["rainPerDay"] = [parseInt(value, 16), 'mm'];
-                        }
-                        break;
-                    case "68":
-                        data["humidity"] = [parseInt(value, 16) / 10, '%'];
-                        break;
-                    case "73":
-                        data["pressure"] = [parseInt(value, 16), 'hPa'];
-                        break;
-                    case "74":
-                        data["batteryLevel"] = [parseInt(value, 16) / 100, "V"];
-                        break;
-                }
-
-                frameCount--;
-                start = end;
-                end += 2;
-            }
-
-            if (data["temperature"] && data["humidity"]) {
-                var heatIndex = parseFloat(HI.heatIndex({ temperature: data["temperature"], humidity: data["humidity"] })).toFixed(2);
-                data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
-            }
-
+            data = ipsoDataFormat(deviceType, rawData);
             break;
         case 19: // Sensor Hub (Agriculture)
-            // var deviceId = parseInt(rawData.substring(0, 2), 16);
-            var frameCount = parseInt(rawData.substring(2, 4), 16);
-            var start = 4;
-            var end = 6;
-            while (frameCount > 0) {
-                var dataChannel = rawData.substring(start, end);
-                start = end;
-                end += 2;
-                var dataType = rawData.substring(start, end);
-
-                switch (dataType) {
-                    case "7f":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data["soilEC"] = [parseInt(value, 16) / 100, "us/cm"];
-                        break;
-                    case "c9":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data["soilMoisture"] = [parseInt(value, 16) / 100, "us/cm"];
-                        break;
-                    case "7e":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data["ph"] = [parseInt(value, 16) / 10];
-                        break;
-                    case "67":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['temperature'] = [parseInt(value, 16) / 10, '°C'];
-                        break;
-                    case "68":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['humidity'] = [parseInt(value, 16) / 10, '%'];
-                        break;
-                    case "74":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
-                        break;
-                }
-
-                frameCount--;
-                start = end;
-                end += 2;
-            }
+            data = ipsoDataFormat(deviceType, rawData);
+            break;
         case 20: // Sensor Hub (Aquaculture)
-            // var deviceId = parseInt(rawData.substring(0, 2), 16);
-            var frameCount = parseInt(rawData.substring(2, 4), 16);
-            var start = 4;
-            var end = 6;
-            while (frameCount > 0) {
-                var dataChannel = rawData.substring(start, end);
-                start = end;
-                end += 2;
-                var dataType = rawData.substring(start, end);
-
-                switch (dataType) {
-                    case "77":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['waterLevel'] = [parseInt(value, 16) / 100, 'm'];
-                        break;
-                    case "67":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['temperature'] = [parseInt(value, 16) / 10, '°C'];
-                        break;
-                    case "74":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
-                        break;
-                }
-
-                frameCount--;
-                start = end;
-                end += 2;
-            }
+            data = ipsoDataFormat(deviceType, rawData);
             break;
         case 21: //Sensor Hub (Environment)
-            // var deviceId = parseInt(rawData.substring(0, 2), 16);
-            var frameCount = parseInt(rawData.substring(2, 4), 16);
-            var start = 4;
-            var end = 6;
-            while (frameCount > 0) {
-                var dataChannel = rawData.substring(start, end);
-                start = end;
-                end += 2;
-                var dataType = rawData.substring(start, end);
-
-                switch (dataType) {
-                    case "ca":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['waterLevel'] = [parseInt(value, 16) / 100, 'm'];
-                        break;
-                    case "67":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['temperature'] = [parseInt(value, 16) / 10, '°C'];
-                        break;
-                    case "68":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['humidity'] = [parseInt(value, 16) / 10, '%'];
-                        break;
-                    case "74":
-                        start = end;
-                        end += 4;
-                        var value = rawData.substring(start, end);
-                        data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
-                        break;
-                }
-
-                frameCount--;
-                start = end;
-                end += 2;
-            }
+            data = ipsoDataFormat(deviceType, rawData);
             break;
         default:
             console.log('No handler for device on MAC %s', macAddr);
@@ -524,6 +347,89 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
     message["data"] = data;
 
     return message;
+}
+
+function ipsoDataFormat(deviceType, rawData) {
+    var data = {};
+    // var deviceId = parseInt(rawData.substring(0, 2), 16);
+    var frameCount = parseInt(rawData.substring(2, 4), 16);
+    var start = 4;
+    var end = 6;
+    while (frameCount > 0) {
+        var dataChannel = rawData.substring(start, end);
+        start = end;
+        end += 2;
+        var dataType = rawData.substring(start, end);
+
+        //Now, everything is 2 bytes, so data lenght will be here
+        start = end;
+        end += 4;
+        var value = rawData.substring(start, end);
+
+        switch (dataType) {
+            case "67":
+                data['temperature'] = [parseInt(value, 16) / 10, '°C'];
+                break;
+            case "68":
+                data['humidity'] = [parseInt(value, 16) / 10, '%'];
+                break;
+            case "73":
+                data["pressure"] = [parseInt(value, 16), 'hPa'];
+                break;
+            case "74":
+                data['batteryLevel'] = [parseInt(value, 16) / 100, 'V'];
+                break;
+            case "77":
+                switch (deviceType) {
+                    case 18:
+                        if (dataChannel == "00") {
+                            data["rainPerHour"] = [parseInt(value, 16), 'mm'];
+                        } else if (dataChannel == "01") {
+                            data["rainPerDay"] = [parseInt(value, 16), 'mm'];
+                        }
+                        break;
+                    case 19:
+                        data['waterPressure'] = [parseInt(value, 16) / 100, 'm'];
+                        break;
+                }
+                break;
+            case "7e":
+                data["ph"] = [parseInt(value, 16) / 10];
+                break;
+            case "7f":
+                data["soilEC"] = [parseInt(value, 16) / 100, "us/cm"];
+                break;
+            case "84":
+                if (dataChannel == "00") {
+                    data['windDirection'] = [parseInt(value, 16), '°'];
+                } else if (dataChannel == "01") {
+                    data['windSpeedAvg'] = [parseInt(value, 16) / 1000, 'm/s'];
+                } else if (dataChannel == "02") {
+                    data['windSpeedMax'] = [parseInt(value, 16) / 1000, 'm/s'];
+                }
+                break;
+            case "c9":
+                data["soilMoisture"] = [parseInt(value, 16) / 100, "%"];
+                break;
+            case "ca":
+                data['pm25'] = [parseInt(value, 16) / 100, 'ug/m3'];
+                break;
+            case "cb":
+                data['dissolvedOxygen'] = [parseInt(value, 16) / 100, 'mg/l'];
+                break;
+        }
+
+        frameCount--;
+        start = end;
+        end += 2;
+    }
+
+    if (data["temperature"] && data["humidity"]) {
+        var heatIndex = parseFloat(HI.heatIndex({ temperature: data["temperature"], humidity: data["humidity"] })).toFixed(2);
+        data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
+    }
+
+    return data;
 }
 
 module.exports = giotService;
