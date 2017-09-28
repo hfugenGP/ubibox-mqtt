@@ -554,6 +554,74 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "informationOfDTC": informationOfDTC
                     };
 
+                    //DTC code
+                    var alerts = new Array();
+                    var start = 0;
+                    var end = 2;
+                    var obdFaultCodeCount = parseInt(informationOfDTC.substring(start, end), 16);
+                    var i = 1;
+
+                    if (obdFaultCodeCount != 0) {
+                        start = end;
+                        end += 6;
+                        while (i <= obdFaultCodeCount) {
+                            var obdFaultCode = effectiveData.substring(start, end);
+                            var alertData = {
+                                "deviceId": deviceId,
+                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "reportTime": timeOfIgnitionOn,
+                                "gpsPosition": null,
+                                "status": "Pending",
+                                "readStatus": "Unread",
+                                "value": {
+                                    "codeType": "obd",
+                                    "stateCode": obdFaultCode.substring(4, 6),
+                                    "faultCode": "P" + obdFaultCode.substring(0, 4)
+                                }
+                            }
+
+                            console.log('obdStateCode : ' + obdFaultCode.substring(4, 6));
+                            console.log('obdFaultCode : ' + "P" + obdFaultCode.substring(0, 4));
+                            alerts.push(alertData);
+                            i++;
+                            start = end;
+                            end += 6;
+                        }
+                    }
+
+                    start = end;
+                    end += 2;
+                    var privateFaultCodeCount = parseInt(effectiveData.substring(start, end), 16);
+                    if (privateFaultCodeCount != 0) {
+                        i = 1;
+                        start = end;
+                        end += 8;
+                        while (i <= privateFaultCodeCount) {
+                            var privateFaultCode = effectiveData.substring(start, end);
+                            var alertData = {
+                                "deviceId": deviceId,
+                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "reportTime": occurTime,
+                                "gpsPosition": null,
+                                "status": "Pending",
+                                "readStatus": "Unread",
+                                "value": {
+                                    "codeType": "private",
+                                    "stateCode": null,
+                                    "faultCode": privateFaultCode
+                                }
+                            }
+
+                            console.log('privateFaultCode : ' + privateFaultCode);
+                            alerts.push(alertData);
+                            i++;
+                            start = end;
+                            end += 8;
+                        }
+                    }
+                    
                     MongoClient.connect(url, function (err, db) {
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
@@ -562,6 +630,19 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
                             db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+
+                            if (alerts.count > 0) {
+                                insertBundle(db, "Alert", alerts, function (insertedIds) {
+                                    insertedIds.forEach(function (insertedId) {
+                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                        exec(cmd, function (error, stdout, stderr) {
+                                            if (error) console.log(error);
+                                            if (stdout) console.log(stdout);
+                                            if (stderr) console.log(stderr);
+                                        });
+                                    }, this);
+                                });
+                            }
                         });
                     });
 
@@ -590,6 +671,74 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "informationOfDTC": informationOfDTC
                     };
 
+                    //DTC code
+                    var alerts = new Array();
+                    var start = 0;
+                    var end = 2;
+                    var obdFaultCodeCount = parseInt(informationOfDTC.substring(start, end), 16);
+                    var i = 1;
+
+                    if (obdFaultCodeCount != 0) {
+                        start = end;
+                        end += 6;
+                        while (i <= obdFaultCodeCount) {
+                            var obdFaultCode = effectiveData.substring(start, end);
+                            var alertData = {
+                                "deviceId": deviceId,
+                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "reportTime": timeOfIgnitionOff,
+                                "gpsPosition": null,
+                                "status": "Pending",
+                                "readStatus": "Unread",
+                                "value": {
+                                    "codeType": "obd",
+                                    "stateCode": obdFaultCode.substring(4, 6),
+                                    "faultCode": "P" + obdFaultCode.substring(0, 4)
+                                }
+                            }
+
+                            console.log('obdStateCode : ' + obdFaultCode.substring(4, 6));
+                            console.log('obdFaultCode : ' + "P" + obdFaultCode.substring(0, 4));
+                            alerts.push(alertData);
+                            i++;
+                            start = end;
+                            end += 6;
+                        }
+                    }
+
+                    start = end;
+                    end += 2;
+                    var privateFaultCodeCount = parseInt(effectiveData.substring(start, end), 16);
+                    if (privateFaultCodeCount != 0) {
+                        i = 1;
+                        start = end;
+                        end += 8;
+                        while (i <= privateFaultCodeCount) {
+                            var privateFaultCode = effectiveData.substring(start, end);
+                            var alertData = {
+                                "deviceId": deviceId,
+                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "reportTime": timeOfIgnitionOff,
+                                "gpsPosition": null,
+                                "status": "Pending",
+                                "readStatus": "Unread",
+                                "value": {
+                                    "codeType": "private",
+                                    "stateCode": null,
+                                    "faultCode": privateFaultCode
+                                }
+                            }
+
+                            console.log('privateFaultCode : ' + privateFaultCode);
+                            alerts.push(alertData);
+                            i++;
+                            start = end;
+                            end += 8;
+                        }
+                    }
+
                     MongoClient.connect(url, function (err, db) {
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
@@ -598,6 +747,19 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
                             db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+
+                            if (alerts.count > 0) {
+                                insertBundle(db, "Alert", alerts, function (insertedIds) {
+                                    insertedIds.forEach(function (insertedId) {
+                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                        exec(cmd, function (error, stdout, stderr) {
+                                            if (error) console.log(error);
+                                            if (stdout) console.log(stdout);
+                                            if (stderr) console.log(stderr);
+                                        });
+                                    }, this);
+                                });
+                            }
                         });
                     });
 
@@ -1419,10 +1581,10 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var occurTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
                     console.log('occurTime : ' + occurTime);
                     var alerts = new Array();
-                    var obdFaultCodeCount = parseInt(effectiveData.substring(12, 14), 16);
                     var i = 1;
                     var start = 12;
                     var end = 14;
+                    var obdFaultCodeCount = parseInt(effectiveData.substring(start, end), 16);
 
                     if (obdFaultCodeCount != 0) {
                         start = end;
@@ -1473,7 +1635,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "value": {
                                     "codeType": "private",
                                     "stateCode": null,
-                                    "faultCode": privateFaultCodeprivateFaultCode
+                                    "faultCode": privateFaultCode
                                 }
                             }
 
@@ -2372,6 +2534,15 @@ function insert(db, collection, data, callback) {
             console.log("Error when write to mongodb: " + err);
         }
         callback(result.insertedId);
+    });
+}
+
+function insertBundle(db, collection, data, callback) {
+    db.collection(collection).insertMany(data, function (err, result) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
+        }
+        callback(result.insertedIds);
     });
 }
 
