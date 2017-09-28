@@ -379,10 +379,12 @@ function ipsoDataFormat(deviceType, rawData) {
 
         switch (dataType) {
             case "67":
-                data['temperature'] = [parseInt(value, 16) / 10, '°C'];
+                var temperature = parseInt(value, 16) / 10;
+                data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
                 break;
             case "68":
-                data['humidity'] = [parseInt(value, 16) / 10, '%'];
+                var humidity = parseInt(value, 16) / 10;
+                data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
                 break;
             case "73":
                 data["pressure"] = [parseInt(value, 16), 'hPa'];
@@ -423,7 +425,8 @@ function ipsoDataFormat(deviceType, rawData) {
                 data["soilMoisture"] = [parseInt(value, 16) / 100, "%"];
                 break;
             case "ca":
-                data['pm25'] = [parseInt(value, 16), 'ug/m3'];
+                var pm25 = parseInt(value, 16);
+                data['pm25'] = [pm25, 'ug/m3', common.getDataStatus("pm25", pm25)];
                 break;
             case "cb":
                 data['dissolvedOxygen'] = [parseInt(value, 16) / 100, 'mg/l'];
