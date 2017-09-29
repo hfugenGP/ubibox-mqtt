@@ -412,7 +412,7 @@ function ipsoDataFormat(deviceType, rawData) {
                             data["rainPerDay"] = [parseInt(value, 16), 'mm'];
                         }
                         break;
-                    case 19:
+                    case 20:
                         data['waterPressure'] = [parseInt(value, 16) / 100, 'm'];
                         break;
                 }
