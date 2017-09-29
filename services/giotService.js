@@ -350,6 +350,7 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
 }
 
 function ipsoDataFormat(deviceType, rawData) {
+    var common = new Common();
     var data = {};
     // var deviceId = parseInt(rawData.substring(0, 2), 16);
     var start, end;
