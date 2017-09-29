@@ -3,10 +3,12 @@
 const Common = require('../lib/common');
 var HI = require('heat-index');
 
-var giotService = function () { };
+var giotService = function () {};
 
 giotService.prototype.generateMessage = function (subcribeDevices, macAddr, receivedDate, rawData) {
-    var message = { "extId": macAddr };
+    var message = {
+        "extId": macAddr
+    };
     message["rawData"] = rawData;
     message["receivedDate"] = new Date();
     message["receivedDateLoRa"] = receivedDate;
@@ -22,7 +24,10 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
             data["temperature"] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
             var humidity = parseInt('0x' + rawData.substring(6, 10)) / 100;
             data["humidity"] = [humidity, '%RH', common.getDataStatus("humidity", humidity)];
-            var heatIndex = parseFloat(HI.heatIndex({ temperature: temperature, humidity: humidity })).toFixed(2);
+            var heatIndex = parseFloat(HI.heatIndex({
+                temperature: temperature,
+                humidity: humidity
+            })).toFixed(2);
             data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             switch (data["deviceType"][0]) {
@@ -264,7 +269,10 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
                 soilElectricalValue += adjustmentValue[4];
             }
 
-            var heatIndex = parseFloat(HI.heatIndex({ temperature: airTemperatureValue, humidity: airHumidityValue })).toFixed(2);
+            var heatIndex = parseFloat(HI.heatIndex({
+                temperature: airTemperatureValue,
+                humidity: airHumidityValue
+            })).toFixed(2);
             data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
 
             data['ph'] = [phValue, 'pH'];
@@ -380,22 +388,29 @@ function ipsoDataFormat(deviceType, rawData) {
 
         switch (dataType) {
             case "67":
-                var temperature = parseInt(value, 16) / 10;
-                if(deviceType == 19){
-                    data['airTemperature'] = [temperature, '°C'];
-                }else{
-                    data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
+                switch (deviceType) {
+                    case 18:
+                        var temperature = parseInt(value, 16) / 10;
+                        data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
+                        break;
+                    case 19:
+                        var temperature = parseInt(value, 16) / 100;
+                        data['airTemperature'] = [temperature, '°C'];
+                        break;
+                    default:
+                        var temperature = parseInt(value, 16) / 100;
+                        data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
                 }
-                
+
                 break;
             case "68":
                 var humidity = parseInt(value, 16) / 10;
-                if(deviceType == 19){
+                if (deviceType == 19) {
                     data['airHumidity'] = [humidity, '%RH'];
-                }else{
+                } else {
                     data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
                 }
-                
+
                 break;
             case "73":
                 data["pressure"] = [parseInt(value, 16), 'hPa'];
@@ -413,7 +428,7 @@ function ipsoDataFormat(deviceType, rawData) {
                         }
                         break;
                     case 20:
-                        data['waterPressure'] = [parseInt(value, 16) / 100, 'm'];
+                        data['waterLevel'] = [parseInt(value, 16) / 100, 'm'];
                         break;
                 }
                 break;
@@ -450,7 +465,10 @@ function ipsoDataFormat(deviceType, rawData) {
     }
 
     if (data["temperature"] && data["humidity"]) {
-        var heatIndex = parseFloat(HI.heatIndex({ temperature: data["temperature"], humidity: data["humidity"] })).toFixed(2);
+        var heatIndex = parseFloat(HI.heatIndex({
+            temperature: data["temperature"],
+            humidity: data["humidity"]
+        })).toFixed(2);
         data["heatIndex"] = [heatIndex, '°C', common.getDataStatus("heatIndex", heatIndex)];
     }
 
