@@ -417,7 +417,7 @@ function ipsoDataFormat(deviceType, rawData) {
                 }
                 break;
             case "7e":
-                data["ph"] = [parseInt(value, 16) / 100];
+                data["ph"] = [parseInt(value, 16) / 100, "pH"];
                 break;
             case "7f":
                 data["soilElectrical"] = [parseInt(value, 16), "us/cm"];
