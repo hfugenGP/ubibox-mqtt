@@ -380,11 +380,21 @@ function ipsoDataFormat(deviceType, rawData) {
         switch (dataType) {
             case "67":
                 var temperature = parseInt(value, 16) / 10;
-                data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
+                if(deviceType == 19){
+                    data['airTemperature'] = [temperature, '°C'];
+                }else{
+                    data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
+                }
+                
                 break;
             case "68":
                 var humidity = parseInt(value, 16) / 10;
-                data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
+                if(deviceType == 19){
+                    data['airHumidity'] = [humidity, '%'];
+                }else{
+                    data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
+                }
+                
                 break;
             case "73":
                 data["pressure"] = [parseInt(value, 16), 'hPa'];
@@ -410,7 +420,7 @@ function ipsoDataFormat(deviceType, rawData) {
                 data["ph"] = [parseInt(value, 16) / 10];
                 break;
             case "7f":
-                data["soilEC"] = [parseInt(value, 16) / 100, "us/cm"];
+                data["soilElectrical"] = [parseInt(value, 16) / 100, "us/cm"];
                 break;
             case "84":
                 if (dataChannel == "00") {
