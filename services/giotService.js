@@ -390,7 +390,7 @@ function ipsoDataFormat(deviceType, rawData) {
             case "68":
                 var humidity = parseInt(value, 16) / 10;
                 if(deviceType == 19){
-                    data['airHumidity'] = [humidity, '%'];
+                    data['airHumidity'] = [humidity, '%RH'];
                 }else{
                     data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
                 }
