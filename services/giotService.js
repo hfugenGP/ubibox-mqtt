@@ -420,7 +420,7 @@ function ipsoDataFormat(deviceType, rawData) {
                 data["ph"] = [parseInt(value, 16) / 100];
                 break;
             case "7f":
-                data["soilElectrical"] = [parseInt(value, 16) / 100, "us/cm"];
+                data["soilElectrical"] = [parseInt(value, 16), "us/cm"];
                 break;
             case "84":
                 if (dataChannel == "00") {
