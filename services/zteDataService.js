@@ -499,6 +499,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 tripData["totalMileage"] = totalMileage;
                                 tripData["totalFuelConsumption"] = totalFuelConsumption;
                                 tripData["totalDrivingTime"] = totalDrivingTime;
+                                tripData["status"] = "New";
                                 insert(db, 'Trips', tripData, function (insertedId) {
                                     db.collection('GPSData').updateMany({ deviceId: deviceId, gpsType: "routing", tripId: null }, { $set: { tripId: insertedId } }, {
                                         upsert: true,

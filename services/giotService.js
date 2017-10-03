@@ -364,6 +364,7 @@ function ipsoDataFormat(deviceType, rawData) {
     var start, end;
 
     if (deviceType == 18) {
+        // Weather station
         start = 2;
         end = 4;
     } else {
@@ -389,11 +390,11 @@ function ipsoDataFormat(deviceType, rawData) {
         switch (dataType) {
             case "67":
                 switch (deviceType) {
-                    case 18:
+                    case 18: // Weather station
                         var temperature = parseInt(value, 16) / 10;
                         data['temperature'] = [temperature, '°C', common.getDataStatus("temperature", temperature)];
                         break;
-                    case 19:
+                    case 19: // Sensor Hub (Agriculture)
                         var temperature = parseInt(value, 16) / 100;
                         data['airTemperature'] = [temperature, '°C'];
                         break;
@@ -405,7 +406,7 @@ function ipsoDataFormat(deviceType, rawData) {
                 break;
             case "68":
                 var humidity = parseInt(value, 16) / 10;
-                if (deviceType == 19) {
+                if (deviceType == 19) { // Sensor Hub (Agriculture)
                     data['airHumidity'] = [humidity, '%RH'];
                 } else {
                     data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
@@ -420,14 +421,14 @@ function ipsoDataFormat(deviceType, rawData) {
                 break;
             case "77":
                 switch (deviceType) {
-                    case 18:
+                    case 18: // Weather station
                         if (dataChannel == "00") {
                             data["rainPerHour"] = [parseInt(value, 16), 'mm'];
                         } else if (dataChannel == "01") {
                             data["rainPerDay"] = [parseInt(value, 16), 'mm'];
                         }
                         break;
-                    case 20:
+                    case 20: // Sensor Hub (Aquaculture)
                         data['waterLevel'] = [parseInt(value, 16) / 100, 'm'];
                         break;
                 }
