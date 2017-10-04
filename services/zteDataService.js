@@ -20,7 +20,7 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
-var ZTEDataService = function () { };
+var ZTEDataService = function () {};
 
 ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
@@ -377,7 +377,18 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
                     }
-                    db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { protocolVersion: data["protocolVersion"], hardwareVersion: data["hardwareVersion"], mcuVersion: data["mcuVersion"], modemVersion: data["modemVersion"] } }, { upsert: true });
+                    db.collection('DeviceStage').findOneAndUpdate({
+                        deviceId: deviceId
+                    }, {
+                        $set: {
+                            protocolVersion: data["protocolVersion"],
+                            hardwareVersion: data["hardwareVersion"],
+                            mcuVersion: data["mcuVersion"],
+                            modemVersion: data["modemVersion"]
+                        }
+                    }, {
+                        upsert: true
+                    });
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                 });
             });
@@ -501,7 +512,15 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 tripData["totalDrivingTime"] = totalDrivingTime;
                                 tripData["status"] = "New";
                                 insert(db, 'Trips', tripData, function (insertedId) {
-                                    db.collection('GPSData').updateMany({ deviceId: deviceId, gpsType: "routing", tripId: null }, { $set: { tripId: insertedId } }, {
+                                    db.collection('GPSData').updateMany({
+                                        deviceId: deviceId,
+                                        gpsType: "routing",
+                                        tripId: null
+                                    }, {
+                                        $set: {
+                                            tripId: insertedId
+                                        }
+                                    }, {
                                         upsert: true,
                                         multi: true
                                     });
@@ -622,7 +641,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             end += 8;
                         }
                     }
-                    
+
                     MongoClient.connect(url, function (err, db) {
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
                             var deviceData = {};
@@ -630,7 +649,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
 
                             if (alerts.count > 0) {
                                 insertBundle(db, "Alert", alerts, function (insertedIds) {
@@ -747,7 +771,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
 
                             if (alerts.count > 0) {
                                 insertBundle(db, "Alert", alerts, function (insertedIds) {
@@ -1030,7 +1059,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
                     });
 
@@ -1083,12 +1117,15 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     // High temperature (>115C) will trigger over_heat alert with message
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
                     MongoClient.connect(url, function (err, db) {
-                        db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x00050000" }, function (err, speedSetting) {
+                        db.collection('DeviceSetting').findOne({
+                            deviceId: deviceId,
+                            settingCode: "0x00050000"
+                        }, function (err, speedSetting) {
                             console.log('******************Checking OverSpeed Alert******************');
                             console.log('speed: ' + speed);
+                            var redisKey = "ZTE-" + deviceId + "-currentOverSpeed";
+                            var client = redis.createClient();
                             if (speed != "N/A" && speedSetting != null && parseInt(speedSetting["value"]) < speed) {
-                                console.log('speedSettingValue: ' + speedSetting["value"]);
-                                console.log('******************Saving OverSpeed Alert******************');
                                 var alertData = {
                                     "deviceId": deviceId,
                                     "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
@@ -1103,18 +1140,61 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "faultCode": "P0219", //Over speed code
                                         "customMessage": "You have exceed the speed limit of " + speedSetting["value"] + "km/h"
                                     }
-                                }
-                                insert(db, "Alert", alertData, function (insertedId) {
-                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                    exec(cmd, function (error, stdout, stderr) {
-                                        if (error) console.log(error);
-                                        if (stdout) console.log(stdout);
-                                        if (stderr) console.log(stderr);
-                                    });
+                                };
+
+                                client.exists(redisKey, function (err, reply) {
+                                    if (reply === 1) {
+                                        client.get(redisKey, function(err, catchedSpeed) {
+                                            if(speed > parseInt(catchedSpeed)){
+                                                console.log('speedSettingValue: ' + speedSetting["value"]);
+                                                console.log('******************Saving OverSpeed Alert******************');
+                                                
+                                                insert(db, "Alert", alertData, function (insertedId) {
+                                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                                    exec(cmd, function (error, stdout, stderr) {
+                                                        if (error) console.log(error);
+                                                        if (stdout) console.log(stdout);
+                                                        if (stderr) console.log(stderr);
+                                                    });
+                                                });
+
+                                                client.set(redisKey, speed);
+                                                client.expire(redisKey, 300);
+                                            }
+                                        });
+                                    }
+                                    else
+                                    {
+                                        console.log('speedSettingValue: ' + speedSetting["value"]);
+                                        console.log('******************Saving OverSpeed Alert******************');
+
+                                        insert(db, "Alert", alertData, function (insertedId) {
+                                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                            exec(cmd, function (error, stdout, stderr) {
+                                                if (error) console.log(error);
+                                                if (stdout) console.log(stdout);
+                                                if (stderr) console.log(stderr);
+                                            });
+                                        });
+
+                                        client.set(redisKey, speed);
+                                        client.expire(redisKey, 300);
+                                    }
+                                });
+                            } else {
+                                client.exists(redisKey, function (err, reply) {
+                                    if (reply === 1) {
+                                        client.del(redisKey, function (err, reply) {
+                                            console.log(reply);
+                                        });
+                                    }
                                 });
                             }
 
-                            db.collection('DeviceSetting').findOne({ deviceId: deviceId, settingCode: "0x04000000" }, function (err, tempSetting) {
+                            db.collection('DeviceSetting').findOne({
+                                deviceId: deviceId,
+                                settingCode: "0x04000000"
+                            }, function (err, tempSetting) {
                                 console.log('******************Checking Overheat Alert******************');
                                 console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
                                 if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
@@ -1166,7 +1246,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     vehicleData["totalMileage"] = totalMileage;
                                     vehicleData["totalFuelConsumption"] = totalFuelConsumption;
                                     vehicleData["totalDrivingTime"] = totalDrivingTime;
-                                    db.collection('VehicleStatus').findOneAndUpdate({ deviceId: deviceId }, vehicleData, { upsert: true });
+                                    db.collection('VehicleStatus').findOneAndUpdate({
+                                        deviceId: deviceId
+                                    }, vehicleData, {
+                                        upsert: true
+                                    });
                                 });
                             });
                         });
@@ -1229,7 +1313,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["status"] = "Pending";
                     alertData["readStatus"] = "Unread";
-                    alertData["value"] = { "failureCode": failureCode }
+                    alertData["value"] = {
+                        "failureCode": failureCode
+                    }
                     insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
                         exec(cmd, function (error, stdout, stderr) {
@@ -1267,11 +1353,24 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
 
                         // Set device as offline since it's sleeping
-                        db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+                        db.collection('DeviceStage').findOneAndUpdate({
+                            deviceId: deviceId
+                        }, {
+                            $set: {
+                                status: "Offline"
+                            }
+                        }, {
+                            upsert: true
+                        });
                     });
 
                     console.log('sleepTime : ' + sleepTime);
@@ -1305,7 +1404,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
                     });
 
@@ -1377,7 +1481,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
                     });
 
@@ -1410,7 +1519,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
                     });
 
@@ -1440,54 +1554,59 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
                     });
 
                     console.log('acceleratorCalibrationStatus : ' + acceleratorCalibrationStatus);
                     console.log('*********************End calibration*********************');
                     break;
-                // case "08":
-                //     //Upgrade status of Modem FOTA
-                //     console.log('*********************Start status of Modem FOTA*********************');
-                //     var statusIndication = effectiveData.substring(4, 6);
-                //     var softwareVersion = effectiveData.substring(6);
+                    // case "08":
+                    //     //Upgrade status of Modem FOTA
+                    //     console.log('*********************Start status of Modem FOTA*********************');
+                    //     var statusIndication = effectiveData.substring(4, 6);
+                    //     var softwareVersion = effectiveData.substring(6);
 
-                //     data["statusIndication"] = statusIndication;
-                //     data["softwareVersion"] = softwareVersion;
+                    //     data["statusIndication"] = statusIndication;
+                    //     data["softwareVersion"] = softwareVersion;
 
-                //     console.log('statusIndication : ' + statusIndication);
-                //     console.log('softwareVersion : ' + softwareVersion);
-                //     console.log('*********************End status of Modem FOTA*********************');
-                //     break;
-                // case "09":
-                //     //Modem reset to factory configuration
-                //     console.log('*********************Start Modem reset*********************');
-                //     var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
-                //     var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
-                //     var wifiSSID = common.chars_from_hex(effectiveData.substring(6, wifiSSIDEndPosition));
+                    //     console.log('statusIndication : ' + statusIndication);
+                    //     console.log('softwareVersion : ' + softwareVersion);
+                    //     console.log('*********************End status of Modem FOTA*********************');
+                    //     break;
+                    // case "09":
+                    //     //Modem reset to factory configuration
+                    //     console.log('*********************Start Modem reset*********************');
+                    //     var wifiSSIDLength = parseInt(effectiveData.substring(4, 6), 16);
+                    //     var wifiSSIDEndPosition = 6 + (wifiSSIDLength * 2);
+                    //     var wifiSSID = common.chars_from_hex(effectiveData.substring(6, wifiSSIDEndPosition));
 
-                //     var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
-                //     var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
-                //     var wifiPassword = common.chars_from_hex(effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition));
+                    //     var wifiPasswordLength = parseInt(effectiveData.substring(wifiSSIDEndPosition, wifiSSIDEndPosition + 2), 16);
+                    //     var wifiPasswordEndPosition = wifiSSIDEndPosition + 2 + (wifiPasswordLength * 2);
+                    //     var wifiPassword = common.chars_from_hex(effectiveData.substring(wifiSSIDEndPosition + 2, wifiPasswordEndPosition));
 
-                //     var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
+                    //     var wifiOpenState = effectiveData.substring(wifiPasswordEndPosition, wifiPasswordEndPosition + 2);
 
-                //     var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
-                //     var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
-                //     var wifiAPN = common.chars_from_hex(effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition));
+                    //     var wifiAPNLength = parseInt(effectiveData.substring(wifiPasswordEndPosition + 2, wifiPasswordEndPosition + 4), 16);
+                    //     var wifiAPNEndPosition = wifiPasswordEndPosition + 4 + (wifiAPNLength * 2);
+                    //     var wifiAPN = common.chars_from_hex(effectiveData.substring(wifiPasswordEndPosition + 4, wifiAPNEndPosition));
 
-                //     data["wifiSSID"] = wifiSSID;
-                //     data["wifiPassword"] = wifiPassword;
-                //     data["wifiOpenState"] = wifiOpenState;
-                //     data["wifiAPN"] = wifiAPN;
+                    //     data["wifiSSID"] = wifiSSID;
+                    //     data["wifiPassword"] = wifiPassword;
+                    //     data["wifiOpenState"] = wifiOpenState;
+                    //     data["wifiAPN"] = wifiAPN;
 
-                //     console.log('wifiSSID : ' + wifiSSID);
-                //     console.log('wifiPassword : ' + wifiPassword);
-                //     console.log('wifiOpenState : ' + wifiOpenState);
-                //     console.log('wifiAPN : ' + wifiAPN);
-                //     console.log('*********************End Modem reset*********************');
-                //     break;
+                    //     console.log('wifiSSID : ' + wifiSSID);
+                    //     console.log('wifiPassword : ' + wifiPassword);
+                    //     console.log('wifiOpenState : ' + wifiOpenState);
+                    //     console.log('wifiAPN : ' + wifiAPN);
+                    //     console.log('*********************End Modem reset*********************');
+                    //     break;
                 case "0c":
                     //Device Info
                     console.log('*********************Start Device Info*********************');
@@ -1560,7 +1679,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
                             deviceData["reportTime"] = historicalData["reportTime"];
                             deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({ deviceId: deviceId, deviceDataTypeId: deviceData["deviceDataTypeId"] }, deviceData, { upsert: true });
+                            db.collection('DeviceData').findOneAndUpdate({
+                                deviceId: deviceId,
+                                deviceDataTypeId: deviceData["deviceDataTypeId"]
+                            }, deviceData, {
+                                upsert: true
+                            });
                         });
                     });
 
@@ -2080,22 +2204,66 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         case "0x00010000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid acceleration", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Threshold of rapid acceleration",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00020000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of rapid deceleration", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Threshold of rapid deceleration",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00030000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of sharp turn", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Threshold of sharp turn",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00040000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Fatigue driving", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Fatigue driving",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00050000":
                             end += 2;
@@ -2107,22 +2275,66 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         case "0x00060000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Low voltage", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Low voltage",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00070000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wake vibration level", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Wake vibration level",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00080000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of suspected collision", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Threshold of suspected collision",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x00090000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Threshold of exceed idle", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Threshold of exceed idle",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x000a0000":
                             end += 2;
@@ -2131,17 +2343,50 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             } else if (effectiveData.substring(start, end) == "01") {
                                 data[paramNo] = "Allowed to report the speed";
                             }
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "If allowed to report the speed", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "If allowed to report the speed",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x000b0000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "GPS report frequency", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "GPS report frequency",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x000c0000":
                             end += 4;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Report frequency of vehicle data flow", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Report frequency of vehicle data flow",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02000000":
                             end += 1;
@@ -2149,7 +2394,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Change the reporting address and port", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Change the reporting address and port",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02010000":
                             end += 1;
@@ -2157,7 +2413,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi client ip address & subnet", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Wifi client ip address & subnet",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02020000":
                             end += 1;
@@ -2165,7 +2432,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi SSID", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Wifi SSID",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02030000":
                             end += 1;
@@ -2173,7 +2451,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi Password", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Wifi Password",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02040000":
                             end += 1;
@@ -2181,7 +2470,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi  router APN", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Wifi  router APN",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02050000":
                             end += 1;
@@ -2189,7 +2489,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem DNS servers", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Modem DNS servers",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02060000":
                             end += 1;
@@ -2197,7 +2508,18 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Modem APN", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Modem APN",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02070000":
                             end += 2;
@@ -2208,12 +2530,34 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             } else {
                                 data[paramNo] = "HOTSPOT off";
                             }
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Wifi on / Off", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Wifi on / Off",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02080000":
                             end += 2;
                             data[paramNo] = effectiveData.substring(start, end);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry network type", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Inquiry network type",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x02090000":
                             end += 1;
@@ -2221,17 +2565,50 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             start = end;
                             end += count;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Operator name", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Inquiry Operator name",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x020a0000":
                             end += 2;
                             data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Inquiry Signal strength", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "Inquiry Signal strength",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                         case "0x03000000":
                             end += 2;
                             data[paramNo] = effectiveData.substring(start, end);
-                            db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "The current status of the accelerator self-learning", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                            db.collection('DeviceSetting').findOneAndUpdate({
+                                deviceId: deviceId,
+                                settingCode: paramNo
+                            }, {
+                                deviceId: deviceId,
+                                name: "The current status of the accelerator self-learning",
+                                settingCode: paramNo,
+                                value: data[paramNo],
+                                status: 'Latest'
+                            }, {
+                                upsert: true
+                            });
                             break;
                     }
                     if (end >= effectiveData.length) {
@@ -2429,7 +2806,9 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     var key = CryptoJS.enc.Hex.parse(encryptionKey);
     var ivHexParse = CryptoJS.enc.Hex.parse(ivHex);
 
-    var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { iv: ivHexParse });
+    var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, {
+        iv: ivHexParse
+    });
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
     console.log('frameID : ' + frameId);
