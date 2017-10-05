@@ -110,7 +110,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
@@ -119,7 +119,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
@@ -128,7 +128,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
@@ -137,7 +137,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
@@ -146,7 +146,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
@@ -155,7 +155,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
@@ -164,7 +164,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                         var count = hexBytes.length / 2;
                         if (count <= 15) {
                             // value should be less than 15 characters
-                            mainMessage += count.toString(16);
+                            mainMessage += common.recorrectHexString(count.toString(16), 2);
                             mainMessage += hexBytes;
                         }
                         break;
