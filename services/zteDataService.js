@@ -1198,25 +1198,24 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 var roadRedisKey = "ZTE-" + deviceId + "-roadOverSpeed";
                                 var client = redis.createClient();
                                 if (speed != "N/A" && roadSpeedSetting != null && parseInt(roadSpeedSetting["value"]) < speed) {
-                                    client.exists(roadRedisKey, function (err, reply) {
-                                        if (reply === 1) {
-                                            client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
-                                                // var roadOverSpeed = JSON.parse(cachedSpeed.toString());
-                                                if (roadOverSpeed["maxSpeed"] < speed) {
-                                                    roadOverSpeed["maxSpeed"] = speed;
-                                                }
+                                    console.log('roadSpeedSetting: ' + roadSpeedSetting["value"]);
+                                    client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+                                        if(err || roadOverSpeed == null){
+                                            var roadOverSpeedCached = {};
+                                            roadOverSpeedCached["maxSpeed"] = speed;
+                                            roadOverSpeedCached["speedLimit"] = roadSpeedSetting["value"];
+                                            roadOverSpeedCached["speedingMileage"] = totalMileage;
+                                            roadOverSpeedCached["speedingStart"] = reportTime;
     
-                                                client.hmset(roadRedisKey, roadOverSpeed);
-                                            });
-                                        } else {
-                                            var roadOverSpeed = {};
-                                            roadOverSpeed["maxSpeed"] = speed;
-                                            roadOverSpeed["speedLimit"] = roadSpeedSetting["value"];
-                                            roadOverSpeed["speedingMileage"] = totalMileage;
-                                            roadOverSpeed["speedingStart"] = reportTime;
+                                            client.hmset(roadRedisKey, roadOverSpeedCached);
+                                        }else{
+                                            if (roadOverSpeed["maxSpeed"] < speed) {
+                                                roadOverSpeed["maxSpeed"] = speed;
+                                            }
+
+                                            console.log('cached roadOverSpeed: ' + JSON.stringify(roadOverSpeed));
     
                                             client.hmset(roadRedisKey, roadOverSpeed);
-                                            // client.expire(roadRedisKey, 300);
                                         }
                                     });
                                 } else {
