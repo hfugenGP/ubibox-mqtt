@@ -1219,42 +1219,39 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         }
                                     });
                                 } else {
-                                    client.exists(roadRedisKey, function (err, reply) {
-                                        if (reply === 1) {
-                                            client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
-                                                // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
-                                                console.log('******************Saving RoadOverSpeed Alert******************');
-                                                var roadOverSpeedData = {
-                                                    "deviceId": deviceId,
-                                                    "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                                                    "alertTypeId": new MongoObjectId("59d6fbbcb4e2548c4ae92915"),
-                                                    "reportTime": reportTime,
-                                                    "gpsPosition": null,
-                                                    "status": "Pending",
-                                                    "readStatus": "Unread",
-                                                    "value": {
-                                                        "maxSpeed": roadOverSpeed["maxSpeed"],
-                                                        "speedLimit": roadOverSpeed["speedLimit"],
-                                                        "speedingMileage": totalMileage - roadOverSpeed["speedingMileage"],
-                                                        "speedingStart": roadOverSpeed["speedingStart"],
-                                                        "speedingEnd": reportTime
-                                                    }
-                                                };
-    
-                                                insert(db, "Alert", roadOverSpeedData, function (insertedId) {
-                                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                                    exec(cmd, function (error, stdout, stderr) {
-                                                        if (error) console.log(error);
-                                                        if (stdout) console.log(stdout);
-                                                        if (stderr) console.log(stderr);
-                                                    });
-                                                });
-    
-                                                client.del(roadRedisKey, function (err, reply) {
-                                                    console.log(reply);
+                                    client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+                                        if(!err && roadOverSpeed !== null){
+                                            // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
+                                            console.log('******************Saving RoadOverSpeed Alert******************');
+                                            var roadOverSpeedData = {
+                                                "deviceId": deviceId,
+                                                "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                                "alertTypeId": new MongoObjectId("59d6fbbcb4e2548c4ae92915"),
+                                                "reportTime": reportTime,
+                                                "gpsPosition": null,
+                                                "status": "Pending",
+                                                "readStatus": "Unread",
+                                                "value": {
+                                                    "maxSpeed": roadOverSpeed["maxSpeed"],
+                                                    "speedLimit": roadOverSpeed["speedLimit"],
+                                                    "speedingMileage": totalMileage - roadOverSpeed["speedingMileage"],
+                                                    "speedingStart": roadOverSpeed["speedingStart"],
+                                                    "speedingEnd": reportTime
+                                                }
+                                            };
+
+                                            insert(db, "Alert", roadOverSpeedData, function (insertedId) {
+                                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                                exec(cmd, function (error, stdout, stderr) {
+                                                    if (error) console.log(error);
+                                                    if (stdout) console.log(stdout);
+                                                    if (stderr) console.log(stderr);
                                                 });
                                             });
-    
+
+                                            client.del(roadRedisKey, function (err, reply) {
+                                                console.log(reply);
+                                            });
                                         }
                                     });
                                 }

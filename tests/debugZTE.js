@@ -1,6 +1,7 @@
 const Common = require('../lib/common');
 const config = require('../config/conf');
 const ZTEDataService = require('../services/zteDataService');
+const redis = require("redis");
 
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
@@ -15,6 +16,33 @@ var heatIndex = parseFloat(HI.heatIndex({temperature: 24, humidity: 35})).toFixe
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
 var common = new Common();
+
+var client = redis.createClient();
+var roadRedisKey = 'phongTestKey';
+client.exists(roadRedisKey, function (err, result) {
+    if(result === 1){
+        client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+            if(err || roadOverSpeed == null){
+                var roadOverSpeedCached = {};
+                roadOverSpeedCached["maxSpeed"] = speed;
+                roadOverSpeedCached["speedLimit"] = roadSpeedSetting["value"];
+                roadOverSpeedCached["speedingMileage"] = totalMileage;
+                roadOverSpeedCached["speedingStart"] = reportTime;
+        
+                client.hmset(roadRedisKey, roadOverSpeedCached);
+            }else{
+                if (roadOverSpeed["maxSpeed"] < speed) {
+                    roadOverSpeed["maxSpeed"] = speed;
+                }
+        
+                console.log('cached roadOverSpeed: ' + JSON.stringify(roadOverSpeed));
+        
+                client.hmset(roadRedisKey, roadOverSpeed);
+            }
+        });
+    }
+});
+
 
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
