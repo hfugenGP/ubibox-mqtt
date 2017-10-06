@@ -1200,8 +1200,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 if (speed != "N/A" && roadSpeedSetting != null && parseInt(roadSpeedSetting["value"]) < speed) {
                                     client.exists(roadRedisKey, function (err, reply) {
                                         if (reply === 1) {
-                                            client.get(roadRedisKey, function (err, result) {
-                                                var roadOverSpeed = JSON.parse(result.toString());
+                                            client.get(roadRedisKey, function (err, roadOverSpeed) {
+                                                // var roadOverSpeed = JSON.parse(cachedSpeed.toString());
                                                 if (roadOverSpeed["maxSpeed"] < speed) {
                                                     roadOverSpeed["maxSpeed"] = speed;
                                                 }
@@ -1222,8 +1222,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 } else {
                                     client.exists(roadRedisKey, function (err, reply) {
                                         if (reply === 1) {
-                                            client.get(roadRedisKey, function (err, result) {
-                                                var roadOverSpeed = JSON.parse(result.toString());
+                                            client.get(roadRedisKey, function (err, cachedSpeed) {
+                                                // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
                                                 console.log('******************Saving RoadOverSpeed Alert******************');
                                                 var roadOverSpeedData = {
                                                     "deviceId": deviceId,
