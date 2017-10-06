@@ -1206,7 +1206,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                                     roadOverSpeed["maxSpeed"] = speed;
                                                 }
     
-                                                client.set(roadRedisKey, roadOverSpeed);
+                                                client.set(roadRedisKey, JSON.stringify(roadOverSpeed));
                                             });
                                         } else {
                                             var roadOverSpeed = {};
@@ -1215,7 +1215,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                             roadOverSpeed["speedingMileage"] = totalMileage;
                                             roadOverSpeed["speedingStart"] = reportTime;
     
-                                            client.set(roadRedisKey, roadOverSpeed);
+                                            client.set(roadRedisKey, JSON.stringify(roadOverSpeed));
                                             // client.expire(roadRedisKey, 300);
                                         }
                                     });
