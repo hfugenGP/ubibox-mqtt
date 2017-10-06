@@ -1144,11 +1144,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                                 client.exists(redisKey, function (err, reply) {
                                     if (reply === 1) {
-                                        client.get(redisKey, function(err, catchedSpeed) {
-                                            if(speed > parseInt(catchedSpeed)){
+                                        client.get(redisKey, function (err, catchedSpeed) {
+                                            if (speed > parseInt(catchedSpeed)) {
                                                 console.log('speedSettingValue: ' + speedSetting["value"]);
                                                 console.log('******************Saving OverSpeed Alert******************');
-                                                
+
                                                 insert(db, "Alert", alertData, function (insertedId) {
                                                     var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
                                                     exec(cmd, function (error, stdout, stderr) {
@@ -1162,9 +1162,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                                 client.expire(redisKey, 300);
                                             }
                                         });
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         console.log('speedSettingValue: ' + speedSetting["value"]);
                                         console.log('******************Saving OverSpeed Alert******************');
 
@@ -1193,63 +1191,135 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                             db.collection('DeviceSetting').findOne({
                                 deviceId: deviceId,
-                                settingCode: "0x04000000"
-                            }, function (err, tempSetting) {
-                                console.log('******************Checking Overheat Alert******************');
-                                console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
-                                if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
-                                    console.log('tempSettingValue: ' + tempSetting["value"]);
-                                    console.log('******************Saving Overheat Alert******************');
-                                    data["engineCoolantTemperatureStatus"] = "Warning";
-                                    var alertData = {
-                                        "deviceId": deviceId,
-                                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
-                                        "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
-                                        "reportTime": reportTime,
-                                        "gpsPosition": null,
-                                        "status": "Pending",
-                                        "readStatus": "Unread",
-                                        "value": {
-                                            "engineCoolantTemperature": engineCoolantTemperature,
-                                            "heatLimit": parseInt(tempSetting["value"])
+                                settingCode: "0x05000000"
+                            }, function (err, roadSpeedSetting) {
+                                console.log('******************Checking RoadOverSpeed Alert******************');
+                                console.log('speed: ' + speed);
+                                var roadRedisKey = "ZTE-" + deviceId + "-roadOverSpeed";
+                                var client = redis.createClient();
+                                if (speed != "N/A" && roadSpeedSetting != null && parseInt(roadSpeedSetting["value"]) < speed) {
+                                    client.exists(roadRedisKey, function (err, reply) {
+                                        if (reply === 1) {
+                                            client.get(roadRedisKey, function (err, result) {
+                                                var roadOverSpeed = JSON.parse(result);
+                                                if (roadOverSpeed["maxSpeed"] < speed) {
+                                                    roadOverSpeed["maxSpeed"] = speed;
+                                                }
+    
+                                                client.set(roadRedisKey, roadOverSpeed);
+                                            });
+                                        } else {
+                                            var roadOverSpeed = {};
+                                            roadOverSpeed["maxSpeed"] = speed;
+                                            roadOverSpeed["speedLimit"] = roadSpeedSetting["value"];
+                                            roadOverSpeed["speedingMileage"] = totalMileage;
+                                            roadOverSpeed["speedingStart"] = reportTime;
+    
+                                            client.set(roadRedisKey, roadOverSpeed);
+                                            // client.expire(roadRedisKey, 300);
                                         }
-                                    }
-                                    insert(db, "Alert", alertData, function (insertedId) {
-                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                        exec(cmd, function (error, stdout, stderr) {
-                                            if (error) console.log(error);
-                                            if (stdout) console.log(stdout);
-                                            if (stderr) console.log(stderr);
-                                        });
+                                    });
+                                } else {
+                                    client.exists(roadRedisKey, function (err, reply) {
+                                        if (reply === 1) {
+                                            client.get(roadRedisKey, function (err, result) {
+                                                var roadOverSpeed = JSON.parse(result);
+                                                console.log('******************Saving RoadOverSpeed Alert******************');
+                                                var roadOverSpeedData = {
+                                                    "deviceId": deviceId,
+                                                    "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                                    "alertTypeId": new MongoObjectId("59d6fbbcb4e2548c4ae92915"),
+                                                    "reportTime": reportTime,
+                                                    "gpsPosition": null,
+                                                    "status": "Pending",
+                                                    "readStatus": "Unread",
+                                                    "value": {
+                                                        "maxSpeed": roadOverSpeed["maxSpeed"],
+                                                        "speedLimit": roadOverSpeed["speedLimit"],
+                                                        "speedingMileage": totalMileage - roadOverSpeed["speedingMileage"],
+                                                        "speedingStart": roadOverSpeed["speedingStart"],
+                                                        "speedingEnd": reportTime
+                                                    }
+                                                };
+    
+                                                insert(db, "Alert", roadOverSpeedData, function (insertedId) {
+                                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                                    exec(cmd, function (error, stdout, stderr) {
+                                                        if (error) console.log(error);
+                                                        if (stdout) console.log(stdout);
+                                                        if (stderr) console.log(stderr);
+                                                    });
+                                                });
+    
+                                                client.del(roadRedisKey, function (err, reply) {
+                                                    console.log(reply);
+                                                });
+                                            });
+    
+                                        }
                                     });
                                 }
 
-                                console.log('******************Saving Vehicle Status******************');
-                                insert(db, "VehicleHistoricalStatus", data, function (insertedId) {
-                                    var vehicleData = {};
-                                    vehicleData["deviceId"] = deviceId;
-                                    vehicleData["reportTime"] = reportTime;
-                                    vehicleData["rpm"] = rpm;
-                                    vehicleData["speed"] = speed;
-                                    vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
-                                    vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
-                                    vehicleData["throttlePosition"] = throttlePosition;
-                                    vehicleData["engineDuty"] = engineDuty;
-                                    vehicleData["intakeAirFlow"] = intakeAirFlow;
-                                    vehicleData["intakeAirTemp"] = intakeAirTemp;
-                                    vehicleData["intakeAirPressure"] = intakeAirPressure;
-                                    vehicleData["batteryVolt"] = batteryVolt;
-                                    vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
-                                    vehicleData["fli"] = fli;
-                                    vehicleData["dt"] = dt;
-                                    vehicleData["mli"] = mli;
-                                    vehicleData["totalMileage"] = totalMileage;
-                                    vehicleData["totalFuelConsumption"] = totalFuelConsumption;
-                                    vehicleData["totalDrivingTime"] = totalDrivingTime;
-                                    db.collection('VehicleStatus').findOneAndUpdate({
-                                        deviceId: deviceId
-                                    }, vehicleData, {
-                                        upsert: true
+                                db.collection('DeviceSetting').findOne({
+                                    deviceId: deviceId,
+                                    settingCode: "0x04000000"
+                                }, function (err, tempSetting) {
+                                    console.log('******************Checking Overheat Alert******************');
+                                    console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
+                                    if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
+                                        console.log('tempSettingValue: ' + tempSetting["value"]);
+                                        console.log('******************Saving Overheat Alert******************');
+                                        data["engineCoolantTemperatureStatus"] = "Warning";
+                                        var alertData = {
+                                            "deviceId": deviceId,
+                                            "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
+                                            "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
+                                            "reportTime": reportTime,
+                                            "gpsPosition": null,
+                                            "status": "Pending",
+                                            "readStatus": "Unread",
+                                            "value": {
+                                                "engineCoolantTemperature": engineCoolantTemperature,
+                                                "heatLimit": parseInt(tempSetting["value"])
+                                            }
+                                        }
+                                        insert(db, "Alert", alertData, function (insertedId) {
+                                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                            exec(cmd, function (error, stdout, stderr) {
+                                                if (error) console.log(error);
+                                                if (stdout) console.log(stdout);
+                                                if (stderr) console.log(stderr);
+                                            });
+                                        });
+                                    }
+
+                                    console.log('******************Saving Vehicle Status******************');
+                                    insert(db, "VehicleHistoricalStatus", data, function (insertedId) {
+                                        var vehicleData = {};
+                                        vehicleData["deviceId"] = deviceId;
+                                        vehicleData["reportTime"] = reportTime;
+                                        vehicleData["rpm"] = rpm;
+                                        vehicleData["speed"] = speed;
+                                        vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
+                                        vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
+                                        vehicleData["throttlePosition"] = throttlePosition;
+                                        vehicleData["engineDuty"] = engineDuty;
+                                        vehicleData["intakeAirFlow"] = intakeAirFlow;
+                                        vehicleData["intakeAirTemp"] = intakeAirTemp;
+                                        vehicleData["intakeAirPressure"] = intakeAirPressure;
+                                        vehicleData["batteryVolt"] = batteryVolt;
+                                        vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
+                                        vehicleData["fli"] = fli;
+                                        vehicleData["dt"] = dt;
+                                        vehicleData["mli"] = mli;
+                                        vehicleData["totalMileage"] = totalMileage;
+                                        vehicleData["totalFuelConsumption"] = totalFuelConsumption;
+                                        vehicleData["totalDrivingTime"] = totalDrivingTime;
+                                        db.collection('VehicleStatus').findOneAndUpdate({
+                                            deviceId: deviceId
+                                        }, vehicleData, {
+                                            upsert: true
+                                        });
                                     });
                                 });
                             });
