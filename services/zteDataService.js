@@ -1222,7 +1222,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 } else {
                                     client.exists(roadRedisKey, function (err, reply) {
                                         if (reply === 1) {
-                                            client.get(roadRedisKey, function (err, cachedSpeed) {
+                                            client.get(roadRedisKey, function (err, roadOverSpeed) {
                                                 // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
                                                 console.log('******************Saving RoadOverSpeed Alert******************');
                                                 var roadOverSpeedData = {
