@@ -390,6 +390,10 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
                         upsert: true
                     });
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                    var client = redis.createClient();
+                    client.publish("zteDeviceLogs", JSON.stringify({
+                        "deviceId": deviceId
+                    }));
                 });
             });
             break;
@@ -409,6 +413,10 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
                         console.log("Error when write to mongodb: " + err);
                     }
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                    var client = redis.createClient();
+                    client.publish("zteDeviceLogs", JSON.stringify({
+                        "deviceId": deviceId
+                    }));
                 });
             });
 
@@ -435,6 +443,9 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
                     client.publish("zteDeviceResponse", JSON.stringify({
                         "deviceId": deviceId,
                         "frameId": frameId
+                    }));
+                    client.publish("zteDeviceLogs", JSON.stringify({
+                        "deviceId": deviceId
                     }));
                 });
             });
