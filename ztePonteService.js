@@ -35,10 +35,10 @@ var opts = {
             callback(null, authorized);
         },
         authorizePublish: function(client, topic, payload, callback) {
-            callback(null, client.user == topic.split('/')[1] || client.user === config.fabrickBroker.username);
+            callback(null, client.user == topic.split('/')[1] || client.user === config.zteBroker.username);
         },
         authorizeSubscribe: function(client, topic, callback) {
-            callback(null, client.user == topic.split('/')[1] || client.user === config.fabrickBroker.username);
+            callback(null, client.user == topic.split('/')[1] || client.user === config.zteBroker.username);
         }
     },
     persistence: {
