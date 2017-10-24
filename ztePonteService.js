@@ -1,5 +1,5 @@
 var ponte = require("ponte");
-var request = require('sync-request');
+// var request = require('sync-request');
 const config = require('./config/conf');
 
 var opts = {
