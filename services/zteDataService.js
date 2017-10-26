@@ -295,17 +295,20 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     // console.log('Decrypted Hex : ' + this.decryptedHex);
     // console.log('checksumHex : ' + checksumHex);
 
+    this.dataTypeMajor = effectiveData.substring(0, 2); //41
+    this.dataTypeMinor = effectiveData.substring(2, 4); //42
+
     MongoClient.connect(url, function (err, db) {
         db.collection('DeviceMessageLogs').findOne({
             DeviceId: deviceId,
             MessageType: frameType,
             MessageId: frameId
         }, function (err, messageLogs) {
-            if (messageLogs != null && messageLogs["MessageId"] == frameId) {
-                console.log('Duplicated: ^^^^^^^ FrameId "' + frameId + '" already received and processed ^^^^^^^ ');
-                console.log('messageLogs: ' + messageLogs);
-                return false;
-            }
+            // if (messageLogs != null && messageLogs["MessageId"] == frameId && this.dataTypeMajor == "00" && this.dataTypeMinor == "00") {
+            //     console.log('Duplicated: ^^^^^^^ FrameId "' + frameId + '" already received and processed ^^^^^^^ ');
+            //     console.log('messageLogs: ' + messageLogs);
+            //     return false;
+            // }
 
             var receivedDate = new Date();
             var receivedDateText = common.dateToUTCText(receivedDate);
@@ -406,11 +409,6 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
                     break;
                 case "03":
                     // Handle publish message from devices
-                    this.dataTypeMajor = effectiveData.substring(0, 2); //41
-                    this.dataTypeMinor = effectiveData.substring(2, 4); //42
-
-                    deviceData["MajorDataTypeId"] = this.dataTypeMajor;
-                    deviceData["MinorDataTypeId"] = this.dataTypeMinor;
                     deviceData["Data"] = publishMessageHandle(this, db, deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
                     db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
@@ -428,12 +426,9 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
                 case "04":
                     // Handle response message from devices
                     console.log("*************Response for frameId '" + frameId + "'*************");
-                    var majorType = effectiveData.substring(0, 2); //41
-                    var minorType = effectiveData.substring(2, 4); //42
-
-                    deviceData["MajorDataTypeId"] = majorType;
-                    deviceData["MinorDataTypeId"] = minorType;
-                    deviceData["Data"] = responseMessageHandle(db, deviceId, frameId, effectiveData, majorType, minorType);
+                    deviceData["MajorDataTypeId"] = this.dataTypeMajor;
+                    deviceData["MinorDataTypeId"] = this.dataTypeMinor;
+                    deviceData["Data"] = responseMessageHandle(db, deviceId, frameId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
                     db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
                         if (err) {
