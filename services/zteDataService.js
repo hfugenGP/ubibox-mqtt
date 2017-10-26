@@ -301,6 +301,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
         }, function (err, messageLogs) {
             if (messageLogs != null && messageLogs["MessageId"] == frameId) {
                 console.log('Duplicated: ^^^^^^^ FrameId "' + frameId + '" already received and processed ^^^^^^^ ');
+                console.log('messageLogs: ' + messageLogs);
                 return false;
             }
 
