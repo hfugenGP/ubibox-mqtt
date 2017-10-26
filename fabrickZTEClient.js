@@ -188,18 +188,18 @@ net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
 var zteDataSenderService = new ZTEDataService();
 
 var fabrick_gateway = {
-    id: "Fabrick ZTE Sockets Client " + config.fabrickBroker.idKey,
-    host: config.fabrickBroker.host,
-    port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/ZTE/Device/Message': 1, 'config/fabrick.io/ZTE/Devices': 1 }
+    id: "Fabrick ZTE Sockets Client " + config.zteBroker.idKey,
+    host: config.zteBroker.host,
+    port: config.zteBroker.port,
+    topics: { 'config/ztewelink/portal/Device/Message': 1, 'config/ztewelink/portal/Devices': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
-    keepalive: config.fabrickBroker.keepalive,
+    keepalive: config.zteBroker.keepalive,
     port: fabrick_gateway.port,
     clientId: fabrick_gateway.id,
-    username: config.fabrickBroker.username,
-    password: config.fabrickBroker.password,
+    username: config.zteBroker.username,
+    password: config.zteBroker.password,
 });
 var fabrick_client = fabrick_Broker.connect();
 fabrick_Broker.onConnect(() => {
@@ -219,7 +219,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     var data = JSON.parse(message);
     switch (topic) {
-        case 'config/fabrick.io/ZTE/Device/Message':
+        case 'config/ztewelink/portal/Device/Message':
             console.log(data);
             var deviceId = data["deviceId"];
             var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["parameters"]);
@@ -261,7 +261,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 }
             }
             break;
-        case 'config/fabrick.io/ZTE/Devices':
+        case 'config/ztewelink/portal/Devices':
             // console.log(json_object);
             while (subcribedDevices.length) {
                 subcribedDevices.pop();
