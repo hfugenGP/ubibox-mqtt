@@ -299,7 +299,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
         db.collection('DeviceMessageLogs').findOne({
             MessageId: frameId
         }, function (err, messageLogs) {
-            if (messageLogs != null) {
+            if (messageLogs != null && messageLogs["MessageId"] == frameId) {
                 console.log('Duplicated: ^^^^^^^ FrameId "' + frameId + '" already received and processed ^^^^^^^ ');
                 return false;
             }
