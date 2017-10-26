@@ -297,6 +297,8 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
 
     MongoClient.connect(url, function (err, db) {
         db.collection('DeviceMessageLogs').findOne({
+            DeviceId: deviceId,
+            MessageType: frameType,
             MessageId: frameId
         }, function (err, messageLogs) {
             if (messageLogs != null && messageLogs["MessageId"] == frameId) {
