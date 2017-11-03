@@ -1970,7 +1970,6 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     // Request update package
                     console.log('*********************Start Request update package*********************');
                     // var reportTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
-
                     var start = 4;
                     var end = 6;
                     var fileNameDataLength = parseInt(effectiveData.substring(start, end), 16);
@@ -2004,6 +2003,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     break;
                 case "02":
                     // Request AGPS data
+                    console.log('*********************Start Request AGPS data*********************');
+                    // var lngData = parseInt(effectiveData.substring(4, 12), 16);
+                    console.log('*********************Start Request AGPS data*********************');
                     break;
                 case "03":
                     // Update package verification
