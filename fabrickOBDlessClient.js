@@ -19,7 +19,9 @@ var fabrick_gateway = {
     host: config.zteBroker.host,
     port: config.zteBroker.port,
     topics: {
-        'config/fabrick.io/Senslink/Devices': 1
+        'api/ztewelink/ODBless/Data/GPS': 1,
+        'api/ztewelink/ODBless/Data/TripSummary': 1,
+        'api/ztewelink/ODBless/Data/Alert': 1
     }
 };
 
@@ -56,7 +58,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log(json_object);
 
     switch (topic) {
-        case '/api/ztewelink/ODBless/Data/GPS':
+        case 'api/ztewelink/ODBless/Data/GPS':
             // var client = redis.createClient();
             // client.set("config/Senslink/Devices", message);
             var gpsData = {};
@@ -87,7 +89,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             });
 
             break;
-        case '/api/ztewelink/ODBless/Data/TripSummary':
+        case 'api/ztewelink/ODBless/Data/TripSummary':
             var gpsWhenIgnitionOn = {};
             gpsWhenIgnitionOn["positionTime"] = json_object["gpsWhenIgnitionOn"]["reportTime"];
             gpsWhenIgnitionOn["positionSource"] = "GPS";
@@ -160,7 +162,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 });
             });
             break;
-        case '/api/ztewelink/ODBless/Data/Alert':
+        case 'api/ztewelink/ODBless/Data/Alert':
             var gpsData = {};
             gpsData["positionTime"] = json_object["reportGPS"]["reportTime"];
             gpsData["positionSource"] = "GPS";
