@@ -338,7 +338,8 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     }
 
     console.log('effectiveData : ' + effectiveData);
-
+    var client = redis.createClient();
+    
     switch (frameType) {
         case "11":
             deviceData["MajorDataTypeId"] = "99";
