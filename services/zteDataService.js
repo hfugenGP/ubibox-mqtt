@@ -340,7 +340,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     console.log('effectiveData : ' + effectiveData);
 
     var client = redis.createClient();
-    var frameIdCachedKey = "ZTE-" + deviceId + frameType + frameId;
+    var frameIdCachedKey = "ZTE-" + deviceId + "-" + frameType + "-" + frameId;
     client.exists(frameIdCachedKey, function (err, reply) {
         if (reply === 1) {
             console.log('Error: ^^^^^^^ Duplicated frame returned from device ^^^^^^^ ');
