@@ -344,6 +344,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     client.exists(frameIdCachedKey, function (err, reply) {
         if (reply === 1) {
             console.log('Error: ^^^^^^^ Duplicated frame returned from device ^^^^^^^ ');
+            console.log('frameIdCachedKey : ' + frameIdCachedKey);
             console.log('frameId : ' + frameId);
             return false;
         } else {
