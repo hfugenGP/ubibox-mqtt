@@ -345,6 +345,7 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
 ZTEDataService.prototype.processData = function (hexData, subcribedDevices, deviceData) {
     var effectiveData = deviceData["EffectiveData"];
     var frameId = deviceData["MessageId"];
+    var frameType = deviceData["MessageType"];
     var deviceId = deviceData["DeviceId"];
     var client = redis.createClient();
     var common = new Common();
