@@ -25,6 +25,7 @@ var connectingDevices = {};
 var deviceAddress = {};
 var subcribedDevices = new Array();
 var pendingDeviceMessages = {};
+var cachedFrameId = new Array();
 // var deviceListLock = locks.createReadWriteLock();
 // var pendingMessageLock = locks.createReadWriteLock();
 
@@ -85,7 +86,25 @@ function handleDeviceConnetion(sock) {
             db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
         });
 
-        if (!zteDataService.processData(hexData, subcribedDevices)) {
+        var deviceData = zteDataService.preProcessData(hexData, subcribedDevices);
+
+        if(!deviceData){
+            console.log('Fail to process data, return now without callback...');
+            return;
+        }
+
+        var frameIdCachedKey = "ZTE-" + deviceData["deviceId"] + "-" + deviceData["frameType"] + "-" + deviceData["frameId"];
+        if(cachedFrameId[frameIdCachedKey]){
+            console.log('Duplicated frame returned, ignore this frame...');
+            console.log('deviceId : ' + deviceData["deviceId"]);
+            console.log('frameType : ' + deviceData["frameType"]);
+            console.log('frameId : ' + deviceData["frameId"]);
+            return;
+        }
+
+        cachedFrameId[frameIdCachedKey] = true;
+
+        if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
             console.log('Fail to process data, return now without callback...');
             return;
         }
@@ -135,6 +154,10 @@ function handleDeviceConnetion(sock) {
                     });
                 }
             });
+        }
+
+        if(cachedFrameId.length >= 1000){
+            cachedFrameId.splice(0, 10);
         }
         //     console.log('Pending Message unlocked');
         //     pendingMessageLock.unlock();

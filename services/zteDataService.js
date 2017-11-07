@@ -248,7 +248,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
     return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey);
 }
 
-ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
+ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
     var common = new Common();
     var simpleCrypto = new SimpleCrypto();
 
@@ -338,7 +338,16 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     }
 
     console.log('effectiveData : ' + effectiveData);
+
+    return deviceData;
+}
+
+ZTEDataService.prototype.processData = function (hexData, subcribedDevices, deviceData) {
+    var effectiveData = deviceData["EffectiveData"];
+    var frameId = deviceData["MessageId"];
+    var deviceId = deviceData["DeviceId"];
     var client = redis.createClient();
+    var common = new Common();
     
     switch (frameType) {
         case "11":
@@ -423,12 +432,12 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
         case "04":
             // Handle response message from devices
             console.log("*************Response for frameId '" + frameId + "'*************");
-            var majorType = effectiveData.substring(0, 2); //41
-            var minorType = effectiveData.substring(2, 4); //42
+            this.dataTypeMajor = effectiveData.substring(0, 2); //41
+            this.dataTypeMinor = effectiveData.substring(2, 4); //42
 
             deviceData["MajorDataTypeId"] = majorType;
             deviceData["MinorDataTypeId"] = minorType;
-            deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, majorType, minorType);
+            deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
             MongoClient.connect(url, function (err, db) {
@@ -451,132 +460,6 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices) {
     }
 
     return true;
-
-    // var client = redis.createClient();
-    // var frameIdCachedKey = "ZTE-" + deviceId + "-" + frameType + "-" + frameId;
-    // client.exists(frameIdCachedKey, function (err, reply) {
-    //     if (reply == true) {
-    //         console.log('Error: ^^^^^^^ Duplicated frame returned from device ^^^^^^^ ');
-    //         console.log('frameIdCachedKey : ' + frameIdCachedKey);
-    //         console.log('frameId : ' + frameId);
-    //         return false;
-    //     } else {
-    //         client.set(frameIdCachedKey, true);
-    //         client.expire(frameIdCachedKey, 900);
-
-    //         switch (frameType) {
-    //             case "11":
-    //                 deviceData["MajorDataTypeId"] = "99";
-    //                 deviceData["MinorDataTypeId"] = "99";
-    //                 var data = {};
-    //                 var protocolVersionData = common.hex2bits(effectiveData.substring(0, 4));
-    //                 //0040 = 0000 0000 0100 0000 = 0.1.0
-    //                 data["protocolVersion"] = parseInt(protocolVersionData.substring(0, 4), 2) + "." + parseInt(protocolVersionData.substring(4, 10), 2) + "." + parseInt(protocolVersionData.substring(10, 16), 2);
-
-    //                 var hardwareVersionData = common.hex2bits(effectiveData.substring(4, 8));
-    //                 //1040 = 0001 0000 0100 0000 = V1.1.0
-    //                 data["hardwareVersion"] = "V" + parseInt(protocolVersionData.substring(0, 4), 2) + "." + parseInt(protocolVersionData.substring(4, 10), 2) + "." + parseInt(protocolVersionData.substring(10, 16), 2);
-
-    //                 var lengthOfSoftwareVersionMCU = parseInt(common.hex2bits(effectiveData.substring(8, 10)).substring(2, 8), 2);
-    //                 var start = 10;
-    //                 var end = start + lengthOfSoftwareVersionMCU * 2;
-    //                 data["mcuVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
-
-    //                 start = end;
-    //                 end += 2;
-    //                 var lengthOfSoftwareVersionModem = parseInt(common.hex2bits(effectiveData.substring(start, end)).substring(2, 8), 2);
-    //                 start = end;
-    //                 end += lengthOfSoftwareVersionModem * 2;
-    //                 data["modemVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
-
-    //                 deviceData["Data"] = data;
-
-    //                 console.log("protocolVersion: " + data["protocolVersion"]);
-    //                 console.log("hardwareVersion: " + data["hardwareVersion"]);
-    //                 console.log("mcuVersion: " + data["mcuVersion"]);
-    //                 console.log("modemVersion: " + data["modemVersion"]);
-
-    //                 // Use connect method to connect to the Server
-    //                 MongoClient.connect(url, function (err, db) {
-    //                     db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-    //                         if (err) {
-    //                             console.log("Error when write to mongodb: " + err);
-    //                         }
-    //                         db.collection('DeviceStage').findOneAndUpdate({
-    //                             deviceId: deviceId
-    //                         }, {
-    //                             $set: {
-    //                                 protocolVersion: data["protocolVersion"],
-    //                                 hardwareVersion: data["hardwareVersion"],
-    //                                 mcuVersion: data["mcuVersion"],
-    //                                 modemVersion: data["modemVersion"]
-    //                             }
-    //                         }, {
-    //                             upsert: true
-    //                         });
-    //                         // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-    //                         client.publish("zteDeviceLogs", JSON.stringify({
-    //                             "deviceId": deviceId
-    //                         }));
-    //                     });
-    //                 });
-    //                 break;
-    //             case "03":
-    //                 // Handle publish message from devices
-    //                 this.dataTypeMajor = effectiveData.substring(0, 2); //41
-    //                 this.dataTypeMinor = effectiveData.substring(2, 4); //42
-
-    //                 deviceData["MajorDataTypeId"] = this.dataTypeMajor;
-    //                 deviceData["MinorDataTypeId"] = this.dataTypeMinor;
-    //                 deviceData["Data"] = publishMessageHandle(this, deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
-
-    //                 // Use connect method to connect to the Server
-    //                 MongoClient.connect(url, function (err, db) {
-    //                     db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-    //                         if (err) {
-    //                             console.log("Error when write to mongodb: " + err);
-    //                         }
-    //                         // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-    //                         client.publish("zteDeviceLogs", JSON.stringify({
-    //                             "deviceId": deviceId
-    //                         }));
-    //                     });
-    //                 });
-
-    //                 break;
-    //             case "04":
-    //                 // Handle response message from devices
-    //                 console.log("*************Response for frameId '" + frameId + "'*************");
-    //                 var majorType = effectiveData.substring(0, 2); //41
-    //                 var minorType = effectiveData.substring(2, 4); //42
-
-    //                 deviceData["MajorDataTypeId"] = majorType;
-    //                 deviceData["MinorDataTypeId"] = minorType;
-    //                 deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, majorType, minorType);
-
-    //                 // Use connect method to connect to the Server
-    //                 MongoClient.connect(url, function (err, db) {
-    //                     db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-    //                         if (err) {
-    //                             console.log("Error when write to mongodb: " + err);
-    //                         }
-    //                         // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-
-    //                         client.publish("zteDeviceResponse", JSON.stringify({
-    //                             "deviceId": deviceId,
-    //                             "frameId": frameId
-    //                         }));
-    //                         client.publish("zteDeviceLogs", JSON.stringify({
-    //                             "deviceId": deviceId
-    //                         }));
-    //                     });
-    //                 });
-    //                 break;
-    //         }
-
-    //         return true;
-    //     }
-    // });
 }
 
 function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, dataTypeMinor) {
