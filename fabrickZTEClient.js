@@ -93,7 +93,7 @@ function handleDeviceConnetion(sock) {
             return;
         }
 
-        var frameIdCachedKey = "ZTE-" + deviceData["deviceId"] + "-" + deviceData["frameType"] + "-" + deviceData["frameId"];
+        var frameIdCachedKey = "ZTE-" + deviceData["DeviceId"] + "-" + deviceData["MessageType"] + "-" + deviceData["MessageId"];
         if(cachedFrameId[frameIdCachedKey]){
             console.log('Duplicated frame returned, ignore this frame...');
             console.log('deviceId : ' + deviceData["deviceId"]);
