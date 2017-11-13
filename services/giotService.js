@@ -458,6 +458,9 @@ function ipsoDataFormat(deviceType, rawData) {
             case "cb":
                 data['dissolvedOxygen'] = [parseInt(value, 16) / 100, 'mg/l'];
                 break;
+            case "cd":
+                data["ultrasonic"] = [parseInt(value, 16) / 100, 'M'];
+                break;
         }
 
         frameCount--;
