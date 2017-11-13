@@ -62,6 +62,12 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 "receivedDate": receivedDateText,
                 "status": "New"
             }
+            var logData = {
+                "extId": json_object.extId,
+                "rawData": json_object.rawData,
+                "receivedDate": receivedDateText,
+                "data": json_object,
+            }
             if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(json_object.extId) != -1) {
                 console.log('Message received on Dashboard service');
                 console.log(data);
@@ -82,10 +88,18 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
                     db.collection('GatewayData').insertOne(data, function(err, r) {
                         if (err) {
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when write to GatewayData: " + err);
                         }
 
-                        console.log(r.insertedCount + " record has been saved to mongodb");
+                        console.log(r.insertedCount + " record has been saved to GatewayData");
+
+                        db.collection('GatewayDataLogs').insertOne(logData, function(error, records) {
+                            if (error) {
+                                console.log("Error when write to GatewayDataLogs: " + error);
+                            }
+    
+                            console.log(records.insertedCount + " record has been saved to GatewayDataLogs");
+                        });
 
                         if (json_object.extId == "05000159") {
                             var cloned_json_object = JSON.parse(JSON.stringify(json_object));
