@@ -436,8 +436,8 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             this.dataTypeMajor = effectiveData.substring(0, 2); //41
             this.dataTypeMinor = effectiveData.substring(2, 4); //42
 
-            deviceData["MajorDataTypeId"] = majorType;
-            deviceData["MinorDataTypeId"] = minorType;
+            deviceData["MajorDataTypeId"] = this.dataTypeMajor;
+            deviceData["MinorDataTypeId"] = this.dataTypeMinor;
             deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
