@@ -50,6 +50,7 @@ zte_Broker.onReconnect(() => {
 zte_Broker.onOffline(() => {
     console.log('OBDless Client is offline')
 });
+
 zte_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received from Fabrick');
     console.log('topic: ' + topic);
@@ -254,3 +255,21 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             console.log('No handler for topic %s', topic);
     }
 });
+
+function insert(db, collection, data, callback) {
+    db.collection(collection).insertOne(data, function (err, result) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
+        }
+        callback(result.insertedId);
+    });
+}
+
+function insertBundle(db, collection, data, callback) {
+    db.collection(collection).insertMany(data, function (err, result) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
+        }
+        callback(result.insertedIds);
+    });
+}
