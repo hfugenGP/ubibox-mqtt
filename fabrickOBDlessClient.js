@@ -132,6 +132,11 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             var tripData = {};
             tripData["deviceId"] = json_object["deviceId"];
 
+            var drivingDistanceData = {};
+        
+            drivingDistanceData["statisticsSource"] = "GPS";
+            drivingDistanceData["mileage"] = json_object["drivingDistance"];
+
             MongoClient.connect(url, function (err, db) {
                 insert(db, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
                     tripData["ignitionOnTime"] = common.dateToUTCText(json_object["ignitionOnTime"]);
@@ -139,7 +144,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                     insert(db, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
                         tripData["ignitionOffTime"] = common.dateToUTCText(json_object["ignitionOffTime"]);
                         tripData["gpsWhenIgnitionOff"] = insertedId;
-                        tripData["drivingDistance"] = json_object["drivingDistance"];
+                        tripData["drivingDistance"] = drivingDistanceData;
                         tripData["maxSpeed"] = json_object["maxSpeed"];
                         tripData["numberRapidAcce"] = json_object["numberRapidAcce"];
                         tripData["numberRapidDece"] = json_object["numberRapidDece"];
