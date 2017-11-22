@@ -223,7 +223,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                             alertData["value"] = {
                                 "speedBeforeAcc": json_object["alertData"]["speedBeforeAcc"],
                                 "speedAfterAcc": json_object["alertData"]["speedAfterAcc"],
-                                "accValue": json_object["alertData"]["accValue"]
+                                "accValue": parseInt(json_object["alertData"]["accValue"]) / 100
                             }
                             break;
                         case "sudden_deceleration":
@@ -231,13 +231,13 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                             alertData["value"] = {
                                 "speedBeforeDec": json_object["alertData"]["speedBeforeDec"],
                                 "speedAfterDec": json_object["alertData"]["speedAfterDec"],
-                                "decValue": json_object["alertData"]["decValue"]
+                                "decValue": parseInt(json_object["alertData"]["decValue"]) / 100
                             }
                             break;
                         case "sharp_turn":
                             alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
                             alertData["value"] = {
-                                "turn": json_object["alertData"]["turn"]
+                                "turn": parseInt(json_object["alertData"]["turn"]) / 10000
                             }
                             break;
                         case "over_speed":
