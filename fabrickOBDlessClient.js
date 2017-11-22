@@ -55,7 +55,13 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
     console.log('Message received from Fabrick');
     console.log('topic: ' + topic);
     console.log('message : ')
-    var json_object = JSON.parse(message);
+    var json_object;
+    try {
+        json_object = JSON.parse(message);
+    } catch (e) {
+        console.log('###########Invalid JSON##############');
+        return false;
+    }
     console.log(json_object);
 
     switch (topic) {
