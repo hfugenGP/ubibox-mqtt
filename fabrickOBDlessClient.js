@@ -53,6 +53,7 @@ zte_Broker.onOffline(() => {
 });
 
 zte_Broker.onMessage((gatewayName, topic, message, packet) => {
+    var common = new Common();
     console.log('Message received from Fabrick');
     console.log('topic: ' + topic);
     console.log('message : ')
@@ -70,7 +71,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             // var client = redis.createClient();
             // client.set("config/Senslink/Devices", message);
             var gpsData = {};
-            gpsData["positionTime"] = json_object["gpsData"]["reportTime"];
+            gpsData["positionTime"] = common.dateToUTCText(json_object["gpsData"]["reportTime"]);
             gpsData["positionSource"] = "GPS";
             gpsData["height"] = json_object["gpsData"]["height"];
             gpsData["longitude"] = json_object["gpsData"]["longitude"];
@@ -99,7 +100,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             break;
         case 'api/ztewelink/OBDless/Data/TripSummary':
             var gpsWhenIgnitionOn = {};
-            gpsWhenIgnitionOn["positionTime"] = json_object["gpsWhenIgnitionOn"]["reportTime"];
+            gpsWhenIgnitionOn["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOn"]["reportTime"]);
             gpsWhenIgnitionOn["positionSource"] = "GPS";
             gpsWhenIgnitionOn["height"] = json_object["gpsWhenIgnitionOn"]["height"];
             gpsWhenIgnitionOn["longitude"] = json_object["gpsWhenIgnitionOn"]["longitude"];
@@ -114,7 +115,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsWhenIgnitionOn["deviceId"] = json_object["deviceId"];
 
             var gpsWhenIgnitionOff = {};
-            gpsWhenIgnitionOff["positionTime"] = json_object["gpsWhenIgnitionOff"]["reportTime"];
+            gpsWhenIgnitionOff["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOff"]["reportTime"]);
             gpsWhenIgnitionOff["positionSource"] = "GPS";
             gpsWhenIgnitionOff["height"] = json_object["gpsWhenIgnitionOff"]["height"];
             gpsWhenIgnitionOff["longitude"] = json_object["gpsWhenIgnitionOff"]["longitude"];
@@ -133,10 +134,10 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
 
             MongoClient.connect(url, function (err, db) {
                 insert(db, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
-                    tripData["ignitionOnTime"] = json_object["deviceId"];
+                    tripData["ignitionOnTime"] = common.dateToUTCText(json_object["ignitionOnTime"]);
                     tripData["gpsWhenIgnitionOn"] = insertedId;
                     insert(db, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
-                        tripData["ignitionOffTime"] = json_object["ignitionOffTime"];
+                        tripData["ignitionOffTime"] = common.dateToUTCText(json_object["ignitionOffTime"]);
                         tripData["gpsWhenIgnitionOff"] = insertedId;
                         tripData["drivingDistance"] = json_object["drivingDistance"];
                         tripData["maxSpeed"] = json_object["maxSpeed"];
@@ -172,7 +173,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             break;
         case 'api/ztewelink/OBDless/Data/Alert':
             var gpsData = {};
-            gpsData["positionTime"] = json_object["reportGPS"]["reportTime"];
+            gpsData["positionTime"] = common.dateToUTCText(json_object["reportGPS"]["reportTime"]);
             gpsData["positionSource"] = "GPS";
             gpsData["height"] = json_object["reportGPS"]["height"];
             gpsData["longitude"] = json_object["reportGPS"]["longitude"];
@@ -240,8 +241,8 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                                 "maxSpeed": json_object["alertData"]["maxSpeed"],
                                 "speedLimit": json_object["alertData"]["speedLimit"],
                                 "speedingMileage": json_object["alertData"]["speedingMileage"],
-                                "speedingStart": json_object["alertData"]["speedingStart"],
-                                "speedingEnd": json_object["alertData"]["speedingEnd"]
+                                "speedingStart": common.dateToUTCText(json_object["alertData"]["speedingStart"]),
+                                "speedingEnd": common.dateToUTCText(json_object["alertData"]["speedingEnd"])
                             }
                             break;
                     }
