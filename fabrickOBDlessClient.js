@@ -135,17 +135,17 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                     tripData["ignitionOnTime"] = json_object["deviceId"];
                     tripData["gpsWhenIgnitionOn"] = insertedId;
                     insert(db, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
-                        tripData["ignitionOffTime"] = json_object["deviceId"];
+                        tripData["ignitionOffTime"] = json_object["ignitionOffTime"];
                         tripData["gpsWhenIgnitionOff"] = insertedId;
-                        tripData["drivingDistance"] = json_object["deviceId"];
-                        tripData["maxSpeed"] = json_object["deviceId"];
-                        tripData["numberRapidAcce"] = json_object["deviceId"];
-                        tripData["numberRapidDece"] = json_object["deviceId"];
-                        tripData["numberRapidSharpTurn"] = json_object["deviceId"];
+                        tripData["drivingDistance"] = json_object["drivingDistance"];
+                        tripData["maxSpeed"] = json_object["maxSpeed"];
+                        tripData["numberRapidAcce"] = json_object["numberRapidAcce"];
+                        tripData["numberRapidDece"] = json_object["numberRapidDece"];
+                        tripData["numberRapidSharpTurn"] = json_object["numberRapidSharpTurn"];
                         tripData["status"] = "New";
                         insert(db, 'Trips', tripData, function (insertedId) {
                             db.collection('GPSData').updateMany({
-                                deviceId: deviceId,
+                                deviceId: json_object["deviceId"],
                                 gpsType: "routing",
                                 tripId: null
                             }, {
