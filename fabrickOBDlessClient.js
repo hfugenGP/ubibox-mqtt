@@ -7,6 +7,7 @@ const redis = require("redis");
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const MongoObjectId = require('mongodb').ObjectID;
+const exec = require('child_process').exec;
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
