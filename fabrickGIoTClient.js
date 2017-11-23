@@ -162,7 +162,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
     var json_object = JSON.parse(message);
 
     console.log('Raw message received from gateway ' + gatewayName);
-    console.log(message);
+    console.log(json_object);
     console.log("-----------------------------------");
 
     var publishMessage;
