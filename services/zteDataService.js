@@ -2884,6 +2884,8 @@ function formatGPS(gpsValue, deviceId, isRouting) {
         gpsData["deviceId"] = deviceId;
     }
 
+    gpsData["status"] = "New";
+
     return gpsData;
 }
 

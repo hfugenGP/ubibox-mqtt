@@ -86,6 +86,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsData["tripId"] = null;
             // gpsData["gpsType"] = "reference";
             gpsData["deviceId"] = json_object["deviceId"];
+            gpsData["status"] = "New";
 
             MongoClient.connect(url, function (err, db) {
                 insert(db, "GPSData", gpsData, function (insertedId) {
@@ -113,6 +114,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsWhenIgnitionOn["VDOP"] = json_object["gpsWhenIgnitionOn"]["VDOP"];
             gpsWhenIgnitionOn["gpsType"] = "reference";
             gpsWhenIgnitionOn["deviceId"] = json_object["deviceId"];
+            gpsWhenIgnitionOn["status"] = "New";
 
             var gpsWhenIgnitionOff = {};
             gpsWhenIgnitionOff["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOff"]["reportTime"]);
@@ -128,6 +130,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsWhenIgnitionOff["VDOP"] = json_object["gpsWhenIgnitionOff"]["VDOP"];
             gpsWhenIgnitionOff["gpsType"] = "reference";
             gpsWhenIgnitionOff["deviceId"] = json_object["deviceId"];
+            gpsWhenIgnitionOff["status"] = "New";
 
             var tripData = {};
             tripData["deviceId"] = json_object["deviceId"];
@@ -193,6 +196,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             // gpsData["tripId"] = null;
             gpsData["gpsType"] = "reference";
             gpsData["deviceId"] = json_object["deviceId"];
+            gpsData["status"] = "New";
 
             MongoClient.connect(url, function (err, db) {
                 insert(db, "GPSData", gpsData, function (insertedId) {
