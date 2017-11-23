@@ -161,6 +161,10 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 function processGemtekMessage(gatewayName, topic, message, packet, username) {
     var json_object = JSON.parse(message);
 
+    console.log('Raw message received from gateway ' + gatewayName);
+    console.log(message);
+    console.log("-----------------------------------");
+
     var publishMessage;
     var deviceExtId;
     if (gatewayName == "Innopia-000193") {
