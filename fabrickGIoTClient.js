@@ -181,7 +181,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
         }
 
         var giot = new GioTService();
-        publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data']);
+        publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data'], json_object['extra']);
     }
 
     if (publishMessage) {

@@ -5,7 +5,7 @@ var HI = require('heat-index');
 
 var giotService = function () {};
 
-giotService.prototype.generateMessage = function (subcribeDevices, macAddr, receivedDate, rawData) {
+giotService.prototype.generateMessage = function (subcribeDevices, macAddr, receivedDate, rawData, extraData) {
     var message = {
         "extId": macAddr
     };
@@ -350,6 +350,10 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
         default:
             console.log('No handler for device on MAC %s', macAddr);
             return;
+    }
+
+    if(extraData && extraData.rssi){
+        data['RSSI'] = [extraData.rssi]
     }
 
     message["data"] = data;

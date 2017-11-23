@@ -98,7 +98,7 @@ function processMessage(gatewayName, topic, message, packet) {
 
     var giot = new GioTService();
 
-    var publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data']);
+    var publishMessage = giot.generateMessage(subcribe_devices, macAddr, json_object['buff'], json_object['data'], json_object['extra']);
     if (publishMessage) {
         if (config.debuggingDevices.length == 0 || config.debuggingDevices.indexOf(macAddr) != -1) {
             console.log('Message received from gateway ' + gatewayName);

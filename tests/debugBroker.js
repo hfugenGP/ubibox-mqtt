@@ -57,7 +57,7 @@ function processGemtekMessage(gatewayName, topic, message, packet, username) {
     var json_object = JSON.parse(message);
 
     // console.log(json_object)
-    var publishMessage = generateMessage(json_object['macAddr'], json_object['buff'], json_object['data']);
+    var publishMessage = generateMessage(json_object['macAddr'], json_object['buff'], json_object['data'], json_object['extra']);
     if (publishMessage) {
         // console.log('Message received from gateway ' + gatewayName);
         // console.log(publishMessage);
