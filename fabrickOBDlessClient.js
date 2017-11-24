@@ -241,7 +241,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                         case "sharp_turn":
                             alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
                             alertData["value"] = {
-                                "turn": parseInt(json_object["alertData"]["turn"]) / 10000
+                                "turn": parseInt(json_object["alertData"]["turn"]) / 1000
                             }
                             break;
                         case "over_speed":
