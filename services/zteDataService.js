@@ -1024,8 +1024,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
             console.log('numberOfPackage : ' + numberOfPackage);
             data["numberOfPackage"] = numberOfPackage;
             var i = 1;
-            var start = 6
-            var end = 38;
+            var start = 6;
+            var end = 54;
             var gps = new Array();
             while (i <= numberOfPackage) {
                 var gpsData = formatGPS(effectiveData.substring(start, end), deviceId, true);
@@ -1033,7 +1033,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                 data["gpsData" + i] = gpsData;
                 gps.push(gpsData);
                 start = end;
-                end += 36;
+                end += 48;
                 i++;
             }
             if (gps.length > 0) {
