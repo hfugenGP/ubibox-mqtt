@@ -100,12 +100,19 @@ function handleDeviceConnetion(sock) {
 
         cachedFrameId[frameIdCachedKey] = true;
 
-        //Make sure that the message is not a duplicated one before set device to active
-        var receivedDateText = common.dateToUTCText(new Date());
-        MongoClient.connect(url, function(err, db) {
-            db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
-        });
-
+        if(deviceData["MessageType"] == '0e'){
+            //Set to offline if this is disconnected frame
+            var receivedDateText = common.dateToUTCText(new Date());
+            MongoClient.connect(url, function(err, db) {
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline", lastUpdated: receivedDateText } }, { upsert: true });
+            });
+        }else{
+            //Set to online if this is any other frame
+            var receivedDateText = common.dateToUTCText(new Date());
+            MongoClient.connect(url, function(err, db) {
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
+            });
+        }
         if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
             console.log('Fail to process data, return now without callback...');
             return;
