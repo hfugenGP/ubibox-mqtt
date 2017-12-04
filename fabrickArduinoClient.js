@@ -15,7 +15,12 @@ var fabrick_gateway = {
     id: "Fabrick Arduino Client " + config.fabrickBroker.idKey,
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
-    topics: { 'config/fabrick.io/Arduino/Devices': 1, 'config/fabrick.io/Arduino/Devices/LoraTopics': 1, 'config/fabrick.io/Arduino/Lora/Gateways': 1, 'config/fabrick.io/Arduino/Wifi/Gateways': 1 }
+    topics: {
+        'config/fabrick.io/Arduino/Devices': 1,
+        'config/fabrick.io/Arduino/Devices/LoraTopics': 1,
+        'config/fabrick.io/Arduino/Lora/Gateways': 1,
+        'config/fabrick.io/Arduino/Wifi/Gateways': 1
+    }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
@@ -51,11 +56,11 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
         case 'config/fabrick.io/Arduino/Wifi/Gateways':
             var json_object = JSON.parse(message);
             var new_topics = new Array();
-            _.each(json_object, function(element) {
+            _.each(json_object, function (element) {
                 new_topics.push(element['topics']);
             });
 
-            _.each(subcribe_topics, function(topic) {
+            _.each(subcribe_topics, function (topic) {
                 if (new_topics.indexOf(topic) == -1) {
                     fabrick_Broker.unsubscribeOne(topic);
                 }
@@ -65,7 +70,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribe_topics.pop();
             }
 
-            _.each(new_topics, function(topic) {
+            _.each(new_topics, function (topic) {
                 fabrick_Broker.subscribeOne(topic);
                 subcribe_topics.push(topic);
             });
@@ -76,7 +81,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
         case 'config/fabrick.io/Arduino/Lora/Gateways':
             var json_object = JSON.parse(message);
-            json_object.forEach(function(element) {
+            json_object.forEach(function (element) {
                 var gateway = {
                     id: element['id'] + " Arduino Listener",
                     protocol: element['protocol'],
@@ -131,24 +136,36 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                     broker.onConnect((name, username, topics) => {
                         console.log(name + ' Arduino Lora Client connected');
 
-                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Connected"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Connected"}', {
+                            qos: 1,
+                            retain: true
+                        })
                     });
                     broker.onError((err, username) => {
                         console.log('error happen with Arduino Lora Client')
                         console.log(err)
-                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Error"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Error"}', {
+                            qos: 1,
+                            retain: true
+                        })
                         broker.end()
                     });
                     broker.onClose((name, username) => {
                         console.log(name + ' Arduino Lora Client disconnected')
-                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Disconnected"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Disconnected"}', {
+                            qos: 1,
+                            retain: true
+                        })
                     });
                     broker.onReconnect((name) => {
                         console.log(name + ' reconnecting...')
                     });
                     broker.onOffline((name, username) => {
                         console.log(name + ' broker is offline')
-                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Offline"}', { qos: 1, retain: true })
+                        fabrick_Broker.publish('client/fabrick.io/Arduino/Lora/Status', '{"status":"Offline"}', {
+                            qos: 1,
+                            retain: true
+                        })
                     });
                     broker.onMessage(processLoraMessage);
 
@@ -164,7 +181,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             while (subcribe_devices.length) {
                 subcribe_devices.pop();
             }
-            json_object.forEach(function(element) {
+            json_object.forEach(function (element) {
                 subcribe_devices['MAC-' + element['device'].toLowerCase()] = element['deviceType'];
             });
             console.log(subcribe_devices);
@@ -175,7 +192,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
             while (lora_topics.length) {
                 lora_topics.pop();
             }
-            json_object.forEach(function(element) {
+            json_object.forEach(function (element) {
                 lora_topics['MAC-' + element['device'].toLowerCase()] = [element['topic']];
             });
             console.log(subcribe_devices);
@@ -214,7 +231,10 @@ function processWifiMessage(gatewayName, topic, message, packet) {
         console.log("-----------------------------------");
 
         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
-        fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
+        fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), {
+            qos: 1,
+            retain: true
+        });
     }
 }
 
@@ -224,9 +244,12 @@ function processLoraMessage(gatewayName, topic, message, packet) {
     var rawData = json_object['data'];
     var extId = rawData.substring(0, 8);
     if (lora_topics["MAC-" + extId]) {
-        lora_topics["MAC-" + extId].forEach(function(topic) {
+        lora_topics["MAC-" + extId].forEach(function (topic) {
             console.log('Delegate message to topic "' + topic + '" on fabrick gateway.');
-            fabrick_Broker.publish(topic, message, { qos: 1, retain: true });
+            fabrick_Broker.publish(topic, message, {
+                qos: 1,
+                retain: true
+            });
         }, this);
     }
 
@@ -251,7 +274,9 @@ function processLoraMessage(gatewayName, topic, message, packet) {
 }
 
 function generateMessage(extId, rawData) {
-    var message = { "extId": extId };
+    var message = {
+        "extId": extId
+    };
     message["rawData"] = rawData;
     message["receivedDate"] = new Date();
 
@@ -350,6 +375,24 @@ function generateMessage(extId, rawData) {
                 end += 4;
                 var gyro = parseInt('0x' + rawData.substring(start, end));
                 data["gyro"] = [gyro, 'dps'];
+                break;
+            case "74":
+                start = end;
+                end += 4;
+                var batteryLevel = parseInt('0x' + rawData.substring(start, end));
+                data['batteryLevel'] = [parseInt(batteryLevel, 16) / 100, 'V'];
+                break;
+            case "7e":
+                start = end;
+                end += 4;
+                var ph = parseInt('0x' + rawData.substring(start, end));
+                data["ph"] = [parseInt(ph, 16) / 100, "pH"];
+                break;
+            case "c9":
+                start = end;
+                end += 4;
+                var soilMoisture = parseInt('0x' + rawData.substring(start, end));
+                data["soilMoisture"] = [parseInt(soilMoisture, 16) / 100, "%"];
                 break;
             default:
                 console.log('DataType "' + dataType + '" is not support for current Arduino device on MAC %s', extId);
