@@ -81,11 +81,6 @@ function handleDeviceConnetion(sock) {
         //     deviceListLock.unlock();
         // });
 
-        var receivedDateText = common.dateToUTCText(new Date());
-        MongoClient.connect(url, function(err, db) {
-            db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
-        });
-
         var deviceData = zteDataService.preProcessData(hexData, subcribedDevices);
 
         if(!deviceData){
@@ -104,6 +99,12 @@ function handleDeviceConnetion(sock) {
         }
 
         cachedFrameId[frameIdCachedKey] = true;
+
+        //Make sure that the message is not a duplicated one before set device to active
+        var receivedDateText = common.dateToUTCText(new Date());
+        MongoClient.connect(url, function(err, db) {
+            db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
+        });
 
         if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
             console.log('Fail to process data, return now without callback...');
