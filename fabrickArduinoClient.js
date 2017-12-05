@@ -380,19 +380,19 @@ function generateMessage(extId, rawData) {
                 start = end;
                 end += 4;
                 var batteryLevel = parseInt('0x' + rawData.substring(start, end));
-                data['batteryLevel'] = [parseInt(batteryLevel, 16) / 100, 'V'];
+                data['batteryLevel'] = [batteryLevel / 100, 'V'];
                 break;
             case "7e":
                 start = end;
                 end += 4;
                 var ph = parseInt('0x' + rawData.substring(start, end));
-                data["ph"] = [parseInt(ph, 16) / 100, "pH"];
+                data["ph"] = [ph / 100, "pH"];
                 break;
             case "c9":
                 start = end;
                 end += 4;
                 var soilMoisture = parseInt('0x' + rawData.substring(start, end));
-                data["soilMoisture"] = [parseInt(soilMoisture, 16) / 100, "%"];
+                data["soilMoisture"] = [soilMoisture / 100, "%"];
                 break;
             default:
                 console.log('DataType "' + dataType + '" is not support for current Arduino device on MAC %s', extId);
