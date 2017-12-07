@@ -4,6 +4,7 @@ const Broker = require('./lib/broker');
 const Common = require('./lib/common')
 const config = require('./config/conf');
 const redis = require("redis");
+var _ = require('lodash');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const MongoObjectId = require('mongodb').ObjectID;
@@ -68,38 +69,43 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     switch (topic) {
         case 'api/ztewelink/OBDless/Data/GPS':
-            // var client = redis.createClient();
-            // client.set("config/Senslink/Devices", message);
-            var gpsData = {};
-            gpsData["positionTime"] = common.dateToUTCText(json_object["gpsData"]["reportTime"]);
-            gpsData["positionSource"] = "GPS";
-            gpsData["height"] = json_object["gpsData"]["height"];
-            gpsData["longitude"] = json_object["gpsData"]["longitude"];
-            gpsData["latitude"] = json_object["gpsData"]["latitude"];
-            gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
-            gpsData["gpsSpeed"] = json_object["gpsData"]["gpsSpeed"];
-            gpsData["heading"] = json_object["gpsData"]["heading"];
-            gpsData["PDOP"] = json_object["gpsData"]["PDOP"];
-            gpsData["HDOP"] = json_object["gpsData"]["HDOP"];
-            gpsData["VDOP"] = json_object["gpsData"]["VDOP"];
-            gpsData["gpsType"] = "routing";
-            gpsData["tripId"] = null;
-            gpsData["deviceId"] = json_object["deviceId"];
-            gpsData["status"] = "New";
+            var gps = new Array();
+            _.each(json_object["gpsData"], function(gpsPoint){
+                var gpsData = {};
+                gpsData["positionTime"] = common.dateToUTCText(gpsPoint["reportTime"]);
+                gpsData["positionSource"] = "GPS";
+                gpsData["height"] = gpsPoint["height"];
+                gpsData["longitude"] = gpsPoint["longitude"];
+                gpsData["latitude"] = gpsPoint["latitude"];
+                gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
+                gpsData["gpsSpeed"] = gpsPoint["gpsSpeed"];
+                gpsData["heading"] = gpsPoint["heading"];
+                gpsData["PDOP"] = gpsPoint["PDOP"];
+                gpsData["HDOP"] = gpsPoint["HDOP"];
+                gpsData["VDOP"] = gpsPoint["VDOP"];
+                gpsData["gpsType"] = "routing";
+                gpsData["tripId"] = null;
+                gpsData["deviceId"] = json_object["deviceId"];
+                gpsData["status"] = "New";
 
-            console.log("############################################");
-            console.log(gpsData);
-            console.log("############################################");
+                console.log("############################################");
+                console.log(gpsData);
+                console.log("############################################");
 
-            MongoClient.connect(url, function (err, db) {
-                insert(db, "GPSData", gpsData, function (insertedId) {
-                    var client = redis.createClient();
-                    client.publish("zteGPSData", JSON.stringify({
-                        "deviceId": json_object["deviceId"]
-                    }));
-                    db.close();
-                });
+                gps.push(gpsData);
             });
+
+            if (gps.length > 0) {
+                MongoClient.connect(url, function (err, db) {
+                    insertBundle(db, "GPSData", gps, function (insertedIds) {
+                        var client = redis.createClient();
+                        client.publish("zteGPSData", JSON.stringify({
+                            "deviceId": json_object["deviceId"]
+                        }));
+                        db.close();
+                    });
+                });
+            }
 
             break;
         case 'api/ztewelink/OBDless/Data/TripSummary':
