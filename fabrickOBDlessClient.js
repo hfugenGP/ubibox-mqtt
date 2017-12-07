@@ -84,9 +84,12 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsData["VDOP"] = json_object["gpsData"]["VDOP"];
             gpsData["gpsType"] = "routing";
             gpsData["tripId"] = null;
-            // gpsData["gpsType"] = "reference";
             gpsData["deviceId"] = json_object["deviceId"];
             gpsData["status"] = "New";
+
+            console.log("############################################");
+            console.log(gpsData);
+            console.log("############################################");
 
             MongoClient.connect(url, function (err, db) {
                 insert(db, "GPSData", gpsData, function (insertedId) {
@@ -192,8 +195,6 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsData["PDOP"] = json_object["reportGPS"]["PDOP"];
             gpsData["HDOP"] = json_object["reportGPS"]["HDOP"];
             gpsData["VDOP"] = json_object["reportGPS"]["VDOP"];
-            // gpsData["gpsType"] = "routing";
-            // gpsData["tripId"] = null;
             gpsData["gpsType"] = "reference";
             gpsData["deviceId"] = json_object["deviceId"];
             gpsData["status"] = "New";
