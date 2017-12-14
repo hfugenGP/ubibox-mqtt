@@ -1,3 +1,7 @@
+import {
+    validateExpressRequest
+} from './C:/Users/phong/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/twilio';
+
 "use strict";
 
 const Common = require('../lib/common');
@@ -352,7 +356,7 @@ giotService.prototype.generateMessage = function (subcribeDevices, macAddr, rece
             return;
     }
 
-    if(extraData && extraData.rssi){
+    if (extraData && extraData.rssi) {
         data['RSSI'] = [extraData.rssi]
     }
 
@@ -416,6 +420,19 @@ function ipsoDataFormat(deviceType, rawData) {
                     data['humidity'] = [humidity, '%', common.getDataStatus("humidity", humidity)];
                 }
 
+                break;
+            case "69":
+                switch (dataChannel) {
+                    case '00':
+                        end -= 2;
+                        value = rawData.substring(start, end);
+                        if (value == "00") {
+                            data['stage'] = [false];
+                        } else if (value == "01") {
+                            data['stage'] = [true];
+                        }
+                        break;
+                }
                 break;
             case "73":
                 data["pressure"] = [parseInt(value, 16), 'hPa'];

@@ -347,10 +347,24 @@ function generateMessage(extId, rawData) {
                 data["temperature"] = [temperature / 10, '°C'];
                 break;
             case '68': //'hum sensor'
+                switch (dataChannel) {
+                    case '00':
+                        start = end;
+                        end += 2;
+                        var hum = parseInt('0x' + rawData.substring(start, end));
+                        data["humidity"] = [hum / 2, '%RH'];
+                        break;
+                }
+                break;
+            case "69":
                 start = end;
                 end += 2;
-                var hum = parseInt('0x' + rawData.substring(start, end));
-                data["humidity"] = [hum / 2, '%RH'];
+                value = rawData.substring(start, end);
+                if (value == "00") {
+                    data['stage'] = [false];
+                } else if (value == "01") {
+                    data['stage'] = [true];
+                }
                 break;
             case '71': // Accelerometer
                 start = end;
