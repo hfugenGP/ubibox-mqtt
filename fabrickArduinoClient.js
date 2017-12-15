@@ -359,10 +359,10 @@ function generateMessage(extId, rawData) {
             case "69":
                 start = end;
                 end += 2;
-                value = rawData.substring(start, end);
-                if (value == "00") {
+                var stage = rawData.substring(start, end);
+                if (stage == "00") {
                     data['stage'] = [false];
-                } else if (value == "01") {
+                } else if (stage == "01") {
                     data['stage'] = [true];
                 }
                 break;
