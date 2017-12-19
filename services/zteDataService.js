@@ -1123,7 +1123,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["intakeAirTemp"] = intakeAirTemp;
                     data["intakeAirPressure"] = intakeAirPressure;
                     data["batteryVolt"] = batteryVolt;
-                    data["batteryVoltStatus"] = batteryVolt >= 10.2 ? "Normal" : "Warning";
+                    data["batteryVoltStatus"] = batteryVolt >= 11.5 ? "Normal" : "Warning";
                     data["fli"] = fli;
                     data["dt"] = dt;
                     data["mli"] = mli;
