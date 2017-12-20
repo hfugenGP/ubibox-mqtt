@@ -1,7 +1,3 @@
-import {
-    validateExpressRequest
-} from './C:/Users/phong/AppData/Local/Microsoft/TypeScript/2.6/node_modules/@types/twilio';
-
 "use strict";
 
 const Common = require('../lib/common');
