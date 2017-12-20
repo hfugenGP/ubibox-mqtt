@@ -1123,7 +1123,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["intakeAirTemp"] = intakeAirTemp;
                     data["intakeAirPressure"] = intakeAirPressure;
                     data["batteryVolt"] = batteryVolt;
-                    data["batteryVoltStatus"] = batteryVolt >= 11.5 ? "Normal" : "Warning";
+                    data["batteryVoltStatus"] = "Normal";
                     data["fli"] = fli;
                     data["dt"] = dt;
                     data["mli"] = mli;
@@ -1236,32 +1236,44 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     });
                                 }
 
-                                console.log('******************Saving Vehicle Status******************');
-                                insert(db, "VehicleHistoricalStatus", data, function (insertedId) {
-                                    var vehicleData = {};
-                                    vehicleData["deviceId"] = deviceId;
-                                    vehicleData["reportTime"] = reportTime;
-                                    vehicleData["rpm"] = rpm;
-                                    vehicleData["speed"] = speed;
-                                    vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
-                                    vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
-                                    vehicleData["throttlePosition"] = throttlePosition;
-                                    vehicleData["engineDuty"] = engineDuty;
-                                    vehicleData["intakeAirFlow"] = intakeAirFlow;
-                                    vehicleData["intakeAirTemp"] = intakeAirTemp;
-                                    vehicleData["intakeAirPressure"] = intakeAirPressure;
-                                    vehicleData["batteryVolt"] = batteryVolt;
-                                    vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
-                                    vehicleData["fli"] = fli;
-                                    vehicleData["dt"] = dt;
-                                    vehicleData["mli"] = mli;
-                                    vehicleData["totalMileage"] = totalMileage;
-                                    vehicleData["totalFuelConsumption"] = totalFuelConsumption;
-                                    vehicleData["totalDrivingTime"] = totalDrivingTime;
-                                    db.collection('VehicleStatus').findOneAndUpdate({
-                                        deviceId: deviceId
-                                    }, vehicleData, {
-                                        upsert: true
+                                db.collection('DeviceSetting').findOne({
+                                    deviceId: deviceId,
+                                    settingCode: "0x00060000"
+                                }, function (err, lowVoltage) {
+                                    console.log('******************Checking lowVoltage Alert******************');
+                                    console.log('batteryVolt: ' + batteryVolt);
+                                    if (batteryVolt != "N/A" && lowVoltage != null && parseInt(lowVoltage["value"]) > batteryVolt) {
+                                        console.log('lowVoltage: ' + lowVoltage["value"]);
+                                        data["batteryVoltStatus"] = "Warning";
+                                    }
+    
+                                    console.log('******************Saving Vehicle Status******************');
+                                    insert(db, "VehicleHistoricalStatus", data, function (insertedId) {
+                                        var vehicleData = {};
+                                        vehicleData["deviceId"] = deviceId;
+                                        vehicleData["reportTime"] = reportTime;
+                                        vehicleData["rpm"] = rpm;
+                                        vehicleData["speed"] = speed;
+                                        vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
+                                        vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
+                                        vehicleData["throttlePosition"] = throttlePosition;
+                                        vehicleData["engineDuty"] = engineDuty;
+                                        vehicleData["intakeAirFlow"] = intakeAirFlow;
+                                        vehicleData["intakeAirTemp"] = intakeAirTemp;
+                                        vehicleData["intakeAirPressure"] = intakeAirPressure;
+                                        vehicleData["batteryVolt"] = batteryVolt;
+                                        vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
+                                        vehicleData["fli"] = fli;
+                                        vehicleData["dt"] = dt;
+                                        vehicleData["mli"] = mli;
+                                        vehicleData["totalMileage"] = totalMileage;
+                                        vehicleData["totalFuelConsumption"] = totalFuelConsumption;
+                                        vehicleData["totalDrivingTime"] = totalDrivingTime;
+                                        db.collection('VehicleStatus').findOneAndUpdate({
+                                            deviceId: deviceId
+                                        }, vehicleData, {
+                                            upsert: true
+                                        });
                                     });
                                 });
                             });
