@@ -16,10 +16,7 @@ var fabrick_gateway = {
     host: config.fabrickBroker.host,
     port: config.fabrickBroker.port,
     topics: {
-        'config/fabrick.io/Arduino/Devices': 1,
-        'config/fabrick.io/Arduino/Devices/LoraTopics': 1,
-        'config/fabrick.io/Arduino/Lora/Gateways': 1,
-        'config/fabrick.io/Arduino/Wifi/Gateways': 1
+        'config/fabrick.io/Arduino/Devices': 1
     }
 };
 
@@ -123,21 +120,23 @@ ttnBroker.onOffline((name, username) => {
 });
 ttnBroker.onMessage(processMessage);
 
-function processWifiMessage(gatewayName, topic, message, packet) {
+function processMessage(gatewayName, topic, message, packet) {
+    if(topic !== '9303090/devices/libelium/up'){
+        console.log('Invalid topic return.');
+        return;
+    }
+
     var rawData;
     try {
         var json_object = JSON.parse(message);
-        rawData = json_object['data'];
-        console.log('Message delegated from Lora ' + message);
+        rawData = json_object['payload_raw'];
     } catch (e) {
-        rawData = message.toString();
-        console.log('Message received from Wifi ' + message);
+        console.log('Invalid JSON format.');
+        return;
     }
 
     var extId = rawData.substring(0, 8);
 
-    //'MAC-f3104211'
-    //'MAC-f3104211'
     if (!subcribe_devices["MAC-" + extId]) {
         console.log('No handler for device on extId %s', extId);
         return;
@@ -155,41 +154,6 @@ function processWifiMessage(gatewayName, topic, message, packet) {
             retain: true
         });
     }
-}
-
-function processLoraMessage(gatewayName, topic, message, packet) {
-    var json_object = JSON.parse(message);
-    console.log('Message received from Lora ' + message);
-    var rawData = json_object['data'];
-    var extId = rawData.substring(0, 8);
-    if (lora_topics["MAC-" + extId]) {
-        lora_topics["MAC-" + extId].forEach(function (topic) {
-            console.log('Delegate message to topic "' + topic + '" on fabrick gateway.');
-            fabrick_Broker.publish(topic, message, {
-                qos: 1,
-                retain: true
-            });
-        }, this);
-    }
-
-    // if (rawData) {
-    //     var extId = rawData.substring(0, 8);
-
-    //     if (!subcribe_devices["MAC-" + extId]) {
-    //         console.log('No handler for device on extId %s', extId);
-    //         return;
-    //     }
-
-    //     var publishMessage = generateMessage(extId, rawData);
-    //     if (publishMessage) {
-    //         console.log('Message received from gateway ' + gatewayName);
-    //         console.log(publishMessage);
-    //         console.log("-----------------------------------");
-
-    //         // fabrick_Broker.publish('fabrick.io/'+username+'/'+macAddr, JSON.stringify(publishMessage), {qos: 1, retain: true});
-    //         fabrick_Broker.publish('client/fabrick.io/device/data', JSON.stringify(publishMessage), { qos: 1, retain: true });
-    //     }
-    // }
 }
 
 function generateMessage(extId, rawData) {
