@@ -129,7 +129,8 @@ function processMessage(gatewayName, topic, message, packet) {
     var rawData;
     try {
         var json_object = JSON.parse(message);
-        rawData = json_object['payload_raw'];
+        var b = new Buffer(json_object['payload_raw'], 'base64');
+        rawData = b.toString();
     } catch (e) {
         console.log('Invalid JSON format.');
         return;
