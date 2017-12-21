@@ -69,7 +69,7 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
 
 var ttn_gateway = {
     id: "Fabrick TTN Client " + config.fabrickBroker.idKey,
-    host: "mqtt://us-west.thethings.network",
+    host: "tcp://us-west.thethings.network",
     port: 1883,
     topics: {
         '9303090/devices/libelium/up': 1
