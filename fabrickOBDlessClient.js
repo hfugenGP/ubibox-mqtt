@@ -81,12 +81,14 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
 
             if (topic === "api/ztewelink/OBDless/Data/Alert" &&
                 json_object.alertType === "trip_end") {
+                console.log("############ Trip_End: clear cache and stop trip ############");
                 deviceArray.pop(resKey);
                 client.del(resKey);
             } else {
+                console.log("############ New message: add vo cache and set 120s expired ############");
                 deviceArray.push(resKey);
                 client.set(resKey, true);
-                client.expire(resKey, 60);
+                client.expire(resKey, 120);
             }
 
             client.hmset("obdless/onGoing/trips", deviceArray);
@@ -117,10 +119,6 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                     gpsData.drivingDistance = json_object.deviceStatus.drivingDistance;
                     gpsData.maxSpeed = json_object.deviceStatus.maxSpeed;
                 }
-
-                console.log("############################################");
-                console.log(gpsData);
-                console.log("############################################");
 
                 gps.push(gpsData);
             });
