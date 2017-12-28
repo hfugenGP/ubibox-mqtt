@@ -1,7 +1,7 @@
 'use strict'
 
 const Broker = require('./lib/broker');
-const Common = require('./lib/common')
+const Common = require('./lib/common');
 const config = require('./config/conf');
 const redis = require("redis");
 var _ = require('lodash');
@@ -12,6 +12,8 @@ const exec = require('child_process').exec;
 
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
+
+var onGoingTrips = new Array();
 
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
@@ -67,10 +69,34 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
     }
     console.log(json_object);
 
+    var client = redis.createClient();
+    var resKey = "timeout-" + json_object["deviceId"];
+    client.hmget("obdless/onGoing/trips", function (err, obj) {
+        var deviceArray = new Array();
+
+        if (!err) {
+            if (obj) {
+                deviceArray = JSON.parse(obj);
+            }
+
+            if (topic === "api/ztewelink/OBDless/Data/Alert" &&
+                json_object.alertType === "trip_end") {
+                deviceArray.pop(resKey);
+                client.del(resKey);
+            } else {
+                deviceArray.push(resKey);
+                client.set(resKey, true);
+                client.expire(resKey, 60);
+            }
+
+            client.hmset("obdless/onGoing/trips", deviceArray);
+        }
+    });
+
     switch (topic) {
         case 'api/ztewelink/OBDless/Data/GPS':
             var gps = new Array();
-            _.each(json_object["gpsData"], function(gpsPoint){
+            _.each(json_object["gpsData"], function (gpsPoint) {
                 var gpsData = {};
                 gpsData["positionTime"] = common.dateToUTCText(gpsPoint["reportTime"]);
                 gpsData["positionSource"] = "GPS";
@@ -87,6 +113,10 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 gpsData["tripId"] = null;
                 gpsData["deviceId"] = json_object["deviceId"];
                 gpsData["status"] = "New";
+                if(json_object.deviceStatus){
+                    gpsData.drivingDistance = json_object.deviceStatus.drivingDistance;
+                    gpsData.maxSpeed = json_object.deviceStatus.maxSpeed;
+                }
 
                 console.log("############################################");
                 console.log(gpsData);
@@ -145,7 +175,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             tripData["deviceId"] = json_object["deviceId"];
 
             var drivingDistanceData = {};
-        
+
             drivingDistanceData["statisticsSource"] = "GPS";
             drivingDistanceData["mileage"] = json_object["drivingDistance"];
 
@@ -218,10 +248,16 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                         case "trip_start":
                             alertData["alertTypeId"] = new MongoObjectId("59fc24c4f2b0a5a368fa3af0");
                             alertData["value"] = {};
+                            if (!onGoingTrips[json_object["deviceId"]]) {
+                                onGoingTrips[json_object["deviceId"]] = true;
+                            }
                             break;
                         case "trip_end":
                             alertData["alertTypeId"] = new MongoObjectId("59fc24cff2b0a5a368fa3af1");
                             alertData["value"] = {};
+                            if (onGoingTrips[json_object["deviceId"]]) {
+                                onGoingTrips[json_object["deviceId"]] = false;
+                            }
                             break;
                         case "suspected_collision":
                             alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
