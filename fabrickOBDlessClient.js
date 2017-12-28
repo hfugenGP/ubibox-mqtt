@@ -244,16 +244,10 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                         case "trip_start":
                             alertData["alertTypeId"] = new MongoObjectId("59fc24c4f2b0a5a368fa3af0");
                             alertData["value"] = {};
-                            if (!onGoingTrips[json_object["deviceId"]]) {
-                                onGoingTrips[json_object["deviceId"]] = true;
-                            }
                             break;
                         case "trip_end":
                             alertData["alertTypeId"] = new MongoObjectId("59fc24cff2b0a5a368fa3af1");
                             alertData["value"] = {};
-                            if (onGoingTrips[json_object["deviceId"]]) {
-                                onGoingTrips[json_object["deviceId"]] = false;
-                            }
                             break;
                         case "suspected_collision":
                             alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
