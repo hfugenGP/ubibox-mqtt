@@ -13,8 +13,6 @@ const exec = require('child_process').exec;
 var user = encodeURIComponent(config.zte.mongoUsername);
 var password = encodeURIComponent(config.zte.mongoPassword);
 
-var onGoingTrips = new Array();
-
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 

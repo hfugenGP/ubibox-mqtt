@@ -15,6 +15,33 @@ var HI = require('heat-index');
 // var password = encodeURIComponent(config.zte.mongoPassword);
 var common = new Common();
 
+var client = redis.createClient();
+var resKey = "timeout-";
+var topic = "";
+client.hmget("obdless/onGoing/trips", function (err, obj) {
+    var deviceArray = {};
+    console.log("############ Redis hmget obdless/onGoing/trips ############");
+    if (!err) {
+        console.log("############ Redis hmget success ############");
+        if (obj) {
+            deviceArray = JSON.parse(obj);
+        }
+
+        if (topic === "api/ztewelink/OBDless/Data/Alert") {
+            console.log("############ Trip_End: clear cache and stop trip ############");
+            deviceArray.pop(resKey);
+            client.del(resKey);
+        } else {
+            console.log("############ New message: add vo cache and set 120s expired ############");
+            deviceArray.push(resKey);
+            client.set(resKey, true);
+            client.expire(resKey, 120);
+        }
+
+        client.hmset("obdless/onGoing/trips", deviceArray);
+    }
+});
+
 var effectiveData = "02000859fa732a144e8a9b224b048d1606d15d02b00e028000000059fa732c144e8a9b223f048d2807814702600c024000000059fa732d144e869b2238048d3007f14002600c024000000059fa732f144e889b2228048d4208713b02600c024000000059fa7331144e869b2215048d5108913002600c024000000059fa7332144e889b220a048d5708712802600c024000000059fa7334144e849b21f2048d5d08911702600c024000000059fa7336144e869b21d9048d5f09310f02600c02400000005f4e3ef51eb4818d";
 var data = {};
 var numberOfPackage = parseInt(effectiveData.substring(4, 6), 16);
