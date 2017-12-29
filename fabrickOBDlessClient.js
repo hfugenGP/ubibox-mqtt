@@ -89,7 +89,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 client.expire(resKey, 120);
             }
 
-            client.set("obdless/onGoing/trips", JSON.parse(deviceArray));
+            client.set("obdless/onGoing/trips", JSON.stringify(deviceArray));
         }
     });
 
