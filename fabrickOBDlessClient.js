@@ -83,12 +83,14 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 deviceArray.pop(resKey);
                 client.del(resKey);
             } else {
-                console.log("############ New message: add vo cache and set 120s expired ############");
+                console.log("############ New message: add to cache and set 120s expired ############");
                 deviceArray.push(resKey);
                 client.set(resKey, true);
                 client.expire(resKey, 120);
             }
 
+            console.log("############ Cached devices: ############");
+            console.log(JSON.stringify(deviceArray));
             client.set("obdless/onGoing/trips", JSON.stringify(deviceArray));
         }
     });
