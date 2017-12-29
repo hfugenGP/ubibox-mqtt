@@ -69,8 +69,8 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
 
     var client = redis.createClient();
     var resKey = "timeout-" + json_object["deviceId"];
-    client.hmget("obdless/onGoing/trips", function (err, obj) {
-        var deviceArray = new Array();
+    client.get("obdless/onGoing/trips", function (err, obj) {
+        var deviceArray = {};
 
         if (!err) {
             if (obj) {
@@ -89,7 +89,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 client.expire(resKey, 120);
             }
 
-            client.hmset("obdless/onGoing/trips", deviceArray);
+            client.set("obdless/onGoing/trips", JSON.parse(deviceArray));
         }
     });
 
