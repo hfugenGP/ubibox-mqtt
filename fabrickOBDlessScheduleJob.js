@@ -19,7 +19,7 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 var common = new Common();
 
 var fabrick_gateway = {
-    id: "Fabrick OBDless Client " + config.zteBroker.idKey,
+    id: "Fabrick OBDless SchedulerJob Client " + config.zteBroker.idKey,
     host: config.zteBroker.host,
     port: config.zteBroker.port,
     topics: {
