@@ -173,7 +173,7 @@ client.get("obdless/onGoing/trips", function (err, obj) {
             });
         });
 
-        client.hmset("obdless/onGoing/trips", remainingItems);
+        client.set("obdless/onGoing/trips", JSON.stringify(remainingItems));
     }
 
     client.quit(); // No further commands will be processed
