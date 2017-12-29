@@ -70,7 +70,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
     var client = redis.createClient();
     var resKey = "timeout-" + json_object["deviceId"];
     client.get("obdless/onGoing/trips", function (err, obj) {
-        var deviceArray = {};
+        var deviceArray = [];
 
         if (!err) {
             if (obj) {

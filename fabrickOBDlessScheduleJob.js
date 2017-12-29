@@ -42,7 +42,7 @@ var client = redis.createClient();
 client.get("obdless/onGoing/trips", function (err, obj) {
     if (!err && obj) {
         var json_object = JSON.parse(obj);
-        var remainingItems = {};
+        var remainingItems = [];
         _.each(json_object, function (item) {
             var deviceId = item.split("-")[1];
             client.exists(item, function (err, result) {
