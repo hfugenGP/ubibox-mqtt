@@ -177,4 +177,7 @@ client.get("obdless/onGoing/trips", function (err, obj) {
     }
 
     client.quit(); // No further commands will be processed
+
+    zte_Broker.end(true);
+    return true;
 });
