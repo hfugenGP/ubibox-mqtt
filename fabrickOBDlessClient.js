@@ -84,7 +84,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 client.del(resKey);
             } else {
                 console.log("############ New message: add to cache and set 120s expired ############");
-                if(deviceArray.indexOf(resKey) !== -1){
+                if(deviceArray.indexOf(resKey) === -1){
                     deviceArray.push(resKey);
                 }
                 client.set(resKey, true);
