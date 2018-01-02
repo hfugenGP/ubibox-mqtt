@@ -117,6 +117,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                 gpsData["tripId"] = null;
                 gpsData["deviceId"] = json_object["deviceId"];
                 gpsData["status"] = "New";
+                gpsData["address"] = "";
                 if(json_object.deviceStatus){
                     gpsData.drivingDistance = json_object.deviceStatus.drivingDistance;
                     gpsData.maxSpeed = json_object.deviceStatus.maxSpeed;

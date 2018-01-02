@@ -2914,6 +2914,7 @@ function formatGPS(gpsValue, deviceId, isRouting) {
     }
 
     gpsData["status"] = "New";
+    gpsData["address"] = "";
 
     return gpsData;
 }
