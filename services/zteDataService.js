@@ -679,6 +679,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 insertBundle(db, "Alert", alerts, function (insertedIds) {
                                     insertedIds.forEach(function (insertedId) {
                                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                        console.log("Trigger Alert notification: " + cmd);
                                         exec(cmd, function (error, stdout, stderr) {
                                             if (error) console.log(error);
                                             if (stdout) console.log(stdout);
@@ -801,6 +802,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 insertBundle(db, "Alert", alerts, function (insertedIds) {
                                     insertedIds.forEach(function (insertedId) {
                                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                        console.log("Trigger Alert notification: " + cmd);
                                         exec(cmd, function (error, stdout, stderr) {
                                             if (error) console.log(error);
                                             if (stdout) console.log(stdout);
@@ -854,6 +856,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             }
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -903,6 +906,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             }
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -946,6 +950,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             }
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -978,6 +983,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        console.log("Trigger Alert notification: " + cmd);
                         exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
@@ -1005,6 +1011,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        console.log("Trigger Alert notification: " + cmd);
                         exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
@@ -1189,6 +1196,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                                         insert(db, "Alert", roadOverSpeedData, function (insertedId) {
                                             var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                            console.log("Trigger Alert notification: " + cmd);
                                             exec(cmd, function (error, stdout, stderr) {
                                                 if (error) console.log(error);
                                                 if (stdout) console.log(stdout);
@@ -1228,6 +1236,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     }
                                     insert(db, "Alert", alertData, function (insertedId) {
                                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                        console.log("Trigger Alert notification: " + cmd);
                                         exec(cmd, function (error, stdout, stderr) {
                                             if (error) console.log(error);
                                             if (stdout) console.log(stdout);
@@ -1342,6 +1351,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     }
                     insertOne("Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        console.log("Trigger Alert notification: " + cmd);
                         exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
@@ -1464,6 +1474,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {}
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -1799,6 +1810,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         insertMany("Alert", alerts, function (insertedIds) {
                             insertedIds.forEach(function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -1836,6 +1848,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             }
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -1877,6 +1890,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             }
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -1922,6 +1936,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             }
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -1962,6 +1977,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["value"] = {}
                             insert(db, "Alert", alertData, function (insertedId) {
                                 var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                console.log("Trigger Alert notification: " + cmd);
                                 exec(cmd, function (error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
@@ -2176,6 +2192,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                 insertMany("Alert", alerts, function (insertedIds) {
                     insertedIds.forEach(function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        console.log("Trigger Alert notification: " + cmd);
                         exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);

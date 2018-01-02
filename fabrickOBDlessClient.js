@@ -295,6 +295,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
 
                     insert(db, "Alert", alertData, function (insertedId) {
                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                        console.log("Trigger Alert notification: " + cmd);
                         exec(cmd, function (error, stdout, stderr) {
                             if (error) console.log(error);
                             if (stdout) console.log(stdout);
