@@ -40,6 +40,8 @@ var zte_client = zte_Broker.connect();
 var client = redis.createClient();
 // client.unref();
 client.get("obdless/onGoing/trips", function (err, obj) {
+    console.log("err: " + err);
+    console.log("obj: " + obj);
     if (!err && obj) {
         var json_object = JSON.parse(obj);
         var remainingItems = [];
