@@ -67,35 +67,35 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
     }
     console.log(json_object);
 
-    var client = redis.createClient();
-    var resKey = "timeout-" + json_object["deviceId"];
-    client.get("obdless/onGoing/trips", function (err, obj) {
-        var deviceArray = [];
+    // var client = redis.createClient();
+    // var resKey = "timeout-" + json_object["deviceId"];
+    // client.get("obdless/onGoing/trips", function (err, obj) {
+    //     var deviceArray = [];
 
-        if (!err) {
-            if (obj) {
-                deviceArray = JSON.parse(obj);
-            }
+    //     if (!err) {
+    //         if (obj) {
+    //             deviceArray = JSON.parse(obj);
+    //         }
 
-            if (topic === "api/ztewelink/OBDless/Data/Alert" &&
-                json_object.alertType === "trip_end") {
-                console.log("############ Trip_End: clear cache and stop trip ############");
-                deviceArray.pop(resKey);
-                client.del(resKey);
-            } else {
-                console.log("############ New message: add to cache and set 120s expired ############");
-                if(deviceArray.indexOf(resKey) === -1){
-                    deviceArray.push(resKey);
-                }
-                client.set(resKey, true);
-                client.expire(resKey, 120);
-            }
+    //         if (topic === "api/ztewelink/OBDless/Data/Alert" &&
+    //             json_object.alertType === "trip_end") {
+    //             console.log("############ Trip_End: clear cache and stop trip ############");
+    //             deviceArray.pop(resKey);
+    //             client.del(resKey);
+    //         } else {
+    //             console.log("############ New message: add to cache and set 120s expired ############");
+    //             if(deviceArray.indexOf(resKey) === -1){
+    //                 deviceArray.push(resKey);
+    //             }
+    //             client.set(resKey, true);
+    //             client.expire(resKey, 120);
+    //         }
 
-            console.log("############ Cached devices: ############");
-            console.log(JSON.stringify(deviceArray));
-            client.set("obdless/onGoing/trips", JSON.stringify(deviceArray));
-        }
-    });
+    //         console.log("############ Cached devices: ############");
+    //         console.log(JSON.stringify(deviceArray));
+    //         client.set("obdless/onGoing/trips", JSON.stringify(deviceArray));
+    //     }
+    // });
 
     switch (topic) {
         case 'api/ztewelink/OBDless/Data/GPS':
