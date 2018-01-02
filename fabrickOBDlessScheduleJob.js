@@ -47,7 +47,13 @@ client.get("obdless/onGoing/trips", function (err, obj) {
             var deviceId = item.split("-")[1];
             client.exists(item, function (err, result) {
                 if (result === 1) {
+                    console.log(item + " still exist in cache");
+                    console.log("result: " + result);
                     remainingItems.push(item);
+
+                    client.get(item, function (err, result) {
+                        console.log("item: " + result);
+                    });
                 } else {
                     MongoClient.connect(url, function (err, db) {
                         db.collection('GPSData').findOne({
