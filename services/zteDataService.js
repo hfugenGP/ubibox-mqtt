@@ -41,12 +41,7 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
     switch (request) {
         case "00":
             //Notify new fw available to upgrade
-            var serverAddressData = common.hex_from_chars(config.zte.serverAddress);
-            var serverAddressDataLength = common.recorrectHexString((serverAddressData.length / 2).toString(16), 2);
-            var fileNameData = common.hex_from_chars(config.zte.currentFWVersion);
-            var fileNameDataLength = common.recorrectHexString((fileNameData.length / 2).toString(16), 2);
-
-            mainMessage += serverAddressDataLength + serverAddressData + fileNameDataLength + fileNameData;
+            mainMessage += getNotifyDeviceForNewFWMessage();
             break;
         case "01":
             //Vehicle detection //Just requestType is ok
@@ -60,8 +55,14 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
                     key == "0x03000000") {
                     return false;
                 }
+
                 mainMessage += key.substring(2, key.length);
                 switch (key) {
+                    case "upgradeFW":
+                        //Notify new fw available to upgrade
+                        mainMessage = "f100";
+                        mainMessage += getNotifyDeviceForNewFWMessage();
+                        break;
                     case "0xf0000000":
                         mainMessage += "ffff";
                         break;
@@ -2791,6 +2792,18 @@ ZTEDataService.prototype.generateReply = function (hexData) {
     }
 
     return dataPacking(deviceId, returnFrameType, frameId, dataLength, mainMessage, this.encryptionKey);
+}
+
+function getNotifyDeviceForNewFWMessage(){
+    var common = new Common();
+
+    //Notify new fw available to upgrade
+    var serverAddressData = common.hex_from_chars(config.zte.serverAddress);
+    var serverAddressDataLength = common.recorrectHexString((serverAddressData.length / 2).toString(16), 2);
+    var fileNameData = common.hex_from_chars(config.zte.currentFWVersion);
+    var fileNameDataLength = common.recorrectHexString((fileNameData.length / 2).toString(16), 2);
+
+    return serverAddressDataLength + serverAddressData + fileNameDataLength + fileNameData;
 }
 
 function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey) {
