@@ -2436,7 +2436,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
@@ -2455,7 +2455,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
@@ -2474,7 +2474,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
@@ -2493,7 +2493,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
@@ -2512,7 +2512,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
@@ -2531,7 +2531,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
@@ -2550,7 +2550,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
-                            end += count;
+                            end += count*2;
                             data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                             db.collection('DeviceSetting').findOneAndUpdate({
                                 deviceId: deviceId,
