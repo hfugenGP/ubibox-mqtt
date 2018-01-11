@@ -13,6 +13,7 @@ var redis = new Redis({ dropBufferSupport: true });
 redis.subscribe('zteGPSData');
 redis.subscribe('zteDeviceResponse');
 redis.subscribe('zteDeviceLogs');
+redis.subscribe('zteProcessExportDownload');
 redis.on('message', function(channel, message) {
     io.emit(channel, message);
 });
