@@ -2433,7 +2433,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02000000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2452,7 +2452,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02010000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2471,7 +2471,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02020000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2490,7 +2490,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02030000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2509,7 +2509,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02040000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2519,7 +2519,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                                 settingCode: paramNo
                             }, {
                                 deviceId: deviceId,
-                                name: "Wifi  router APN",
+                                name: "Wifi router APN",
                                 settingCode: paramNo,
                                 value: data[paramNo],
                                 status: 'Latest'
@@ -2528,7 +2528,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02050000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2547,7 +2547,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02060000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
@@ -2604,7 +2604,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             });
                             break;
                         case "0x02090000":
-                            end += 1;
+                            end += 2;
                             var count = parseInt(effectiveData.substring(start, end), 16);
                             start = end;
                             end += count;
