@@ -294,7 +294,7 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
     // console.log('dataLength : ' + dataLength);
     // console.log('Crypted Hex : ' + cryptedHex);
     // console.log('Decrypted Hex : ' + this.decryptedHex);
-    // console.log('checksumHex : ' + checksumHex);
+    console.log('checksumHex : ' + checksumHex);
 
     var receivedDate = new Date();
     var receivedDateText = common.dateToUTCText(receivedDate);

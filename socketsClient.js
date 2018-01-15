@@ -1,14 +1,16 @@
 var net = require('net');
 
-var HOST = '52.163.116.94';
+var HOST = '13.75.120.211';
 var PORT = 8884;
 
 var client = new net.Socket();
 client.connect(PORT, HOST, function() {
 
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
+    var data = "5555004d8b86d3cb004f9407383631343733303330303131383637b836c7d76e906f34a8e54caae10a55ca66be6378bc3a637be9865cb68bea702978165b9aa151fa977ec1ee8e999aab56aaaa";
+    var buff = new Buffer(data, 'hex');
     // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-    client.write("55550035d674d8c21a03e8193836313437333033303134393638337a18b6896b42483d61c9de90ac195bf3a1822df2cc09d59daaaa");
+    client.write(buff);
 
 });
 
