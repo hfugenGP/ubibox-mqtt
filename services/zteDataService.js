@@ -20,7 +20,11 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
-var ZTEDataService = function () {};
+var mongodb;
+
+var ZTEDataService = function (db) {
+    mongodb = db;
+};
 
 ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
@@ -309,19 +313,11 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
     };
 
     // Use connect method to connect to the Server
-    MongoClient.connect(url, function (err, db) {
-        if(err){
-            console.log("Error when connect to mongodb: " + err);
-            return false;
+    mongodb.collection('DeviceMessageLogsDebug').insertOne(deviceData, function (err, r) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
         }
-        db.collection('DeviceMessageLogsDebug').insertOne(deviceData, function (err, r) {
-            if (err) {
-                console.log("Error when write to mongodb: " + err);
-            }
-            // console.log(r.insertedCount + " record has been saved to DeviceHistoricalDataDebug");
-            db.close();
-            mongoClient.close();
-        });
+        // console.log(r.insertedCount + " record has been saved to DeviceHistoricalDataDebug");
     });
 
     if (dataLength > 952) {
@@ -389,37 +385,27 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             console.log("modemVersion: " + data["modemVersion"]);
 
             // Use connect method to connect to the Server
-            MongoClient.connect(url, function (err, db) {
+            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
                 if(err){
-                    console.log("Error when connect to mongodb: " + err);
+                    console.log("Error when write to mongodb: " + err);
                     return false;
                 }
-
-                db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-                    if(err){
-                        console.log("Error when write to mongodb: " + err);
-                        return false;
+                mongodb.collection('DeviceStage').findOneAndUpdate({
+                    deviceId: deviceId
+                }, {
+                    $set: {
+                        protocolVersion: data["protocolVersion"],
+                        hardwareVersion: data["hardwareVersion"],
+                        mcuVersion: data["mcuVersion"],
+                        modemVersion: data["modemVersion"]
                     }
-                    db.collection('DeviceStage').findOneAndUpdate({
-                        deviceId: deviceId
-                    }, {
-                        $set: {
-                            protocolVersion: data["protocolVersion"],
-                            hardwareVersion: data["hardwareVersion"],
-                            mcuVersion: data["mcuVersion"],
-                            modemVersion: data["modemVersion"]
-                        }
-                    }, {
-                        upsert: true
-                    }, function(err){
-                        db.close();
-                        mongoClient.close();
-                    });
-                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                    client.publish("zteDeviceLogs", JSON.stringify({
-                        "deviceId": deviceId
-                    }));
+                }, {
+                    upsert: true
                 });
+                // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                client.publish("zteDeviceLogs", JSON.stringify({
+                    "deviceId": deviceId
+                }));
             });
             break;
         case "03":
@@ -432,24 +418,16 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             deviceData["Data"] = publishMessageHandle(this, deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
-            MongoClient.connect(url, function (err, db) {
-                if(err){
-                    console.log("Error when connect to mongodb: " + err);
+            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
+                if (err) {
+                    console.log("Error when write to mongodb: " + err);
                     return false;
                 }
-                db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-                    if (err) {
-                        console.log("Error when write to mongodb: " + err);
-                        return false;
-                    }
 
-                    db.close();
-                    mongoClient.close();
-                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                    client.publish("zteDeviceLogs", JSON.stringify({
-                        "deviceId": deviceId
-                    }));
-                });
+                // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                client.publish("zteDeviceLogs", JSON.stringify({
+                    "deviceId": deviceId
+                }));
             });
 
             break;
@@ -464,25 +442,19 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
-            MongoClient.connect(url, function (err, db) {
-                if(err){
-                    console.log("Error when connect to mongodb: " + err);
-                    return false;
+            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
+                if (err) {
+                    console.log("Error when write to mongodb: " + err);
                 }
-                db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-                    if (err) {
-                        console.log("Error when write to mongodb: " + err);
-                    }
-                    // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
+                // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
 
-                    client.publish("zteDeviceResponse", JSON.stringify({
-                        "deviceId": deviceId,
-                        "frameId": frameId
-                    }));
-                    client.publish("zteDeviceLogs", JSON.stringify({
-                        "deviceId": deviceId
-                    }));
-                });
+                client.publish("zteDeviceResponse", JSON.stringify({
+                    "deviceId": deviceId,
+                    "frameId": frameId
+                }));
+                client.publish("zteDeviceLogs", JSON.stringify({
+                    "deviceId": deviceId
+                }));
             });
             break;
     }
@@ -538,53 +510,47 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var tripData = {};
                     tripData["deviceId"] = deviceId;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
-                            tripData["ignitionOnTime"] = ignitionOnTime;
-                            tripData["gpsWhenIgnitionOn"] = insertedId;
-                            insert(db, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
-                                tripData["ignitionOffTime"] = ignitionOffTime;
-                                tripData["gpsWhenIgnitionOff"] = insertedId;
-                                tripData["drivingDistance"] = drivingDistance;
-                                tripData["drivingFuelConsumption"] = drivingFuelConsumption;
-                                tripData["maxSpeed"] = maxSpeed;
-                                tripData["idleTime"] = idleTime;
-                                tripData["idleFuelConsumption"] = idleFuelConsumption;
-                                tripData["numberRapidAcce"] = numberRapidAcce;
-                                tripData["numberRapidDece"] = numberRapidDece;
-                                tripData["numberRapidSharpTurn"] = numberRapidSharpTurn;
-                                tripData["totalMileage"] = totalMileage;
-                                tripData["totalFuelConsumption"] = totalFuelConsumption;
-                                tripData["totalDrivingTime"] = totalDrivingTime;
-                                tripData["status"] = "New";
-                                insert(db, 'Trips', tripData, function (insertedId) {
-                                    if(err){
-                                        console.log("Error when write to mongodb: " + err);
-                                        return false;
+                    insert(mongodb, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
+                        tripData["ignitionOnTime"] = ignitionOnTime;
+                        tripData["gpsWhenIgnitionOn"] = insertedId;
+                        insert(mongodb, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
+                            tripData["ignitionOffTime"] = ignitionOffTime;
+                            tripData["gpsWhenIgnitionOff"] = insertedId;
+                            tripData["drivingDistance"] = drivingDistance;
+                            tripData["drivingFuelConsumption"] = drivingFuelConsumption;
+                            tripData["maxSpeed"] = maxSpeed;
+                            tripData["idleTime"] = idleTime;
+                            tripData["idleFuelConsumption"] = idleFuelConsumption;
+                            tripData["numberRapidAcce"] = numberRapidAcce;
+                            tripData["numberRapidDece"] = numberRapidDece;
+                            tripData["numberRapidSharpTurn"] = numberRapidSharpTurn;
+                            tripData["totalMileage"] = totalMileage;
+                            tripData["totalFuelConsumption"] = totalFuelConsumption;
+                            tripData["totalDrivingTime"] = totalDrivingTime;
+                            tripData["status"] = "New";
+                            insert(mongodb, 'Trips', tripData, function (insertedId) {
+                                if(err){
+                                    console.log("Error when write to mongodb: " + err);
+                                    return false;
+                                }
+                                mongodb.collection('GPSData').updateMany({
+                                    deviceId: deviceId,
+                                    gpsType: "routing",
+                                    tripId: null
+                                }, {
+                                    $set: {
+                                        tripId: insertedId
                                     }
-                                    db.collection('GPSData').updateMany({
-                                        deviceId: deviceId,
-                                        gpsType: "routing",
-                                        tripId: null
-                                    }, {
-                                        $set: {
-                                            tripId: insertedId
-                                        }
-                                    }, {
-                                        upsert: true,
-                                        multi: true
-                                    }, function(err){
-                                        db.close();
-                                        MongoClient.close();
-                                    });
+                                }, {
+                                    upsert: true,
+                                    multi: true
+                                });
 
-                                    var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
-                                    exec(cmd, function (error, stdout, stderr) {
-                                        if (error) console.log(error);
-                                        if (stdout) console.log(stdout);
-                                        if (stderr) console.log(stderr);
-                                    });
-                                    db.close();
+                                var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
+                                exec(cmd, function (error, stdout, stderr) {
+                                    if (error) console.log(error);
+                                    if (stdout) console.log(stdout);
+                                    if (stderr) console.log(stderr);
                                 });
                             });
                         });
@@ -695,38 +661,32 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         }
                     }
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
-
-                            if (alerts.count > 0) {
-                                insertBundle(db, "Alert", alerts, function (insertedIds) {
-                                    insertedIds.forEach(function (insertedId) {
-                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                        console.log("Trigger Alert notification: " + cmd);
-                                        exec(cmd, function (error, stdout, stderr) {
-                                            if (error) console.log(error);
-                                            if (stdout) console.log(stdout);
-                                            if (stderr) console.log(stderr);
-                                        });
-                                    }, this);
-                                });
-                            }
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
+
+                        if (alerts.count > 0) {
+                            insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
+                                insertedIds.forEach(function (insertedId) {
+                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                    console.log("Trigger Alert notification: " + cmd);
+                                    exec(cmd, function (error, stdout, stderr) {
+                                        if (error) console.log(error);
+                                        if (stdout) console.log(stdout);
+                                        if (stderr) console.log(stderr);
+                                    });
+                                }, this);
+                            });
+                        }
                     });
 
                     console.log('typeOfIgnitionOn : ' + typeOfIgnitionOn);
@@ -822,38 +782,32 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         }
                     }
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
-
-                            if (alerts.count > 0) {
-                                insertBundle(db, "Alert", alerts, function (insertedIds) {
-                                    insertedIds.forEach(function (insertedId) {
-                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                        console.log("Trigger Alert notification: " + cmd);
-                                        exec(cmd, function (error, stdout, stderr) {
-                                            if (error) console.log(error);
-                                            if (stdout) console.log(stdout);
-                                            if (stderr) console.log(stderr);
-                                        });
-                                    }, this);
-                                });
-                            }
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
+
+                        if (alerts.count > 0) {
+                            insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
+                                insertedIds.forEach(function (insertedId) {
+                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                    console.log("Trigger Alert notification: " + cmd);
+                                    exec(cmd, function (error, stdout, stderr) {
+                                        if (error) console.log(error);
+                                        if (stdout) console.log(stdout);
+                                        if (stderr) console.log(stderr);
+                                    });
+                                }, this);
+                            });
+                        }
                     });
 
                     console.log('typeOfIgnitionOff : ' + typeOfIgnitionOff);
@@ -881,30 +835,27 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["speedAfterAcc"] = speedAfterAcc;
                     data["accValue"] = accValue;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {
-                                "speedBeforeAcc": speedBeforeAcc,
-                                "speedAfterAcc": speedAfterAcc,
-                                "accValue": accValue
-                            }
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                        alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            "speedBeforeAcc": speedBeforeAcc,
+                            "speedAfterAcc": speedAfterAcc,
+                            "accValue": accValue
+                        }
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -931,30 +882,27 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["speedAfterDec"] = speedAfterDec;
                     data["decValue"] = decValue;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {
-                                "speedBeforeDec": speedBeforeDec,
-                                "speedAfterDec": speedAfterDec,
-                                "decValue": decValue
-                            }
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                        alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            "speedBeforeDec": speedBeforeDec,
+                            "speedAfterDec": speedAfterDec,
+                            "decValue": decValue
+                        }
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -977,28 +925,25 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["turn"] = turn;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {
-                                "turn": turn
-                            }
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                        alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            "turn": turn
+                        }
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -1120,23 +1065,17 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "vinValue": vinValue
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
                     });
 
@@ -1188,103 +1127,58 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     // "Warning. Weak Battery. Please check.". Voltage <10.2 will also trigger the warning icon in app car status page for lowest voltage.
                     // High temperature (>115C) will trigger over_heat alert with message
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        db.collection('DeviceSetting').findOne({
-                            deviceId: deviceId,
-                            settingCode: "0x05000000"
-                        }, function (err, roadSpeedSetting) {
-                            console.log('******************Checking RoadOverSpeed Alert******************');
-                            console.log('speed: ' + speed);
-                            var roadRedisKey = "ZTE-" + deviceId + "-roadOverSpeed";
-                            var client = redis.createClient();
-                            if (speed != "N/A" && roadSpeedSetting != null && parseInt(roadSpeedSetting["value"]) < speed) {
-                                console.log('roadSpeedSetting: ' + roadSpeedSetting["value"]);
-                                client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
-                                    if (err || roadOverSpeed == null) {
-                                        var roadOverSpeedCached = {};
-                                        roadOverSpeedCached["maxSpeed"] = speed;
-                                        roadOverSpeedCached["speedLimit"] = roadSpeedSetting["value"];
-                                        roadOverSpeedCached["speedingMileage"] = totalMileage;
-                                        roadOverSpeedCached["speedingStart"] = reportTime;
+                    mongodb.collection('DeviceSetting').findOne({
+                        deviceId: deviceId,
+                        settingCode: "0x05000000"
+                    }, function (err, roadSpeedSetting) {
+                        console.log('******************Checking RoadOverSpeed Alert******************');
+                        console.log('speed: ' + speed);
+                        var roadRedisKey = "ZTE-" + deviceId + "-roadOverSpeed";
+                        var client = redis.createClient();
+                        if (speed != "N/A" && roadSpeedSetting != null && parseInt(roadSpeedSetting["value"]) < speed) {
+                            console.log('roadSpeedSetting: ' + roadSpeedSetting["value"]);
+                            client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+                                if (err || roadOverSpeed == null) {
+                                    var roadOverSpeedCached = {};
+                                    roadOverSpeedCached["maxSpeed"] = speed;
+                                    roadOverSpeedCached["speedLimit"] = roadSpeedSetting["value"];
+                                    roadOverSpeedCached["speedingMileage"] = totalMileage;
+                                    roadOverSpeedCached["speedingStart"] = reportTime;
 
-                                        client.hmset(roadRedisKey, roadOverSpeedCached);
-                                    } else {
-                                        if (roadOverSpeed["maxSpeed"] < speed) {
-                                            roadOverSpeed["maxSpeed"] = speed;
-                                        }
-
-                                        console.log('cached roadOverSpeed: ' + JSON.stringify(roadOverSpeed));
-
-                                        client.hmset(roadRedisKey, roadOverSpeed);
+                                    client.hmset(roadRedisKey, roadOverSpeedCached);
+                                } else {
+                                    if (roadOverSpeed["maxSpeed"] < speed) {
+                                        roadOverSpeed["maxSpeed"] = speed;
                                     }
-                                });
-                            } else {
-                                client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
-                                    if (!err && roadOverSpeed !== null) {
-                                        // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
-                                        console.log('******************Saving RoadOverSpeed Alert******************');
-                                        var roadOverSpeedData = {
-                                            "deviceId": deviceId,
-                                            "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
-                                            "alertTypeId": new MongoObjectId("59d6fbbcb4e2548c4ae92915"),
-                                            "reportTime": reportTime,
-                                            "gpsPosition": null,
-                                            "status": "Pending",
-                                            "readStatus": "Unread",
-                                            "value": {
-                                                "maxSpeed": roadOverSpeed["maxSpeed"],
-                                                "speedLimit": roadOverSpeed["speedLimit"],
-                                                "speedingMileage": totalMileage - roadOverSpeed["speedingMileage"],
-                                                "speedingStart": roadOverSpeed["speedingStart"],
-                                                "speedingEnd": reportTime
-                                            }
-                                        };
 
-                                        insert(db, "Alert", roadOverSpeedData, function (insertedId) {
-                                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                            console.log("Trigger Alert notification: " + cmd);
-                                            exec(cmd, function (error, stdout, stderr) {
-                                                if (error) console.log(error);
-                                                if (stdout) console.log(stdout);
-                                                if (stderr) console.log(stderr);
-                                            });
-                                        });
+                                    console.log('cached roadOverSpeed: ' + JSON.stringify(roadOverSpeed));
 
-                                        client.del(roadRedisKey, function (err, reply) {
-                                            console.log(reply);
-                                        });
-                                    }
-                                });
-                            }
-
-                            db.collection('DeviceSetting').findOne({
-                                deviceId: deviceId,
-                                settingCode: "0x04000000"
-                            }, function (err, tempSetting) {
-                                console.log('******************Checking Overheat Alert******************');
-                                console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
-                                if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
-                                    console.log('tempSettingValue: ' + tempSetting["value"]);
-                                    console.log('******************Saving Overheat Alert******************');
-                                    data["engineCoolantTemperatureStatus"] = "Warning";
-                                    var alertData = {
+                                    client.hmset(roadRedisKey, roadOverSpeed);
+                                }
+                            });
+                        } else {
+                            client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+                                if (!err && roadOverSpeed !== null) {
+                                    // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
+                                    console.log('******************Saving RoadOverSpeed Alert******************');
+                                    var roadOverSpeedData = {
                                         "deviceId": deviceId,
-                                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
-                                        "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
+                                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
+                                        "alertTypeId": new MongoObjectId("59d6fbbcb4e2548c4ae92915"),
                                         "reportTime": reportTime,
                                         "gpsPosition": null,
                                         "status": "Pending",
                                         "readStatus": "Unread",
                                         "value": {
-                                            "engineCoolantTemperature": engineCoolantTemperature,
-                                            "heatLimit": parseInt(tempSetting["value"])
+                                            "maxSpeed": roadOverSpeed["maxSpeed"],
+                                            "speedLimit": roadOverSpeed["speedLimit"],
+                                            "speedingMileage": totalMileage - roadOverSpeed["speedingMileage"],
+                                            "speedingStart": roadOverSpeed["speedingStart"],
+                                            "speedingEnd": reportTime
                                         }
-                                    }
-                                    insert(db, "Alert", alertData, function (insertedId) {
+                                    };
+
+                                    insert(mongodb, "Alert", roadOverSpeedData, function (insertedId) {
                                         var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
                                         console.log("Trigger Alert notification: " + cmd);
                                         exec(cmd, function (error, stdout, stderr) {
@@ -1293,46 +1187,85 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                             if (stderr) console.log(stderr);
                                         });
                                     });
+
+                                    client.del(roadRedisKey, function (err, reply) {
+                                        console.log(reply);
+                                    });
+                                }
+                            });
+                        }
+
+                        mongodb.collection('DeviceSetting').findOne({
+                            deviceId: deviceId,
+                            settingCode: "0x04000000"
+                        }, function (err, tempSetting) {
+                            console.log('******************Checking Overheat Alert******************');
+                            console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
+                            if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
+                                console.log('tempSettingValue: ' + tempSetting["value"]);
+                                console.log('******************Saving Overheat Alert******************');
+                                data["engineCoolantTemperatureStatus"] = "Warning";
+                                var alertData = {
+                                    "deviceId": deviceId,
+                                    "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
+                                    "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
+                                    "reportTime": reportTime,
+                                    "gpsPosition": null,
+                                    "status": "Pending",
+                                    "readStatus": "Unread",
+                                    "value": {
+                                        "engineCoolantTemperature": engineCoolantTemperature,
+                                        "heatLimit": parseInt(tempSetting["value"])
+                                    }
+                                }
+                                insert(mongodb, "Alert", alertData, function (insertedId) {
+                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                                    console.log("Trigger Alert notification: " + cmd);
+                                    exec(cmd, function (error, stdout, stderr) {
+                                        if (error) console.log(error);
+                                        if (stdout) console.log(stdout);
+                                        if (stderr) console.log(stderr);
+                                    });
+                                });
+                            }
+
+                            mongodb.collection('DeviceSetting').findOne({
+                                deviceId: deviceId,
+                                settingCode: "0x00060000"
+                            }, function (err, lowVoltage) {
+                                console.log('******************Checking lowVoltage Alert******************');
+                                console.log('batteryVolt: ' + batteryVolt);
+                                if (batteryVolt != "N/A" && lowVoltage != null && parseInt(lowVoltage["value"]) > batteryVolt) {
+                                    console.log('lowVoltage: ' + lowVoltage["value"]);
+                                    data["batteryVoltStatus"] = "Warning";
                                 }
 
-                                db.collection('DeviceSetting').findOne({
-                                    deviceId: deviceId,
-                                    settingCode: "0x00060000"
-                                }, function (err, lowVoltage) {
-                                    console.log('******************Checking lowVoltage Alert******************');
-                                    console.log('batteryVolt: ' + batteryVolt);
-                                    if (batteryVolt != "N/A" && lowVoltage != null && parseInt(lowVoltage["value"]) > batteryVolt) {
-                                        console.log('lowVoltage: ' + lowVoltage["value"]);
-                                        data["batteryVoltStatus"] = "Warning";
-                                    }
-    
-                                    console.log('******************Saving Vehicle Status******************');
-                                    insert(db, "VehicleHistoricalStatus", data, function (insertedId) {
-                                        var vehicleData = {};
-                                        vehicleData["deviceId"] = deviceId;
-                                        vehicleData["reportTime"] = reportTime;
-                                        vehicleData["rpm"] = rpm;
-                                        vehicleData["speed"] = speed;
-                                        vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
-                                        vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
-                                        vehicleData["throttlePosition"] = throttlePosition;
-                                        vehicleData["engineDuty"] = engineDuty;
-                                        vehicleData["intakeAirFlow"] = intakeAirFlow;
-                                        vehicleData["intakeAirTemp"] = intakeAirTemp;
-                                        vehicleData["intakeAirPressure"] = intakeAirPressure;
-                                        vehicleData["batteryVolt"] = batteryVolt;
-                                        vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
-                                        vehicleData["fli"] = fli;
-                                        vehicleData["dt"] = dt;
-                                        vehicleData["mli"] = mli;
-                                        vehicleData["totalMileage"] = totalMileage;
-                                        vehicleData["totalFuelConsumption"] = totalFuelConsumption;
-                                        vehicleData["totalDrivingTime"] = totalDrivingTime;
-                                        db.collection('VehicleStatus').findOneAndUpdate({
-                                            deviceId: deviceId
-                                        }, vehicleData, {
-                                            upsert: true
-                                        });
+                                console.log('******************Saving Vehicle Status******************');
+                                insert(mongodb, "VehicleHistoricalStatus", data, function (insertedId) {
+                                    var vehicleData = {};
+                                    vehicleData["deviceId"] = deviceId;
+                                    vehicleData["reportTime"] = reportTime;
+                                    vehicleData["rpm"] = rpm;
+                                    vehicleData["speed"] = speed;
+                                    vehicleData["engineCoolantTemperature"] = engineCoolantTemperature;
+                                    vehicleData["engineCoolantTemperatureStatus"] = data["engineCoolantTemperatureStatus"];
+                                    vehicleData["throttlePosition"] = throttlePosition;
+                                    vehicleData["engineDuty"] = engineDuty;
+                                    vehicleData["intakeAirFlow"] = intakeAirFlow;
+                                    vehicleData["intakeAirTemp"] = intakeAirTemp;
+                                    vehicleData["intakeAirPressure"] = intakeAirPressure;
+                                    vehicleData["batteryVolt"] = batteryVolt;
+                                    vehicleData["batteryVoltStatus"] = data["batteryVoltStatus"];
+                                    vehicleData["fli"] = fli;
+                                    vehicleData["dt"] = dt;
+                                    vehicleData["mli"] = mli;
+                                    vehicleData["totalMileage"] = totalMileage;
+                                    vehicleData["totalFuelConsumption"] = totalFuelConsumption;
+                                    vehicleData["totalDrivingTime"] = totalDrivingTime;
+                                    mongodb.collection('VehicleStatus').findOneAndUpdate({
+                                        deviceId: deviceId
+                                    }, vehicleData, {
+                                        upsert: true
                                     });
                                 });
                             });
@@ -1430,35 +1363,29 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "failureCode": failureCode
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
-                        });
-
-                        // Set device as offline since it's sleeping
-                        db.collection('DeviceStage').findOneAndUpdate({
-                            deviceId: deviceId
-                        }, {
-                            $set: {
-                                status: "Offline"
-                            }
-                        }, {
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
                             upsert: true
                         });
+                    });
+
+                    // Set device as offline since it's sleeping
+                    mongodb.collection('DeviceStage').findOneAndUpdate({
+                        deviceId: deviceId
+                    }, {
+                        $set: {
+                            status: "Offline"
+                        }
+                    }, {
+                        upsert: true
                     });
 
                     console.log('sleepTime : ' + sleepTime);
@@ -1485,23 +1412,17 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "wakeUpType": wakeUpType
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
                     });
 
@@ -1519,26 +1440,23 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["timeNoLocation"] = timeNoLocation;
                     data["gpsPosition"] = gpsPosition;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                            alertData["alertTypeId"] = new MongoObjectId("5991780ae55de693e45b7176");
-                            alertData["reportTime"] = timeNoLocation;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {}
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                        alertData["alertTypeId"] = new MongoObjectId("5991780ae55de693e45b7176");
+                        alertData["reportTime"] = timeNoLocation;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {}
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -1567,23 +1485,17 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "typeOfPowerOn": typeOfPowerOn
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
                     });
 
@@ -1609,23 +1521,17 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "upgradeState": upgradeState
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
                     });
 
@@ -1648,23 +1554,17 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "acceleratorCalibrationStatus": acceleratorCalibrationStatus
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
                     });
 
@@ -1777,23 +1677,17 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "btMac": btMac
                     };
 
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when connect to mongodb: " + err);
-                            return false;
-                        }
-                        insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
-                            var deviceData = {};
-                            deviceData["deviceId"] = deviceId;
-                            deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
-                            deviceData["reportTime"] = historicalData["reportTime"];
-                            deviceData["value"] = historicalData["value"];
-                            db.collection('DeviceData').findOneAndUpdate({
-                                deviceId: deviceId,
-                                deviceDataTypeId: deviceData["deviceDataTypeId"]
-                            }, deviceData, {
-                                upsert: true
-                            });
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        var deviceData = {};
+                        deviceData["deviceId"] = deviceId;
+                        deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
+                        deviceData["reportTime"] = historicalData["reportTime"];
+                        deviceData["value"] = historicalData["value"];
+                        mongodb.collection('DeviceData').findOneAndUpdate({
+                            deviceId: deviceId,
+                            deviceDataTypeId: deviceData["deviceDataTypeId"]
+                        }, deviceData, {
+                            upsert: true
                         });
                     });
 
@@ -1907,28 +1801,25 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["batteryVolt"] = batteryVolt;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991465195dfe43d4ca834b8");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {
-                                "batteryVolt": batteryVolt
-                            }
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                        alertData["alertTypeId"] = new MongoObjectId("5991465195dfe43d4ca834b8");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            "batteryVolt": batteryVolt
+                        }
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -1949,28 +1840,25 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["peekValue"] = peekValue;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991466495dfe43d4ca834b9");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {
-                                "peekValue": peekValue
-                            }
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                        alertData["alertTypeId"] = new MongoObjectId("5991466495dfe43d4ca834b9");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            "peekValue": peekValue
+                        }
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -1995,28 +1883,25 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["collisionValue"] = collisionValue;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {
-                                "collisionValue": collisionValue
-                            }
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                        alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            "collisionValue": collisionValue
+                        }
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -2038,26 +1923,23 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
 
-                    MongoClient.connect(url, function (err, db) {
-                        insert(db, 'GPSData', gpsPosition, function (insertedId) {
-                            var alertData = {};
-                            alertData["deviceId"] = deviceId;
-                            alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                            alertData["alertTypeId"] = new MongoObjectId("5991469095dfe43d4ca834bb");
-                            alertData["reportTime"] = occurTime;
-                            alertData["gpsPosition"] = insertedId;
-                            alertData["status"] = "Pending";
-                            alertData["readStatus"] = "Unread";
-                            alertData["value"] = {}
-                            insert(db, "Alert", alertData, function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                                db.close();
+                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                        alertData["alertTypeId"] = new MongoObjectId("5991469095dfe43d4ca834bb");
+                        alertData["reportTime"] = occurTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {}
+                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                            console.log("Trigger Alert notification: " + cmd);
+                            exec(cmd, function (error, stdout, stderr) {
+                                if (error) console.log(error);
+                                if (stdout) console.log(stdout);
+                                if (stderr) console.log(stderr);
                             });
                         });
                     });
@@ -2309,436 +2191,430 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             var start = 4;
             var end = 8;
             var eom = false;
-            MongoClient.connect(url, function (err, db) {
-                if(err){
-                    console.log("Error when connect to mongodb: " + err);
-                    return false;
+            while (!eom) {
+                var paramNo = effectiveData.substring(start, end);
+                paramNo = "0x" + paramNo + "0000";
+                start = end;
+                switch (paramNo) {
+                    case "0xf0000000":
+                        //Should not be here, this one only for set.
+                        break;
+                    case "0x00010000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Threshold of rapid acceleration",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00020000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Threshold of rapid deceleration",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00030000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Threshold of sharp turn",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00040000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Fatigue driving",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00050000":
+                        end += 2;
+                        var value = parseInt(effectiveData.substring(start, end), 16);
+                        data[paramNo] = (isNaN(value) ? 0 : value);
+                        //Device not support
+                        // mongodb.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Over speed", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
+                        break;
+                    case "0x00060000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Low voltage",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00070000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wake vibration level",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00080000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Threshold of suspected collision",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00090000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Threshold of exceed idle",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x000a0000":
+                        end += 2;
+                        if (effectiveData.substring(start, end) == "00") {
+                            data[paramNo] = "Not allowed to report the speed";
+                        } else if (effectiveData.substring(start, end) == "01") {
+                            data[paramNo] = "Allowed to report the speed";
+                        }
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "If allowed to report the speed",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x000b0000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "GPS report frequency",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x000c0000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Report frequency of vehicle data flow",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02000000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Change the reporting address and port",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02010000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wifi client ip address & subnet",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02020000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wifi SSID",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02030000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wifi Password",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02040000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wifi router APN",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02050000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Modem DNS servers",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02060000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count*2;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Modem APN",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02070000":
+                        end += 2;
+                        if (effectiveData.substring(start, end) == "00") {
+                            data[paramNo] = "Not controlled by the server";
+                        } else if (effectiveData.substring(start, end) == "01") {
+                            data[paramNo] = "HOTSPOT on";
+                        } else {
+                            data[paramNo] = "HOTSPOT off";
+                        }
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wifi on / Off",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02080000":
+                        end += 2;
+                        data[paramNo] = effectiveData.substring(start, end);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Inquiry network type",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x02090000":
+                        end += 2;
+                        var count = parseInt(effectiveData.substring(start, end), 16);
+                        start = end;
+                        end += count;
+                        data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Inquiry Operator name",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x020a0000":
+                        end += 2;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Inquiry Signal strength",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x03000000":
+                        end += 2;
+                        data[paramNo] = effectiveData.substring(start, end);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "The current status of the accelerator self-learning",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
                 }
-                while (!eom) {
-                    var paramNo = effectiveData.substring(start, end);
-                    paramNo = "0x" + paramNo + "0000";
-                    start = end;
-                    switch (paramNo) {
-                        case "0xf0000000":
-                            //Should not be here, this one only for set.
-                            break;
-                        case "0x00010000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Threshold of rapid acceleration",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00020000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Threshold of rapid deceleration",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00030000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 100;
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Threshold of sharp turn",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00040000":
-                            end += 4;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Fatigue driving",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00050000":
-                            end += 2;
-                            var value = parseInt(effectiveData.substring(start, end), 16);
-                            data[paramNo] = (isNaN(value) ? 0 : value);
-                            //Device not support
-                            // db.collection('DeviceSetting').findOneAndUpdate({ deviceId: deviceId, settingCode: paramNo }, { deviceId: deviceId, name: "Over speed", settingCode: paramNo, value: data[paramNo], status: 'Latest' }, { upsert: true });
-                            break;
-                        case "0x00060000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Low voltage",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00070000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Wake vibration level",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00080000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Threshold of suspected collision",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x00090000":
-                            end += 4;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Threshold of exceed idle",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x000a0000":
-                            end += 2;
-                            if (effectiveData.substring(start, end) == "00") {
-                                data[paramNo] = "Not allowed to report the speed";
-                            } else if (effectiveData.substring(start, end) == "01") {
-                                data[paramNo] = "Allowed to report the speed";
-                            }
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "If allowed to report the speed",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x000b0000":
-                            end += 4;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "GPS report frequency",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x000c0000":
-                            end += 4;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Report frequency of vehicle data flow",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02000000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Change the reporting address and port",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02010000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Wifi client ip address & subnet",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02020000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Wifi SSID",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02030000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Wifi Password",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02040000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Wifi router APN",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02050000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Modem DNS servers",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02060000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count*2;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Modem APN",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02070000":
-                            end += 2;
-                            if (effectiveData.substring(start, end) == "00") {
-                                data[paramNo] = "Not controlled by the server";
-                            } else if (effectiveData.substring(start, end) == "01") {
-                                data[paramNo] = "HOTSPOT on";
-                            } else {
-                                data[paramNo] = "HOTSPOT off";
-                            }
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Wifi on / Off",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02080000":
-                            end += 2;
-                            data[paramNo] = effectiveData.substring(start, end);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Inquiry network type",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x02090000":
-                            end += 2;
-                            var count = parseInt(effectiveData.substring(start, end), 16);
-                            start = end;
-                            end += count;
-                            data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Inquiry Operator name",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x020a0000":
-                            end += 2;
-                            data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "Inquiry Signal strength",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                        case "0x03000000":
-                            end += 2;
-                            data[paramNo] = effectiveData.substring(start, end);
-                            db.collection('DeviceSetting').findOneAndUpdate({
-                                deviceId: deviceId,
-                                settingCode: paramNo
-                            }, {
-                                deviceId: deviceId,
-                                name: "The current status of the accelerator self-learning",
-                                settingCode: paramNo,
-                                value: data[paramNo],
-                                status: 'Latest'
-                            }, {
-                                upsert: true
-                            });
-                            break;
-                    }
-                    if (end >= effectiveData.length) {
-                        eom = true;
-                    }
-                    start = end;
-                    end += 4;
+                if (end >= effectiveData.length) {
+                    eom = true;
                 }
-            });
+                start = end;
+                end += 4;
+            }
             break;
         case "04":
             //Inquiry log
@@ -3021,36 +2897,20 @@ function formatDrivingDistance(drivingDistance) {
 }
 
 function insertMany(collection, data, callback) {
-    MongoClient.connect(url, function (err, db) {
-        if(err){
-            console.log("Error when connect to mongodb: " + err);
-            return false;
+    mongodb.collection(collection).insertMany(data, function (err, result) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
         }
-        db.collection(collection).insertMany(data, function (err, result) {
-            if (err) {
-                console.log("Error when write to mongodb: " + err);
-            }
-            callback(result.insertedIds);
-            db.close();
-            mongoClient.close();
-        });
+        callback(result.insertedIds);
     });
 }
 
 function insertOne(collection, data, callback) {
-    MongoClient.connect(url, function (err, db) {
-        if(err){
-            console.log("Error when connect to mongodb: " + err);
-            return false;
+    mongodb.collection(collection).insertOne(data, function (err, result) {
+        if (err) {
+            console.log("Error when write to mongodb: " + err);
         }
-        db.collection(collection).insertOne(data, function (err, result) {
-            if (err) {
-                console.log("Error when write to mongodb: " + err);
-            }
-            callback(result.insertedId);
-            db.close();
-            mongoClient.close();
-        });
+        callback(result.insertedId);
     });
 }
 
