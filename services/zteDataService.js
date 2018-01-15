@@ -311,7 +311,7 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
     // Use connect method to connect to the Server
     MongoClient.connect(url, function (err, db) {
         if(err){
-            console.log("Error when write to mongodb: " + err);
+            console.log("Error when connect to mongodb: " + err);
             return false;
         }
         db.collection('DeviceMessageLogsDebug').insertOne(deviceData, function (err, r) {
@@ -390,7 +390,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             // Use connect method to connect to the Server
             MongoClient.connect(url, function (err, db) {
                 if(err){
-                    console.log("Error when write to mongodb: " + err);
+                    console.log("Error when connect to mongodb: " + err);
                     return false;
                 }
 
@@ -430,12 +430,13 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             // Use connect method to connect to the Server
             MongoClient.connect(url, function (err, db) {
                 if(err){
-                    console.log("Error when write to mongodb: " + err);
+                    console.log("Error when connect to mongodb: " + err);
                     return false;
                 }
                 db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
                     if (err) {
                         console.log("Error when write to mongodb: " + err);
+                        return false;
                     }
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     client.publish("zteDeviceLogs", JSON.stringify({
@@ -458,7 +459,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
             // Use connect method to connect to the Server
             MongoClient.connect(url, function (err, db) {
                 if(err){
-                    console.log("Error when write to mongodb: " + err);
+                    console.log("Error when connect to mongodb: " + err);
                     return false;
                 }
                 db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
@@ -686,7 +687,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -813,7 +814,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1111,7 +1112,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1179,7 +1180,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     // " Warning. Coolant Temperature Running High ". Temperature > 115C will also trigger the warning icon in app car status page for highest temperature.
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         db.collection('DeviceSetting').findOne({
@@ -1421,7 +1422,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1476,7 +1477,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1558,7 +1559,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1600,7 +1601,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1639,7 +1640,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -1768,7 +1769,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     MongoClient.connect(url, function (err, db) {
                         if(err){
-                            console.log("Error when write to mongodb: " + err);
+                            console.log("Error when connect to mongodb: " + err);
                             return false;
                         }
                         insert(db, "DeviceHistoricalData", historicalData, function (insertedId) {
@@ -2300,7 +2301,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             var eom = false;
             MongoClient.connect(url, function (err, db) {
                 if(err){
-                    console.log("Error when write to mongodb: " + err);
+                    console.log("Error when connect to mongodb: " + err);
                     return false;
                 }
                 while (!eom) {
@@ -3010,9 +3011,9 @@ function formatDrivingDistance(drivingDistance) {
 }
 
 function insertMany(collection, data, callback) {
-    MongoClient.connect(url, function (connectionErr, db) {
-        if(connectionErr){
-            console.log("Error when write to mongodb: " + err);
+    MongoClient.connect(url, function (err, db) {
+        if(err){
+            console.log("Error when connect to mongodb: " + err);
             return false;
         }
         db.collection(collection).insertMany(data, function (err, result) {
@@ -3026,9 +3027,9 @@ function insertMany(collection, data, callback) {
 }
 
 function insertOne(collection, data, callback) {
-    MongoClient.connect(url, function (connectionErr, db) {
-        if(connectionErr){
-            console.log("Error when write to mongodb: " + err);
+    MongoClient.connect(url, function (err, db) {
+        if(err){
+            console.log("Error when connect to mongodb: " + err);
             return false;
         }
         db.collection(collection).insertOne(data, function (err, result) {
