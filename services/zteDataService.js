@@ -3006,7 +3006,7 @@ function formatDrivingDistance(drivingDistance) {
 
 function insertMany(collection, data, callback) {
     MongoClient.connect(url, function (connectionErr, db) {
-        if(err){
+        if(connectionErr){
             console.log("Error when write to mongodb: " + err);
             return false;
         }
@@ -3022,7 +3022,7 @@ function insertMany(collection, data, callback) {
 
 function insertOne(collection, data, callback) {
     MongoClient.connect(url, function (connectionErr, db) {
-        if(err){
+        if(connectionErr){
             console.log("Error when write to mongodb: " + err);
             return false;
         }
