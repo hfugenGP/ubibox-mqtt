@@ -10,8 +10,9 @@ client.connect(PORT, HOST, function() {
     var data = "5555004d8b86d3cb004f9407383631343733303330303131383637b836c7d76e906f34a8e54caae10a55ca66be6378bc3a637be9865cb68bea702978165b9aa151fa977ec1ee8e999aab56aaaa";
     var buff = new Buffer(data, 'hex');
     // Write a message to the socket as soon as the client is connected, the server will receive it as message from the client 
-    client.write(buff);
-
+    for(var i = 0; i < 5; i++){
+        client.write(buff);
+    }
 });
 
 // Add a 'data' event handler for the client socket
