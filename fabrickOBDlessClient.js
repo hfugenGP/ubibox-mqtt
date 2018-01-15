@@ -181,6 +181,10 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             drivingDistanceData["mileage"] = json_object["drivingDistance"];
 
             MongoClient.connect(url, function (err, db) {
+                if(err){
+                    console.log("Error when write to mongodb: " + err);
+                    return false;
+                }
                 insert(db, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
                     tripData["ignitionOnTime"] = common.dateToUTCText(json_object["ignitionOnTime"]);
                     tripData["gpsWhenIgnitionOn"] = insertedId;

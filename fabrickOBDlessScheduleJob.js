@@ -58,6 +58,10 @@ client.get("obdless/onGoing/trips", function (err, obj) {
                     });
                 } else {
                     MongoClient.connect(url, function (err, db) {
+                        if(err){
+                            console.log("Error when write to mongodb: " + err);
+                            return false;
+                        }
                         db.collection('GPSData').findOne({
                                 deviceId: deviceId,
                                 tripId: null,

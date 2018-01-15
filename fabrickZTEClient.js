@@ -104,12 +104,20 @@ function handleDeviceConnetion(sock) {
             //Set to offline if this is disconnected frame
             var receivedDateText = common.dateToUTCText(new Date());
             MongoClient.connect(url, function(err, db) {
+                if(err){
+                    console.log("Error when write to mongodb: " + err);
+                    return false;
+                }
                 db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline", lastUpdated: receivedDateText } }, { upsert: true });
             });
         }else{
             //Set to online if this is any other frame
             var receivedDateText = common.dateToUTCText(new Date());
             MongoClient.connect(url, function(err, db) {
+                if(err){
+                    console.log("Error when write to mongodb: " + err);
+                    return false;
+                }
                 db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
             });
         }
@@ -188,6 +196,10 @@ function handleDeviceConnetion(sock) {
             //     deviceListLock.unlock();F
             // });
             MongoClient.connect(url, function(err, db) {
+                if(err){
+                    console.log("Error when write to mongodb: " + err);
+                    return false;
+                }
                 db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
             });
         }
@@ -207,6 +219,10 @@ function handleDeviceConnetion(sock) {
             //     deviceListLock.unlock();F
             // });
             MongoClient.connect(url, function(err, db) {
+                if(err){
+                    console.log("Error when write to mongodb: " + err);
+                    return false;
+                }
                 db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
             });
         }
@@ -299,6 +315,10 @@ fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
                 subcribedDevices.pop();
             }
             MongoClient.connect(url, function(err, db) {
+                if(err){
+                    console.log("Error when write to mongodb: " + err);
+                    return false;
+                }
                 data.forEach(function(element) {
                     var deviceId = element['device_id'].toLowerCase();
                     subcribedDevices['ID-' + deviceId] = element['encryption_key'];
