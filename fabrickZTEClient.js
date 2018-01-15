@@ -108,7 +108,10 @@ function handleDeviceConnetion(sock) {
                     console.log("Error when write to mongodb: " + err);
                     return false;
                 }
-                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline", lastUpdated: receivedDateText } }, { upsert: true });
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline", lastUpdated: receivedDateText } }, { upsert: true }, function(err){
+                    db.close();
+                    MongoClient.close();
+                });
             });
         }else{
             //Set to online if this is any other frame
@@ -118,7 +121,10 @@ function handleDeviceConnetion(sock) {
                     console.log("Error when write to mongodb: " + err);
                     return false;
                 }
-                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true }, function(err){
+                    db.close();
+                    MongoClient.close();
+                });
             });
         }
         if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
@@ -200,7 +206,10 @@ function handleDeviceConnetion(sock) {
                     console.log("Error when write to mongodb: " + err);
                     return false;
                 }
-                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true }, function(err){
+                    db.close();
+                    MongoClient.close();
+                });
             });
         }
     });
@@ -223,7 +232,10 @@ function handleDeviceConnetion(sock) {
                     console.log("Error when write to mongodb: " + err);
                     return false;
                 }
-                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+                db.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true }, function(err){
+                    db.close();
+                    MongoClient.close();
+                });
             });
         }
     });

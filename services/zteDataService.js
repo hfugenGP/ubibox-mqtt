@@ -320,6 +320,7 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
             }
             // console.log(r.insertedCount + " record has been saved to DeviceHistoricalDataDebug");
             db.close();
+            mongoClient.close();
         });
     });
 
@@ -410,6 +411,9 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
                         }
                     }, {
                         upsert: true
+                    }, function(err){
+                        db.close();
+                        mongoClient.close();
                     });
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     client.publish("zteDeviceLogs", JSON.stringify({
@@ -438,6 +442,9 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
                         console.log("Error when write to mongodb: " + err);
                         return false;
                     }
+
+                    db.close();
+                    mongoClient.close();
                     // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
                     client.publish("zteDeviceLogs", JSON.stringify({
                         "deviceId": deviceId
@@ -566,6 +573,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     }, {
                                         upsert: true,
                                         multi: true
+                                    }, function(err){
+                                        db.close();
+                                        MongoClient.close();
                                     });
 
                                     var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
@@ -3022,6 +3032,7 @@ function insertMany(collection, data, callback) {
             }
             callback(result.insertedIds);
             db.close();
+            mongoClient.close();
         });
     });
 }
@@ -3038,6 +3049,7 @@ function insertOne(collection, data, callback) {
             }
             callback(result.insertedId);
             db.close();
+            mongoClient.close();
         });
     });
 }

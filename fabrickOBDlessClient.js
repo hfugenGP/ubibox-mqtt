@@ -134,6 +134,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                             "deviceId": json_object["deviceId"]
                         }));
                         db.close();
+                        MongoClient.close();
                     });
                 });
             }
@@ -218,6 +219,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                                 if (stderr) console.log(stderr);
                             });
                             db.close();
+                            MongoClient.close();
                         });
                     });
                 });
@@ -307,6 +309,7 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
                             if (stderr) console.log(stderr);
                         });
                         db.close();
+                        MongoClient.close();
                     });
                 });
             });
