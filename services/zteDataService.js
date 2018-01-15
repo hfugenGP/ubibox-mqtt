@@ -310,6 +310,10 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
 
     // Use connect method to connect to the Server
     MongoClient.connect(url, function (err, db) {
+        if(err){
+            console.log("Error when write to mongodb: " + err);
+            return false;
+        }
         db.collection('DeviceMessageLogsDebug').insertOne(deviceData, function (err, r) {
             if (err) {
                 console.log("Error when write to mongodb: " + err);
@@ -389,6 +393,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
                     console.log("Error when write to mongodb: " + err);
                     return false;
                 }
+
                 db.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
                     if(err){
                         console.log("Error when write to mongodb: " + err);
