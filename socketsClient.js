@@ -33,7 +33,7 @@ function testPerformance(){
     });
 }
 
-for(var i = 1; i <= 300; i++){
+for(var i = 1; i <= 1000; i++){
     testPerformance();
 }
 
