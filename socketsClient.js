@@ -32,10 +32,12 @@ function testPerformance(existedClient, count){
         client.on('close', function() {
             console.log('Connection closed');
         });
-        
+
         if(count <= 9000){
             count++;
-            setTimeout(testPerformance(client, count), 5000);
+            setTimeout(function(){
+                testPerformance(client, count);
+            }, 5000);
         }
         
     }else{
@@ -46,7 +48,9 @@ function testPerformance(existedClient, count){
 
         if(count <= 9000){
             count++;
-            setTimeout(testPerformance(existedClient, count), 5000);
+            setTimeout(function(){
+                testPerformance(existedClient, count);
+            }, 5000);
         }
     }
 }

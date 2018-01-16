@@ -205,17 +205,17 @@ function handleDeviceConnetion(sock) {
             return;
         }
 
-        var frameIdCachedKey = "ZTE-" + deviceData["DeviceId"] + "-" + deviceData["MessageType"] + "-" + deviceData["MessageId"];
-        if(cachedFrameId[frameIdCachedKey]){
-            console.log('#################Duplicated frame returned, ignore this frame...#################');
-            console.log('deviceId : ' + deviceData["DeviceId"]);
-            console.log('frameType : ' + deviceData["MessageType"]);
-            console.log('frameId : ' + deviceData["MessageId"]);
-            console.log('#################Duplicated frame returned, ignore this frame...#################');
-            return;
-        }
+        // var frameIdCachedKey = "ZTE-" + deviceData["DeviceId"] + "-" + deviceData["MessageType"] + "-" + deviceData["MessageId"];
+        // if(cachedFrameId[frameIdCachedKey]){
+        //     console.log('#################Duplicated frame returned, ignore this frame...#################');
+        //     console.log('deviceId : ' + deviceData["DeviceId"]);
+        //     console.log('frameType : ' + deviceData["MessageType"]);
+        //     console.log('frameId : ' + deviceData["MessageId"]);
+        //     console.log('#################Duplicated frame returned, ignore this frame...#################');
+        //     return;
+        // }
 
-        cachedFrameId[frameIdCachedKey] = true;
+        // cachedFrameId[frameIdCachedKey] = true;
 
         if(deviceData["MessageType"] == '0e'){
             //Set to offline if this is disconnected frame
