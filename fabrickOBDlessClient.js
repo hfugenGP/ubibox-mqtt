@@ -16,6 +16,21 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
+var mongodb;
+
+MongoClient.connect(url, {  
+    poolSize: 50
+    // other options can go here
+    },function(err, db) {
+        if(err){
+            console.log("Error when connect to mongodb: " + err);
+            return false;
+        }
+
+        mongodb=db;
+        }
+    );
+
 var fabrick_gateway = {
     id: "Fabrick OBDless Client " + config.zteBroker.idKey,
     host: config.zteBroker.host,
@@ -127,15 +142,11 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             });
 
             if (gps.length > 0) {
-                MongoClient.connect(url, function (err, db) {
-                    insertBundle(db, "GPSData", gps, function (insertedIds) {
-                        var client = redis.createClient();
-                        client.publish("zteGPSData", JSON.stringify({
-                            "deviceId": json_object["deviceId"]
-                        }));
-                        db.close();
-                        MongoClient.close();
-                    });
+                insertBundle(mongodb, "GPSData", gps, function (insertedIds) {
+                    var client = redis.createClient();
+                    client.publish("zteGPSData", JSON.stringify({
+                        "deviceId": json_object["deviceId"]
+                    }));
                 });
             }
 
@@ -181,45 +192,37 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             drivingDistanceData["statisticsSource"] = "GPS";
             drivingDistanceData["mileage"] = json_object["drivingDistance"];
 
-            MongoClient.connect(url, function (err, db) {
-                if(err){
-                    console.log("Error when write to mongodb: " + err);
-                    return false;
-                }
-                insert(db, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
-                    tripData["ignitionOnTime"] = common.dateToUTCText(json_object["ignitionOnTime"]);
-                    tripData["gpsWhenIgnitionOn"] = insertedId;
-                    insert(db, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
-                        tripData["ignitionOffTime"] = common.dateToUTCText(json_object["ignitionOffTime"]);
-                        tripData["gpsWhenIgnitionOff"] = insertedId;
-                        tripData["drivingDistance"] = drivingDistanceData;
-                        tripData["maxSpeed"] = json_object["maxSpeed"];
-                        tripData["numberRapidAcce"] = json_object["numberRapidAcce"];
-                        tripData["numberRapidDece"] = json_object["numberRapidDece"];
-                        tripData["numberRapidSharpTurn"] = json_object["numberRapidSharpTurn"];
-                        tripData["status"] = "New";
-                        insert(db, 'Trips', tripData, function (insertedId) {
-                            db.collection('GPSData').updateMany({
-                                deviceId: json_object["deviceId"],
-                                gpsType: "routing",
-                                tripId: null
-                            }, {
-                                $set: {
-                                    tripId: insertedId
-                                }
-                            }, {
-                                upsert: true,
-                                multi: true
-                            });
+            insert(mongodb, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
+                tripData["ignitionOnTime"] = common.dateToUTCText(json_object["ignitionOnTime"]);
+                tripData["gpsWhenIgnitionOn"] = insertedId;
+                insert(mongodb, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
+                    tripData["ignitionOffTime"] = common.dateToUTCText(json_object["ignitionOffTime"]);
+                    tripData["gpsWhenIgnitionOff"] = insertedId;
+                    tripData["drivingDistance"] = drivingDistanceData;
+                    tripData["maxSpeed"] = json_object["maxSpeed"];
+                    tripData["numberRapidAcce"] = json_object["numberRapidAcce"];
+                    tripData["numberRapidDece"] = json_object["numberRapidDece"];
+                    tripData["numberRapidSharpTurn"] = json_object["numberRapidSharpTurn"];
+                    tripData["status"] = "New";
+                    insert(mongodb, 'Trips', tripData, function (insertedId) {
+                        mongodb.collection('GPSData').updateMany({
+                            deviceId: json_object["deviceId"],
+                            gpsType: "routing",
+                            tripId: null
+                        }, {
+                            $set: {
+                                tripId: insertedId
+                            }
+                        }, {
+                            upsert: true,
+                            multi: true
+                        });
 
-                            var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
-                            db.close();
-                            MongoClient.close();
+                        var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
+                        exec(cmd, function (error, stdout, stderr) {
+                            if (error) console.log(error);
+                            if (stdout) console.log(stdout);
+                            if (stderr) console.log(stderr);
                         });
                     });
                 });
@@ -242,74 +245,70 @@ zte_Broker.onMessage((gatewayName, topic, message, packet) => {
             gpsData["deviceId"] = json_object["deviceId"];
             gpsData["status"] = "New";
 
-            MongoClient.connect(url, function (err, db) {
-                insert(db, "GPSData", gpsData, function (insertedId) {
-                    var alertData = {};
-                    alertData["deviceId"] = json_object["deviceId"];
-                    alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
-                    alertData["reportTime"] = json_object["reportTime"];
-                    alertData["gpsPosition"] = insertedId;
-                    alertData["status"] = "Pending";
-                    alertData["readStatus"] = "Unread";
-                    switch (json_object["alertType"]) {
-                        case "trip_start":
-                            alertData["alertTypeId"] = new MongoObjectId("59fc24c4f2b0a5a368fa3af0");
-                            alertData["value"] = {};
-                            break;
-                        case "trip_end":
-                            alertData["alertTypeId"] = new MongoObjectId("59fc24cff2b0a5a368fa3af1");
-                            alertData["value"] = {};
-                            break;
-                        case "suspected_collision":
-                            alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
-                            alertData["value"] = {
-                                "collisionValue": json_object["alertData"]["collisionValue"]
-                            }
-                            break;
-                        case "sudden_acceleration":
-                            alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
-                            alertData["value"] = {
-                                "speedBeforeAcc": json_object["alertData"]["speedBeforeAcc"],
-                                "speedAfterAcc": json_object["alertData"]["speedAfterAcc"],
-                                "accValue": parseInt(json_object["alertData"]["accValue"]) / 100
-                            }
-                            break;
-                        case "sudden_deceleration":
-                            alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
-                            alertData["value"] = {
-                                "speedBeforeDec": json_object["alertData"]["speedBeforeDec"],
-                                "speedAfterDec": json_object["alertData"]["speedAfterDec"],
-                                "decValue": parseInt(json_object["alertData"]["decValue"]) / 100
-                            }
-                            break;
-                        case "sharp_turn":
-                            alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
-                            alertData["value"] = {
-                                "turn": parseInt(json_object["alertData"]["turn"]) / 1000
-                            }
-                            break;
-                        case "over_speed":
-                            alertData["alertTypeId"] = new MongoObjectId("59d6fbbcb4e2548c4ae92915");
-                            alertData["value"] = {
-                                "maxSpeed": json_object["alertData"]["maxSpeed"],
-                                "speedLimit": json_object["alertData"]["speedLimit"],
-                                "speedingMileage": json_object["alertData"]["speedingMileage"],
-                                "speedingStart": common.dateToUTCText(json_object["alertData"]["speedingStart"]),
-                                "speedingEnd": common.dateToUTCText(json_object["alertData"]["speedingEnd"])
-                            }
-                            break;
-                    }
+            insert(mongodb, "GPSData", gpsData, function (insertedId) {
+                var alertData = {};
+                alertData["deviceId"] = json_object["deviceId"];
+                alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                alertData["reportTime"] = json_object["reportTime"];
+                alertData["gpsPosition"] = insertedId;
+                alertData["status"] = "Pending";
+                alertData["readStatus"] = "Unread";
+                switch (json_object["alertType"]) {
+                    case "trip_start":
+                        alertData["alertTypeId"] = new MongoObjectId("59fc24c4f2b0a5a368fa3af0");
+                        alertData["value"] = {};
+                        break;
+                    case "trip_end":
+                        alertData["alertTypeId"] = new MongoObjectId("59fc24cff2b0a5a368fa3af1");
+                        alertData["value"] = {};
+                        break;
+                    case "suspected_collision":
+                        alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
+                        alertData["value"] = {
+                            "collisionValue": json_object["alertData"]["collisionValue"]
+                        }
+                        break;
+                    case "sudden_acceleration":
+                        alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
+                        alertData["value"] = {
+                            "speedBeforeAcc": json_object["alertData"]["speedBeforeAcc"],
+                            "speedAfterAcc": json_object["alertData"]["speedAfterAcc"],
+                            "accValue": parseInt(json_object["alertData"]["accValue"]) / 100
+                        }
+                        break;
+                    case "sudden_deceleration":
+                        alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
+                        alertData["value"] = {
+                            "speedBeforeDec": json_object["alertData"]["speedBeforeDec"],
+                            "speedAfterDec": json_object["alertData"]["speedAfterDec"],
+                            "decValue": parseInt(json_object["alertData"]["decValue"]) / 100
+                        }
+                        break;
+                    case "sharp_turn":
+                        alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
+                        alertData["value"] = {
+                            "turn": parseInt(json_object["alertData"]["turn"]) / 1000
+                        }
+                        break;
+                    case "over_speed":
+                        alertData["alertTypeId"] = new MongoObjectId("59d6fbbcb4e2548c4ae92915");
+                        alertData["value"] = {
+                            "maxSpeed": json_object["alertData"]["maxSpeed"],
+                            "speedLimit": json_object["alertData"]["speedLimit"],
+                            "speedingMileage": json_object["alertData"]["speedingMileage"],
+                            "speedingStart": common.dateToUTCText(json_object["alertData"]["speedingStart"]),
+                            "speedingEnd": common.dateToUTCText(json_object["alertData"]["speedingEnd"])
+                        }
+                        break;
+                }
 
-                    insert(db, "Alert", alertData, function (insertedId) {
-                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        console.log("Trigger Alert notification: " + cmd);
-                        exec(cmd, function (error, stdout, stderr) {
-                            if (error) console.log(error);
-                            if (stdout) console.log(stdout);
-                            if (stderr) console.log(stderr);
-                        });
-                        db.close();
-                        MongoClient.close();
+                insert(mongodb, "Alert", alertData, function (insertedId) {
+                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
+                    console.log("Trigger Alert notification: " + cmd);
+                    exec(cmd, function (error, stdout, stderr) {
+                        if (error) console.log(error);
+                        if (stdout) console.log(stdout);
+                        if (stderr) console.log(stderr);
                     });
                 });
             });

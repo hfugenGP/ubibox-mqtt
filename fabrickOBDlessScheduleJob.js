@@ -16,6 +16,21 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 // Connection URL
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
+var mongodb;
+
+MongoClient.connect(url, {  
+    poolSize: 50
+    // other options can go here
+    },function(err, db) {
+        if(err){
+            console.log("Error when connect to mongodb: " + err);
+            return false;
+        }
+
+        mongodb=db;
+        }
+    );
+
 var common = new Common();
 
 var fabrick_gateway = {
@@ -57,130 +72,124 @@ client.get("obdless/onGoing/trips", function (err, obj) {
                         console.log("item: " + result);
                     });
                 } else {
-                    MongoClient.connect(url, function (err, db) {
-                        if(err){
-                            console.log("Error when write to mongodb: " + err);
-                            return false;
-                        }
-                        db.collection('GPSData').findOne({
-                                deviceId: deviceId,
-                                tripId: null,
-                                gpsType: "routing"
-                            }, {
-                                "sort": ["positionTime", "desc"]
-                            },
-                            function (err, lastGps) {
-                                if (!err && lastGps) {
-                                    var publishTripEnd = {
-                                        deviceId: deviceId,
+                    mongodb.collection('GPSData').findOne({
+                            deviceId: deviceId,
+                            tripId: null,
+                            gpsType: "routing"
+                        }, {
+                            "sort": ["positionTime", "desc"]
+                        },
+                        function (err, lastGps) {
+                            if (!err && lastGps) {
+                                var publishTripEnd = {
+                                    deviceId: deviceId,
+                                    reportTime: lastGps.positionTime,
+                                    reportGPS: {
                                         reportTime: lastGps.positionTime,
-                                        reportGPS: {
-                                            reportTime: lastGps.positionTime,
-                                            height: lastGps.height,
-                                            longitude: lastGps.longitude,
-                                            latitude: lastGps.latitude,
-                                            gpsSpeed: lastGps.gpsSpeed,
-                                            heading: lastGps.heading,
-                                            PDOP: lastGps.PDOP,
-                                            HDOP: lastGps.HDOP,
-                                            VDOP: lastGps.VDOP
+                                        height: lastGps.height,
+                                        longitude: lastGps.longitude,
+                                        latitude: lastGps.latitude,
+                                        gpsSpeed: lastGps.gpsSpeed,
+                                        heading: lastGps.heading,
+                                        PDOP: lastGps.PDOP,
+                                        HDOP: lastGps.HDOP,
+                                        VDOP: lastGps.VDOP
+                                    },
+                                    alertType: "trip_end",
+                                    alertData: {}
+                                };
+
+                                zte_Broker.publish('api/ztewelink/OBDless/Data/Alert', JSON.stringify(publishTripEnd), {
+                                    qos: 1,
+                                    retain: true
+                                });
+
+                                mongodb.collection('Alert').findOne({
+                                    deviceId: deviceId,
+                                    alertTypeId: new MongoObjectId("59fc24c4f2b0a5a368fa3af0")
+                                }, {
+                                    "sort": ["reportTime", "desc"]
+                                }, function (err, tripStart) {
+                                    if (!err && tripStart) {
+                                        mongodb.collection('GPSData').findOne({
+                                            _id: tripStart.gpsPosition
                                         },
-                                        alertType: "trip_end",
-                                        alertData: {}
-                                    };
-
-                                    zte_Broker.publish('api/ztewelink/OBDless/Data/Alert', JSON.stringify(publishTripEnd), {
-                                        qos: 1,
-                                        retain: true
-                                    });
-
-                                    db.collection('Alert').findOne({
-                                        deviceId: deviceId,
-                                        alertTypeId: new MongoObjectId("59fc24c4f2b0a5a368fa3af0")
-                                    }, {
-                                        "sort": ["reportTime", "desc"]
-                                    }, function (err, tripStart) {
-                                        if (!err && tripStart) {
-                                            db.collection('GPSData').findOne({
-                                                _id: tripStart.gpsPosition
-                                            },
-                                            function (err, firstGps) {
-                                                if(!err && firstGps){
-                                                    var publishTripSum = {
+                                        function (err, firstGps) {
+                                            if(!err && firstGps){
+                                                var publishTripSum = {
+                                                    deviceId: deviceId,
+                                                    reportTime: common.dateToUTCText(new Date()),
+                                                    ignitionOnTime: tripStart.reportTime, //TODO
+                                                    gpsWhenIgnitionOn: {
+                                                        reportTime:firstGps.positionTime,
+                                                        height: firstGps.height,
+                                                        longitude: firstGps.longitude,
+                                                        latitude: firstGps.latitude,
+                                                        gpsSpeed: firstGps.gpsSpeed,
+                                                        heading: firstGps.heading,
+                                                        PDOP: firstGps.PDOP,
+                                                        HDOP: firstGps.HDOP,
+                                                        VDOP: firstGps.VDOP
+                                                    },
+                                                    ignitionOffTime: lastGps.positionTime,
+                                                    gpsWhenIgnitionOff: {
+                                                        reportTime:lastGps.positionTime,
+                                                        height: lastGps.height,
+                                                        longitude: lastGps.longitude,
+                                                        latitude: lastGps.latitude,
+                                                        gpsSpeed: lastGps.gpsSpeed,
+                                                        heading: lastGps.heading,
+                                                        PDOP: lastGps.PDOP,
+                                                        HDOP: lastGps.HDOP,
+                                                        VDOP: lastGps.VDOP
+                                                    },
+                                                    drivingDistance: lastGps.drivingDistance,
+                                                    maxSpeed: lastGps.maxSpeed,
+                                                    numberRapidAcce: 0,
+                                                    numberRapidDece: 0,
+                                                    numberRapidSharpTurn: 0
+                                                };
+    
+                                                mongodb.collection('Alert').find({
+                                                    deviceId: deviceId,
+                                                    alertTypeId: new MongoObjectId("5991469c95dfe43d4ca834bc"),
+                                                    reportTime: {
+                                                        $gt: tripStart.reportTime
+                                                    }
+                                                }).count(function (err, count) {
+                                                    publishTripSum.numberRapidAcce = (!err && count) ? count : 0;
+    
+                                                    mongodb.collection('Alert').find({
                                                         deviceId: deviceId,
-                                                        reportTime: common.dateToUTCText(new Date()),
-                                                        ignitionOnTime: tripStart.reportTime, //TODO
-                                                        gpsWhenIgnitionOn: {
-                                                            reportTime:firstGps.positionTime,
-                                                            height: firstGps.height,
-                                                            longitude: firstGps.longitude,
-                                                            latitude: firstGps.latitude,
-                                                            gpsSpeed: firstGps.gpsSpeed,
-                                                            heading: firstGps.heading,
-                                                            PDOP: firstGps.PDOP,
-                                                            HDOP: firstGps.HDOP,
-                                                            VDOP: firstGps.VDOP
-                                                        },
-                                                        ignitionOffTime: lastGps.positionTime,
-                                                        gpsWhenIgnitionOff: {
-                                                            reportTime:lastGps.positionTime,
-                                                            height: lastGps.height,
-                                                            longitude: lastGps.longitude,
-                                                            latitude: lastGps.latitude,
-                                                            gpsSpeed: lastGps.gpsSpeed,
-                                                            heading: lastGps.heading,
-                                                            PDOP: lastGps.PDOP,
-                                                            HDOP: lastGps.HDOP,
-                                                            VDOP: lastGps.VDOP
-                                                        },
-                                                        drivingDistance: lastGps.drivingDistance,
-                                                        maxSpeed: lastGps.maxSpeed,
-                                                        numberRapidAcce: 0,
-                                                        numberRapidDece: 0,
-                                                        numberRapidSharpTurn: 0
-                                                    };
-        
-                                                    db.collection('Alert').find({
-                                                        deviceId: deviceId,
-                                                        alertTypeId: new MongoObjectId("5991469c95dfe43d4ca834bc"),
+                                                        alertTypeId: new MongoObjectId("599146ab95dfe43d4ca834bd"),
                                                         reportTime: {
                                                             $gt: tripStart.reportTime
                                                         }
                                                     }).count(function (err, count) {
-                                                        publishTripSum.numberRapidAcce = (!err && count) ? count : 0;
-        
-                                                        db.collection('Alert').find({
+                                                        publishTripSum.numberRapidDece = (!err && count) ? count : 0;
+    
+                                                        mongodb.collection('Alert').find({
                                                             deviceId: deviceId,
-                                                            alertTypeId: new MongoObjectId("599146ab95dfe43d4ca834bd"),
+                                                            alertTypeId: new MongoObjectId("599146b695dfe43d4ca834be"),
                                                             reportTime: {
                                                                 $gt: tripStart.reportTime
                                                             }
                                                         }).count(function (err, count) {
-                                                            publishTripSum.numberRapidDece = (!err && count) ? count : 0;
-        
-                                                            db.collection('Alert').find({
-                                                                deviceId: deviceId,
-                                                                alertTypeId: new MongoObjectId("599146b695dfe43d4ca834be"),
-                                                                reportTime: {
-                                                                    $gt: tripStart.reportTime
-                                                                }
-                                                            }).count(function (err, count) {
-                                                                publishTripSum.numberRapidSharpTurn = (!err && count) ? count : 0;
-        
-                                                                zte_Broker.publish('api/ztewelink/OBDless/Data/TripSummary', JSON.stringify(publishTripSum), {
-                                                                    qos: 1,
-                                                                    retain: true
-                                                                });
+                                                            publishTripSum.numberRapidSharpTurn = (!err && count) ? count : 0;
+    
+                                                            zte_Broker.publish('api/ztewelink/OBDless/Data/TripSummary', JSON.stringify(publishTripSum), {
+                                                                qos: 1,
+                                                                retain: true
                                                             });
                                                         });
                                                     });
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                    });
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
                 }
             });
         });
@@ -189,7 +198,7 @@ client.get("obdless/onGoing/trips", function (err, obj) {
     }
 
     client.quit(); // No further commands will be processed
-
+    mongodb.close();
     zte_Broker.end(true);
     return true;
 });
