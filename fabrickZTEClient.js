@@ -27,26 +27,121 @@ var subcribedDevices = new Array();
 var pendingDeviceMessages = {};
 var cachedFrameId = new Array();
 
+var fabrick_gateway = {
+    id: "Fabrick ZTE Sockets Client " + config.zteBroker.idKey,
+    host: config.zteBroker.host,
+    port: config.zteBroker.port,
+    topics: { 'config/ztewelink/portal/Device/Message': 1, 'config/ztewelink/portal/Devices': 1 }
+};
+
+var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
+    keepalive: config.zteBroker.keepalive,
+    port: fabrick_gateway.port,
+    clientId: fabrick_gateway.id,
+    username: config.zteBroker.username,
+    password: config.zteBroker.password,
+});
+
 var mongodb;
 
 MongoClient.connect(url, {  
     poolSize: 50
     // other options can go here
-    },function(err, db) 
-    {
-        if(err){
-            console.log("Error when connect to mongodb: " + err);
-            return false;
-        }
+    },mongoConnected);
 
-        mongodb=db;
+function mongoConnected(err, db){
+    if(err){
+        console.log("Error when connect to mongodb: " + err);
+        return false;
+    }
 
-        net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
-            console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
-        });
+    mongodb=db;
 
-        var fabrick_client = fabrick_Broker.connect();
+    net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
+        console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
     });
+
+    var zteDataSenderService = new ZTEDataService(mongodb);
+
+    var fabrick_client = fabrick_Broker.connect();
+
+    fabrick_Broker.onConnect(() => {
+        console.log('ZTE Client connected');
+    });
+    fabrick_Broker.onError((err) => {
+        console.log('error happen with ZTE Client');
+        console.log(err);
+        fabrick_Broker.end();
+    });
+    fabrick_Broker.onClose(() => {
+        console.log('ZTE Client disconnected');
+    });
+
+    fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
+        console.log('Message received from Fabrick');
+
+        var data = JSON.parse(message);
+        switch (topic) {
+            case 'config/ztewelink/portal/Device/Message':
+                console.log(data);
+                var deviceId = data["deviceId"];
+                var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["parameters"]);
+
+                if (messageCallback) {
+                    if (connectingDevices.hasOwnProperty(deviceId) &&
+                        connectingDevices[deviceId] != undefined) {
+                        // deviceListLock.readLock(function() {
+                        //     console.log('Device List readLock');
+
+                        var buffer = Buffer.from(messageCallback, "hex");
+                        var sock = connectingDevices[deviceId];
+                        // Write the data back to the socket, the client will receive it as data from the server
+                        sock.write(buffer, function(err) {
+                            if (err) {
+                                console.log('Sock write error : ' + err);
+                                console.log('*****************************************************************');
+                            }
+                            console.log('Message already sent to Device');
+                        });
+
+                        //     console.log('Device List unlocked');
+                        //     deviceListLock.unlock();
+                        // });
+                    } else {
+                        // pendingMessageLock.writeLock(function() {
+                        //     console.log('Pending Message writeLock');
+                        if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
+                            pendingDeviceMessages[deviceId] == undefined) {
+                            pendingDeviceMessages[deviceId] = new Array();
+                        }
+
+                        pendingDeviceMessages[deviceId].push(messageCallback);
+                        console.log('Device is offline, message pushed to queue');
+                        console.log('Queue: ' + pendingDeviceMessages[deviceId]);
+                        //     console.log('Pending Message unlocked');
+                        //     pendingMessageLock.unlock();
+                        // });
+                    }
+                }
+                break;
+            case 'config/ztewelink/portal/Devices':
+                // console.log(json_object);
+                while (subcribedDevices.length) {
+                    subcribedDevices.pop();
+                }
+                data.forEach(function(element) {
+                    var deviceId = element['device_id'].toLowerCase();
+                    subcribedDevices['ID-' + deviceId] = element['encryption_key'];
+                    mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+                });
+                
+                console.log(subcribedDevices);
+                break;
+            default:
+                console.log('No handler for topic %s', topic);
+        }
+    });
+}
 
 // var deviceListLock = locks.createReadWriteLock();
 // var pendingMessageLock = locks.createReadWriteLock();
@@ -227,97 +322,3 @@ function handleDeviceConnetion(sock) {
         }
     });
 }
-
-var zteDataSenderService = new ZTEDataService();
-
-var fabrick_gateway = {
-    id: "Fabrick ZTE Sockets Client " + config.zteBroker.idKey,
-    host: config.zteBroker.host,
-    port: config.zteBroker.port,
-    topics: { 'config/ztewelink/portal/Device/Message': 1, 'config/ztewelink/portal/Devices': 1 }
-};
-
-var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
-    keepalive: config.zteBroker.keepalive,
-    port: fabrick_gateway.port,
-    clientId: fabrick_gateway.id,
-    username: config.zteBroker.username,
-    password: config.zteBroker.password,
-});
-
-fabrick_Broker.onConnect(() => {
-    console.log('ZTE Client connected');
-});
-fabrick_Broker.onError((err) => {
-    console.log('error happen with ZTE Client');
-    console.log(err);
-    fabrick_Broker.end();
-});
-fabrick_Broker.onClose(() => {
-    console.log('ZTE Client disconnected');
-});
-
-fabrick_Broker.onMessage((gatewayName, topic, message, packet) => {
-    console.log('Message received from Fabrick');
-
-    var data = JSON.parse(message);
-    switch (topic) {
-        case 'config/ztewelink/portal/Device/Message':
-            console.log(data);
-            var deviceId = data["deviceId"];
-            var messageCallback = zteDataSenderService.generateMessageToDevice(subcribedDevices, deviceId, data["frameId"], data["requestType"], data["parameters"]);
-
-            if (messageCallback) {
-                if (connectingDevices.hasOwnProperty(deviceId) &&
-                    connectingDevices[deviceId] != undefined) {
-                    // deviceListLock.readLock(function() {
-                    //     console.log('Device List readLock');
-
-                    var buffer = Buffer.from(messageCallback, "hex");
-                    var sock = connectingDevices[deviceId];
-                    // Write the data back to the socket, the client will receive it as data from the server
-                    sock.write(buffer, function(err) {
-                        if (err) {
-                            console.log('Sock write error : ' + err);
-                            console.log('*****************************************************************');
-                        }
-                        console.log('Message already sent to Device');
-                    });
-
-                    //     console.log('Device List unlocked');
-                    //     deviceListLock.unlock();
-                    // });
-                } else {
-                    // pendingMessageLock.writeLock(function() {
-                    //     console.log('Pending Message writeLock');
-                    if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
-                        pendingDeviceMessages[deviceId] == undefined) {
-                        pendingDeviceMessages[deviceId] = new Array();
-                    }
-
-                    pendingDeviceMessages[deviceId].push(messageCallback);
-                    console.log('Device is offline, message pushed to queue');
-                    console.log('Queue: ' + pendingDeviceMessages[deviceId]);
-                    //     console.log('Pending Message unlocked');
-                    //     pendingMessageLock.unlock();
-                    // });
-                }
-            }
-            break;
-        case 'config/ztewelink/portal/Devices':
-            // console.log(json_object);
-            while (subcribedDevices.length) {
-                subcribedDevices.pop();
-            }
-            data.forEach(function(element) {
-                var deviceId = element['device_id'].toLowerCase();
-                subcribedDevices['ID-' + deviceId] = element['encryption_key'];
-                mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
-            });
-            
-            console.log(subcribedDevices);
-            break;
-        default:
-            console.log('No handler for topic %s', topic);
-    }
-});
