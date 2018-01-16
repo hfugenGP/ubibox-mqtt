@@ -28,8 +28,9 @@ MongoClient.connect(url, {
         }
 
         mongodb=db;
-        }
-    );
+
+        var zte_client = zte_Broker.connect();
+    });
 
 var fabrick_gateway = {
     id: "Fabrick OBDless Client " + config.zteBroker.idKey,
@@ -49,7 +50,7 @@ var zte_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
     username: config.zteBroker.username,
     password: config.zteBroker.password,
 });
-var zte_client = zte_Broker.connect();
+
 zte_Broker.onConnect(() => {
     console.log('OBDless Client connected');
 });

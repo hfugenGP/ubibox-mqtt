@@ -32,15 +32,21 @@ var mongodb;
 MongoClient.connect(url, {  
     poolSize: 50
     // other options can go here
-    },function(err, db) {
+    },function(err, db) 
+    {
         if(err){
             console.log("Error when connect to mongodb: " + err);
             return false;
         }
 
         mongodb=db;
-        }
-    );
+
+        net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
+            console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
+        });
+
+        var fabrick_client = fabrick_Broker.connect();
+    });
 
 // var deviceListLock = locks.createReadWriteLock();
 // var pendingMessageLock = locks.createReadWriteLock();
@@ -220,11 +226,7 @@ function handleDeviceConnetion(sock) {
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
         }
     });
-};
-
-net.createServer(handleDeviceConnetion).listen(config.zte.PORT, () => {
-    console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
-});
+}
 
 var zteDataSenderService = new ZTEDataService();
 
@@ -242,7 +244,7 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
     username: config.zteBroker.username,
     password: config.zteBroker.password,
 });
-var fabrick_client = fabrick_Broker.connect();
+
 fabrick_Broker.onConnect(() => {
     console.log('ZTE Client connected');
 });
