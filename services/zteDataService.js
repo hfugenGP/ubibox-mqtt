@@ -21,9 +21,11 @@ var password = encodeURIComponent(config.zte.mongoPassword);
 var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var mongodb;
+var redisClient;
 
-var ZTEDataService = function (db) {
+var ZTEDataService = function (db, redis) {
     mongodb = db;
+    redisClient = redis;
 };
 
 ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
@@ -349,7 +351,6 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
     var frameId = deviceData["MessageId"];
     var frameType = deviceData["MessageType"];
     var deviceId = deviceData["DeviceId"];
-    var client = redis.createClient();
     var common = new Common();
     
     switch (frameType) {
@@ -403,7 +404,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
                     upsert: true
                 });
                 // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                client.publish("zteDeviceLogs", JSON.stringify({
+                redisClient.publish("zteDeviceLogs", JSON.stringify({
                     "deviceId": deviceId
                 }));
             });
@@ -425,7 +426,7 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
                 }
 
                 // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
-                client.publish("zteDeviceLogs", JSON.stringify({
+                redisClient.publish("zteDeviceLogs", JSON.stringify({
                     "deviceId": deviceId
                 }));
             });
@@ -448,11 +449,11 @@ ZTEDataService.prototype.processData = function (hexData, subcribedDevices, devi
                 }
                 // console.log(r.insertedCount + " record has been saved to DeviceHistoricalData");
 
-                client.publish("zteDeviceResponse", JSON.stringify({
+                redisClient.publish("zteDeviceResponse", JSON.stringify({
                     "deviceId": deviceId,
                     "frameId": frameId
                 }));
-                client.publish("zteDeviceLogs", JSON.stringify({
+                redisClient.publish("zteDeviceLogs", JSON.stringify({
                     "deviceId": deviceId
                 }));
             });
@@ -1032,8 +1033,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
             }
             if (gps.length > 0) {
                 insertMany('GPSData', gps, function (insertedIds) {
-                    var client = redis.createClient();
-                    client.publish("zteGPSData", JSON.stringify({
+                    redisClient.publish("zteGPSData", JSON.stringify({
                         "deviceId": deviceId
                     }));
                 });
@@ -1134,10 +1134,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         console.log('******************Checking RoadOverSpeed Alert******************');
                         console.log('speed: ' + speed);
                         var roadRedisKey = "ZTE-" + deviceId + "-roadOverSpeed";
-                        var client = redis.createClient();
                         if (speed != "N/A" && roadSpeedSetting != null && parseInt(roadSpeedSetting["value"]) < speed) {
                             console.log('roadSpeedSetting: ' + roadSpeedSetting["value"]);
-                            client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+                            redisClient.hgetall(roadRedisKey, function (err, roadOverSpeed) {
                                 if (err || roadOverSpeed == null) {
                                     var roadOverSpeedCached = {};
                                     roadOverSpeedCached["maxSpeed"] = speed;
@@ -1145,7 +1144,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     roadOverSpeedCached["speedingMileage"] = totalMileage;
                                     roadOverSpeedCached["speedingStart"] = reportTime;
 
-                                    client.hmset(roadRedisKey, roadOverSpeedCached);
+                                    redisClient.hmset(roadRedisKey, roadOverSpeedCached);
                                 } else {
                                     if (roadOverSpeed["maxSpeed"] < speed) {
                                         roadOverSpeed["maxSpeed"] = speed;
@@ -1153,11 +1152,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                                     console.log('cached roadOverSpeed: ' + JSON.stringify(roadOverSpeed));
 
-                                    client.hmset(roadRedisKey, roadOverSpeed);
+                                    redisClient.hmset(roadRedisKey, roadOverSpeed);
                                 }
                             });
                         } else {
-                            client.hgetall(roadRedisKey, function (err, roadOverSpeed) {
+                            redisClient.hgetall(roadRedisKey, function (err, roadOverSpeed) {
                                 if (!err && roadOverSpeed !== null) {
                                     // var roadOverSpeed = JSON.parse(roadOverSpeed.toString());
                                     console.log('******************Saving RoadOverSpeed Alert******************');
@@ -1188,7 +1187,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         });
                                     });
 
-                                    client.del(roadRedisKey, function (err, reply) {
+                                    redisClient.del(roadRedisKey, function (err, reply) {
                                         console.log(reply);
                                     });
                                 }

@@ -5,6 +5,7 @@ var PORT = 8884;
 
 function testPerformance(existedClient, count){
     if(!existedClient){
+        console.log('NEW CLIENT CREATED!!!!');
         var client = new net.Socket();
         client.connect(PORT, HOST, function() {
 

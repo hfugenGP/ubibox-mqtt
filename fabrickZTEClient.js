@@ -10,6 +10,7 @@ const adler32 = require('adler32');
 const ZTEDataService = require('./services/zteDataService');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
+const redis = require("redis");
 // var AsyncLock = require('async-lock');
 var _ = require('lodash');
 // var locks = require('locks');
@@ -43,6 +44,7 @@ var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 });
 
 var mongodb;
+var redisClient = redis.createClient();
 
 MongoClient.connect(url, {  
     poolSize: 50
@@ -61,7 +63,7 @@ function mongoConnected(err, db){
         console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
     });
 
-    var zteDataSenderService = new ZTEDataService(mongodb);
+    var zteDataSenderService = new ZTEDataService(mongodb, redisClient);
 
     var fabrick_client = fabrick_Broker.connect();
 
