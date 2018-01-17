@@ -258,20 +258,24 @@ function mongoConnected(err, db){
                     switch (json_object["alertType"]) {
                         case "trip_start":
                             alertData["alertTypeId"] = new MongoObjectId("59fc24c4f2b0a5a368fa3af0");
+                            alertData["alertType"] = "trip_start";
                             alertData["value"] = {};
                             break;
                         case "trip_end":
                             alertData["alertTypeId"] = new MongoObjectId("59fc24cff2b0a5a368fa3af1");
+                            alertData["alertType"] = "trip_end";
                             alertData["value"] = {};
                             break;
                         case "suspected_collision":
                             alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
+                            alertData["alertType"] = "suspected_collision";
                             alertData["value"] = {
                                 "collisionValue": json_object["alertData"]["collisionValue"]
                             }
                             break;
                         case "sudden_acceleration":
                             alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
+                            alertData["alertType"] = "sudden_acceleration";
                             alertData["value"] = {
                                 "speedBeforeAcc": json_object["alertData"]["speedBeforeAcc"],
                                 "speedAfterAcc": json_object["alertData"]["speedAfterAcc"],
@@ -280,6 +284,7 @@ function mongoConnected(err, db){
                             break;
                         case "sudden_deceleration":
                             alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
+                            alertData["alertType"] = "sudden_deceleration";
                             alertData["value"] = {
                                 "speedBeforeDec": json_object["alertData"]["speedBeforeDec"],
                                 "speedAfterDec": json_object["alertData"]["speedAfterDec"],
@@ -288,12 +293,14 @@ function mongoConnected(err, db){
                             break;
                         case "sharp_turn":
                             alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
+                            alertData["alertType"] = "sharp_turn";
                             alertData["value"] = {
                                 "turn": parseInt(json_object["alertData"]["turn"]) / 1000
                             }
                             break;
                         case "over_speed":
                             alertData["alertTypeId"] = new MongoObjectId("59d6fbbcb4e2548c4ae92915");
+                            alertData["alertType"] = "overspeed";
                             alertData["value"] = {
                                 "maxSpeed": json_object["alertData"]["maxSpeed"],
                                 "speedLimit": json_object["alertData"]["speedLimit"],

@@ -610,6 +610,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                 "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertType": "dtc_code",
                                 "reportTime": timeOfIgnitionOn,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -643,6 +644,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                 "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertType": "dtc_code",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -731,6 +733,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                 "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertType": "dtc_code",
                                 "reportTime": timeOfIgnitionOff,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -764,6 +767,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                 "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertType": "dtc_code",
                                 "reportTime": timeOfIgnitionOff,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -841,6 +845,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                         alertData["alertTypeId"] = new MongoObjectId("5991469c95dfe43d4ca834bc");
+                        alertData["alertType"] = "sudden_acceleration";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -888,6 +893,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                         alertData["alertTypeId"] = new MongoObjectId("599146ab95dfe43d4ca834bd");
+                        alertData["alertType"] = "sudden_deceleration";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -931,6 +937,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                         alertData["alertTypeId"] = new MongoObjectId("599146b695dfe43d4ca834be");
+                        alertData["alertType"] = "sharp_turn";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -965,6 +972,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["deviceId"] = deviceId;
                     alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                     alertData["alertTypeId"] = new MongoObjectId("599146c295dfe43d4ca834bf");
+                    alertData["alertType"] = "exceed_idle";
                     alertData["reportTime"] = occurTime;
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
@@ -993,6 +1001,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["deviceId"] = deviceId;
                     alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                     alertData["alertTypeId"] = new MongoObjectId("599146cd95dfe43d4ca834c0");
+                    alertData["alertType"] = "driving_tired";
                     alertData["reportTime"] = occurTime;
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
@@ -1164,6 +1173,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "deviceId": deviceId,
                                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                         "alertTypeId": new MongoObjectId("59d6fbbcb4e2548c4ae92915"),
+                                        "alertType": "overspeed",
                                         "reportTime": reportTime,
                                         "gpsPosition": null,
                                         "status": "Pending",
@@ -1208,6 +1218,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     "deviceId": deviceId,
                                     "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
                                     "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
+                                    "alertType": "overheat", 
                                     "reportTime": reportTime,
                                     "gpsPosition": null,
                                     "status": "Pending",
@@ -1324,6 +1335,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["deviceId"] = deviceId;
                     alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                     alertData["alertTypeId"] = new MongoObjectId("599177f6e55de693e45b7175");
+                    alertData["alertType"] = "device_failure";
                     alertData["reportTime"] = reportingDate;
                     alertData["gpsPosition"] = null;
                     alertData["status"] = "Pending";
@@ -1444,6 +1456,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
                         alertData["alertTypeId"] = new MongoObjectId("5991780ae55de693e45b7176");
+                        alertData["alertType"] = "can_not_locate_for_long_time";
                         alertData["reportTime"] = timeNoLocation;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -1722,6 +1735,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                 "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertType": "dtc_code",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -1755,6 +1769,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                                 "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                                "alertType": "dtc_code",
                                 "reportTime": occurTime,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -1805,6 +1820,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
                         alertData["alertTypeId"] = new MongoObjectId("5991465195dfe43d4ca834b8");
+                        alertData["alertType"] = "low_voltage";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -1844,6 +1860,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
                         alertData["alertTypeId"] = new MongoObjectId("5991466495dfe43d4ca834b9");
+                        alertData["alertType"] = "vibration_after_ignition_off";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -1887,6 +1904,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
                         alertData["alertTypeId"] = new MongoObjectId("5991468295dfe43d4ca834ba");
+                        alertData["alertType"] = "suspected_collision";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -1927,6 +1945,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
                         alertData["alertTypeId"] = new MongoObjectId("5991469095dfe43d4ca834bb");
+                        alertData["alertType"] = "device_pulled_out";
                         alertData["reportTime"] = occurTime;
                         alertData["gpsPosition"] = insertedId;
                         alertData["status"] = "Pending";
@@ -2089,6 +2108,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         "deviceId": deviceId,
                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                         "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                        "alertType": "dtc_code",
                         "reportTime": occurTime,
                         "gpsPosition": null,
                         "status": "Pending",
@@ -2124,6 +2144,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         "deviceId": deviceId,
                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
                         "alertTypeId": new MongoObjectId("5991463795dfe43d4ca834b7"),
+                        "alertType": "dtc_code",
                         "reportTime": occurTime,
                         "gpsPosition": null,
                         "status": "Pending",
