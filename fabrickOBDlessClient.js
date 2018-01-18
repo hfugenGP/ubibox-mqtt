@@ -221,6 +221,7 @@ function mongoConnected(err, db){
                             });
     
                             var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
+                            console.log("Trigger Trip Summary: " + cmd);
                             exec(cmd, function (error, stdout, stderr) {
                                 if (error) console.log(error);
                                 if (stdout) console.log(stdout);
