@@ -530,10 +530,6 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             tripData["totalDrivingTime"] = totalDrivingTime;
                             tripData["status"] = "New";
                             insert(mongodb, 'Trips', tripData, function (insertedId) {
-                                if(err){
-                                    console.log("Error when write to mongodb: " + err);
-                                    return false;
-                                }
                                 mongodb.collection('GPSData').updateMany({
                                     deviceId: deviceId,
                                     gpsType: "routing",
