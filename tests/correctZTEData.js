@@ -28,8 +28,7 @@ function mongoConnected(err, db){
     mongodb=db;
 
     var cursor = mongodb.collection('Trips').find({
-        status:"New",
-        ignitionOnTime : {$ne: "Invalid date"},
+        ignitionOnTime : {$ne: "Invalid date", $gt: "2018-01-23 00:00:00"},
         ignitionOffTime : {$ne: "Invalid date"},
         endDateTime : {$ne: "Invalid date"},
         startDateTime: {$ne: "Invalid date"}
@@ -56,7 +55,6 @@ function mongoConnected(err, db){
             mongodb.collection('GPSData').updateMany({
                 deviceId: trip.deviceId,
                 gpsType: "routing",
-                tripId: null,
                 positionTime : {$gt:trip.ignitionOnTime, $lt:trip.ignitionOffTime}
             }, {
                 $set: {
