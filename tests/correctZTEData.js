@@ -1,6 +1,7 @@
 const Common = require('../lib/common');
 const config = require('../config/conf');
 var _ = require('lodash');
+const exec = require('child_process').exec;
 
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
