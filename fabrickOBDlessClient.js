@@ -210,8 +210,7 @@ function mongoConnected(err, db){
                             mongodb.collection('GPSData').updateMany({
                                 deviceId: json_object["deviceId"],
                                 gpsType: "routing",
-                                tripId: null,
-                                positionTime : {$gt:json_object["ignitionOnTime"], $lt:json_object["ignitionOffTime"]}
+                                tripId: null
                             }, {
                                 $set: {
                                     tripId: insertedId

@@ -533,8 +533,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 mongodb.collection('GPSData').updateMany({
                                     deviceId: deviceId,
                                     gpsType: "routing",
-                                    tripId: null,
-                                    positionTime : {$gt:ignitionOnTime, $lt:ignitionOffTime}
+                                    tripId: null
                                 }, {
                                     $set: {
                                         tripId: insertedId
