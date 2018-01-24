@@ -392,6 +392,10 @@ function ipsoDataFormat(deviceType, rawData) {
         var value = rawData.substring(start, end);
 
         switch (dataType) {
+            case "65":
+                var lux = parseInt(value, 16);
+                data['illuminance'] = [lux, 'Lux'];
+                break;
             case "67":
                 switch (deviceType) {
                     case 18: // Weather station
