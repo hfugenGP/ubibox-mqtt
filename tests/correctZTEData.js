@@ -51,7 +51,7 @@ function mongoConnected(err, db){
             //         console.log("GPS At: " + gps.positionTime);
             //     }
             // });
-
+            console.log("Found trip on : " + trip.ignitionOnTime);
             mongodb.collection('GPSData').updateMany({
                 deviceId: trip.deviceId,
                 gpsType: "routing",
