@@ -29,7 +29,7 @@ function mongoConnected(err, db){
     mongodb=db;
 
     var cursor = mongodb.collection('Trips').find({
-        ignitionOnTime : {$ne: "Invalid date", $gt: "2018-01-23 00:00:00"},
+        ignitionOnTime : {$ne: "Invalid date", $gt: "2018-01-17 00:00:00"},
         ignitionOffTime : {$ne: "Invalid date"},
         endDateTime : {$ne: "Invalid date"},
         startDateTime: {$ne: "Invalid date"}
@@ -66,13 +66,13 @@ function mongoConnected(err, db){
                 multi: true
             });
 
-            var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + trip._id.toHexString();
-            console.log("Trigger Trip Summary: " + cmd);
-            exec(cmd, function (error, stdout, stderr) {
-                if (error) console.log(error);
-                if (stdout) console.log(stdout);
-                if (stderr) console.log(stderr);
-            });
+            // var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + trip._id.toHexString();
+            // console.log("Trigger Trip Summary: " + cmd);
+            // exec(cmd, function (error, stdout, stderr) {
+            //     if (error) console.log(error);
+            //     if (stdout) console.log(stdout);
+            //     if (stderr) console.log(stderr);
+            // });
         }
     });
 }
