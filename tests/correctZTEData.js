@@ -29,7 +29,7 @@ function mongoConnected(err, db){
     mongodb=db;
 
     var cursor = mongodb.collection('Trips').find({
-        ignitionOnTime : {$ne: "Invalid date", $gt: "2018-01-17 00:00:00"},
+        ignitionOnTime : {$ne: "Invalid date", $gt: "2018-01-23 00:00:00"},
         ignitionOffTime : {$ne: "Invalid date"},
         endDateTime : {$ne: "Invalid date"},
         startDateTime: {$ne: "Invalid date"}
@@ -64,6 +64,8 @@ function mongoConnected(err, db){
             }, {
                 upsert: true,
                 multi: true
+            }, function(err, result){
+                console.log("Finish gps for : " + trip.ignitionOnTime);
             });
 
             // var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + trip._id.toHexString();
