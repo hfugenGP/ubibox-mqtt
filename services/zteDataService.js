@@ -1786,6 +1786,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             end += 8;
                         }
                     }
+                    
                     if (alerts.count > 0) {
                         insertMany("Alert", alerts, function (insertedIds) {
                             insertedIds.forEach(function (insertedId) {
