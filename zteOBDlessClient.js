@@ -36,6 +36,7 @@ var zte_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 });
 
 var mongodb;
+var cachedDeviceAlert = new Array();
 
 MongoClient.connect(url, {  
     poolSize: 50
@@ -314,13 +315,9 @@ function mongoConnected(err, db){
                     }
     
                     insert(mongodb, "Alert", alertData, function (insertedId) {
-                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        console.log("Trigger Alert notification: " + cmd);
-                        exec(cmd, function (error, stdout, stderr) {
-                            if (error) console.log(error);
-                            if (stdout) console.log(stdout);
-                            if (stderr) console.log(stderr);
-                        });
+                        if(json_object["alertType"] == "suspected_collision"){
+                            notifyToDevice(json_object["deviceId"], json_object["alertType"], insertedId.toHexString(), true);
+                        }
                     });
                 });
                 break;
@@ -345,5 +342,36 @@ function insertBundle(db, collection, data, callback) {
             console.log("Error when write to mongodb: " + err);
         }
         callback(result.insertedIds);
+    });
+}
+
+function notifyToDevice(deviceId, alertType, alertId, cacheEnable){
+    if(cacheEnable){
+        var cacheKey = deviceId + "-" + alertType;
+        var time = (new Date()).getTime();
+    
+        var oldTime = 0;
+        if(cachedDeviceAlert[cacheKey]){
+            oldTime = cachedDeviceAlert[cacheKey];
+        }
+    
+        if(time - oldTime >= 86400000){
+            //raise notification when old alert > 24h
+            notify(alertId);
+    
+            cachedDeviceAlert[cacheKey] = time
+        }
+    }else{
+        notify(alertId);
+    }
+}
+
+function notify(alertId){
+    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + alertId;
+    console.log("Trigger Alert notification: " + cmd);
+    exec(cmd, function (error, stdout, stderr) {
+        if (error) console.log(error);
+        if (stdout) console.log(stdout);
+        if (stderr) console.log(stderr);
     });
 }

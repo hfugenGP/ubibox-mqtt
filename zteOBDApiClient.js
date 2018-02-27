@@ -20,6 +20,7 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var mongodb;
 var redisClient = redis.createClient();
+var cachedDeviceAlert = new Array();
 
 var common = new Common();
 
@@ -319,6 +320,23 @@ function requestDeviceOBDData(device, from, to) {
                     if (lastStatus.batteryVolt != "N/A" && lowVoltage != null && parseInt(lowVoltage.value) > lastStatus.batteryVolt) {
                         console.log('lowVoltage: ' + lowVoltage.value);
                         lastStatus.batteryVoltStatus = "Warning";
+                    } else if(cachedDeviceAlert[deviceId+"-low_voltage"]){
+                        var normalVoltAlert = {
+                            "deviceId": device.extId,
+                            "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
+                            "alertTypeId": new MongoObjectId("5a94f6ec853f6be6589852c2"),
+                            "alertType": "normal_voltage", 
+                            "reportTime": lastStatus.reportTime,
+                            "gpsPosition": null,
+                            "status": "Pending",
+                            "readStatus": "Unread",
+                            "value": {
+                                "batteryVolt": lastStatus.batteryVolt
+                            }
+                        }
+                        insert(mongodb, "Alert", normalVoltAlert, function (insertedId) {
+                            notifyToDevice(deviceId, normalVoltAlert["alertType"], insertedId.toHexString(), true);
+                        });
                     }
 
                     console.log('******************Saving Vehicle Status******************');
@@ -504,15 +522,11 @@ function requestDeviceAlarm(device, from, to) {
                         }
 
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
-
-                            deferred.resolve(true);
+                            if(alertData["alertType"] == "suspected_collision" ||
+                            alertData["alertType"] == "device_pulled_out" ||
+                            alertData["alertType"] == "low_voltage"){
+                                notifyToDevice(device.extId, alertData["alertType"], insertedId.toHexString(), true);
+                            }
                         });
                     }
                 });
@@ -565,15 +579,7 @@ function requestDeviceDTCData(device, from, to) {
 
         if (alerts.count > 0) {
             insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
-                insertedIds.forEach(function (insertedId) {
-                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                    console.log("Trigger Alert notification: " + cmd);
-                    exec(cmd, function (error, stdout, stderr) {
-                        if (error) console.log(error);
-                        if (stdout) console.log(stdout);
-                        if (stderr) console.log(stderr);
-                    });
-                }, this);
+                //No push notification for DTC code
 
                 deferred.resolve(true);
             });
@@ -702,5 +708,36 @@ function insertBundle(db, collection, data, callback) {
             console.log("Error when write to mongodb: " + err);
         }
         callback(result.insertedIds);
+    });
+}
+
+function notifyToDevice(deviceId, alertType, alertId, cacheEnable){
+    if(cacheEnable){
+        var cacheKey = deviceId + "-" + alertType;
+        var time = (new Date()).getTime();
+    
+        var oldTime = 0;
+        if(cachedDeviceAlert[cacheKey]){
+            oldTime = cachedDeviceAlert[cacheKey];
+        }
+    
+        if(time - oldTime >= 86400000){
+            //raise notification when old alert > 24h
+            notify(alertId);
+    
+            cachedDeviceAlert[cacheKey] = time
+        }
+    }else{
+        notify(alertId);
+    }
+}
+
+function notify(alertId){
+    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + alertId;
+    console.log("Trigger Alert notification: " + cmd);
+    exec(cmd, function (error, stdout, stderr) {
+        if (error) console.log(error);
+        if (stdout) console.log(stdout);
+        if (stderr) console.log(stderr);
     });
 }

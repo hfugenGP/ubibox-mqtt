@@ -1162,11 +1162,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 console.log('tempSettingValue: ' + tempSetting["value"]);
                                 console.log('******************Saving Overheat Alert******************');
                                 data["engineCoolantTemperatureStatus"] = "Warning";
-                                var normalVoltAlert = {
+                                var alertData = {
                                     "deviceId": deviceId,
                                     "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
                                     "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
-                                    "alertType": "normal_voltage", 
+                                    "alertType": "overheat", 
                                     "reportTime": reportTime,
                                     "gpsPosition": null,
                                     "status": "Pending",
@@ -1176,8 +1176,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "heatLimit": parseInt(tempSetting["value"])
                                     }
                                 }
-                                insert(mongodb, "Alert", normalVoltAlert, function (insertedId) {
-                                    notifyToDevice(deviceId, normalVoltAlert["alertType"], insertedId.toHexString(), true);
+                                insert(mongodb, "Alert", alertData, function (insertedId) {
+                                    notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                                 });
                             }
 
@@ -1191,7 +1191,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     console.log('lowVoltage: ' + lowVoltage["value"]);
                                     data["batteryVoltStatus"] = "Warning";
                                 } else if(cachedDeviceAlert[deviceId+"-low_voltage"]){
-                                    var alertData = {
+                                    var normalVoltAlert = {
                                         "deviceId": deviceId,
                                         "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
                                         "alertTypeId": new MongoObjectId("5a94f6ec853f6be6589852c2"),
@@ -1204,8 +1204,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                             "batteryVolt": batteryVolt
                                         }
                                     }
-                                    insert(mongodb, "Alert", alertData, function (insertedId) {
-                                        notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
+                                    insert(mongodb, "Alert", normalVoltAlert, function (insertedId) {
+                                        notifyToDevice(deviceId, normalVoltAlert["alertType"], insertedId.toHexString(), true);
                                     });
                                 }
 
