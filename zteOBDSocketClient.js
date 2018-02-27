@@ -27,6 +27,7 @@ var deviceAddress = {};
 var subcribedDevices = new Array();
 var pendingDeviceMessages = {};
 var cachedFrameId = new Array();
+var cachedDeviceAlert = new Array();
 
 var fabrick_gateway = {
     id: "Fabrick ZTE Sockets Client " + config.zteBroker.idKey,
@@ -63,7 +64,7 @@ function mongoConnected(err, db){
         console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
     });
 
-    var zteDataSenderService = new ZTEDataService(mongodb, redisClient);
+    var zteDataSenderService = new ZTEDataService(mongodb, redisClient, cachedDeviceAlert);
 
     var fabrick_client = fabrick_Broker.connect();
 
@@ -179,7 +180,7 @@ function handleDeviceConnetion(sock) {
 
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
-        var zteDataService = new ZTEDataService(mongodb, redisClient);
+        var zteDataService = new ZTEDataService(mongodb, redisClient, cachedDeviceAlert);
 
         var buff = new Buffer(data, 'utf8');
         var hexData = buff.toString('hex');
@@ -207,17 +208,17 @@ function handleDeviceConnetion(sock) {
             return;
         }
 
-        // var frameIdCachedKey = "ZTE-" + deviceData["DeviceId"] + "-" + deviceData["MessageType"] + "-" + deviceData["MessageId"];
-        // if(cachedFrameId[frameIdCachedKey]){
-        //     console.log('#################Duplicated frame returned, ignore this frame...#################');
-        //     console.log('deviceId : ' + deviceData["DeviceId"]);
-        //     console.log('frameType : ' + deviceData["MessageType"]);
-        //     console.log('frameId : ' + deviceData["MessageId"]);
-        //     console.log('#################Duplicated frame returned, ignore this frame...#################');
-        //     return;
-        // }
+        var frameIdCachedKey = "ZTE-" + deviceData["DeviceId"] + "-" + deviceData["MessageType"] + "-" + deviceData["MessageId"];
+        if(cachedFrameId[frameIdCachedKey]){
+            console.log('#################Duplicated frame returned, ignore this frame...#################');
+            console.log('deviceId : ' + deviceData["DeviceId"]);
+            console.log('frameType : ' + deviceData["MessageType"]);
+            console.log('frameId : ' + deviceData["MessageId"]);
+            console.log('#################Duplicated frame returned, ignore this frame...#################');
+            return;
+        }
 
-        // cachedFrameId[frameIdCachedKey] = true;
+        cachedFrameId[frameIdCachedKey] = true;
 
         if(deviceData["MessageType"] == '0e'){
             //Set to offline if this is disconnected frame

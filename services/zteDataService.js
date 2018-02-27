@@ -22,10 +22,12 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 
 var mongodb;
 var redisClient;
+var cachedDeviceAlert;
 
-var ZTEDataService = function (db, redis) {
+var ZTEDataService = function (db, redis, cache) {
     mongodb = db;
     redisClient = redis;
+    cachedDeviceAlert = cache;
 };
 
 ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
@@ -677,15 +679,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                         if (alerts.count > 0) {
                             insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
-                                insertedIds.forEach(function (insertedId) {
-                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                    console.log("Trigger Alert notification: " + cmd);
-                                    exec(cmd, function (error, stdout, stderr) {
-                                        if (error) console.log(error);
-                                        if (stdout) console.log(stdout);
-                                        if (stderr) console.log(stderr);
-                                    });
-                                }, this);
+                                //No push notification for DTC code
                             });
                         }
                     });
@@ -800,15 +794,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                         if (alerts.count > 0) {
                             insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
-                                insertedIds.forEach(function (insertedId) {
-                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                    console.log("Trigger Alert notification: " + cmd);
-                                    exec(cmd, function (error, stdout, stderr) {
-                                        if (error) console.log(error);
-                                        if (stdout) console.log(stdout);
-                                        if (stderr) console.log(stderr);
-                                    });
-                                }, this);
+                                //No push notification for DTC code
                             });
                         }
                     });
@@ -854,13 +840,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "accValue": accValue
                         }
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            //No push notification for inccident
                         });
                     });
 
@@ -902,13 +882,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "decValue": decValue
                         }
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            //No push notification for inccident
                         });
                     });
 
@@ -944,13 +918,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "turn": turn
                         }
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            //No push notification for inccident
                         });
                     });
 
@@ -976,13 +944,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["value"] = {}
 
                     insertOne("Alert", alertData, function (insertedId) {
-                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        console.log("Trigger Alert notification: " + cmd);
-                        exec(cmd, function (error, stdout, stderr) {
-                            if (error) console.log(error);
-                            if (stdout) console.log(stdout);
-                            if (stderr) console.log(stderr);
-                        });
+                        //No push notification for inccident
                     });
 
                     console.log('occurTime : ' + occurTime);
@@ -1005,13 +967,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["value"] = {}
 
                     insertOne("Alert", alertData, function (insertedId) {
-                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        console.log("Trigger Alert notification: " + cmd);
-                        exec(cmd, function (error, stdout, stderr) {
-                            if (error) console.log(error);
-                            if (stdout) console.log(stdout);
-                            if (stderr) console.log(stderr);
-                        });
+                        //No push notification for inccident
                     });
 
                     console.log('occurTime : ' + occurTime);
@@ -1186,13 +1142,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     };
 
                                     insert(mongodb, "Alert", roadOverSpeedData, function (insertedId) {
-                                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                        console.log("Trigger Alert notification: " + cmd);
-                                        exec(cmd, function (error, stdout, stderr) {
-                                            if (error) console.log(error);
-                                            if (stdout) console.log(stdout);
-                                            if (stderr) console.log(stderr);
-                                        });
+                                        //No push notification for inccident
                                     });
 
                                     redisClient.del(roadRedisKey, function (err, reply) {
@@ -1212,11 +1162,11 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 console.log('tempSettingValue: ' + tempSetting["value"]);
                                 console.log('******************Saving Overheat Alert******************');
                                 data["engineCoolantTemperatureStatus"] = "Warning";
-                                var alertData = {
+                                var normalVoltAlert = {
                                     "deviceId": deviceId,
                                     "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
                                     "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
-                                    "alertType": "overheat", 
+                                    "alertType": "normal_voltage", 
                                     "reportTime": reportTime,
                                     "gpsPosition": null,
                                     "status": "Pending",
@@ -1226,14 +1176,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "heatLimit": parseInt(tempSetting["value"])
                                     }
                                 }
-                                insert(mongodb, "Alert", alertData, function (insertedId) {
-                                    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                    console.log("Trigger Alert notification: " + cmd);
-                                    exec(cmd, function (error, stdout, stderr) {
-                                        if (error) console.log(error);
-                                        if (stdout) console.log(stdout);
-                                        if (stderr) console.log(stderr);
-                                    });
+                                insert(mongodb, "Alert", normalVoltAlert, function (insertedId) {
+                                    notifyToDevice(deviceId, normalVoltAlert["alertType"], insertedId.toHexString(), true);
                                 });
                             }
 
@@ -1246,6 +1190,23 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 if (batteryVolt != "N/A" && lowVoltage != null && parseInt(lowVoltage["value"]) > batteryVolt) {
                                     console.log('lowVoltage: ' + lowVoltage["value"]);
                                     data["batteryVoltStatus"] = "Warning";
+                                } else if(cachedDeviceAlert[deviceId+"-low_voltage"]){
+                                    var alertData = {
+                                        "deviceId": deviceId,
+                                        "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
+                                        "alertTypeId": new MongoObjectId("5a94f6ec853f6be6589852c2"),
+                                        "alertType": "normal_voltage", 
+                                        "reportTime": reportTime,
+                                        "gpsPosition": null,
+                                        "status": "Pending",
+                                        "readStatus": "Unread",
+                                        "value": {
+                                            "batteryVolt": batteryVolt
+                                        }
+                                    }
+                                    insert(mongodb, "Alert", alertData, function (insertedId) {
+                                        notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
+                                    });
                                 }
 
                                 console.log('******************Saving Vehicle Status******************');
@@ -1342,13 +1303,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "failureCode": failureCode
                     }
                     insertOne("Alert", alertData, function (insertedId) {
-                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        console.log("Trigger Alert notification: " + cmd);
-                        exec(cmd, function (error, stdout, stderr) {
-                            if (error) console.log(error);
-                            if (stdout) console.log(stdout);
-                            if (stderr) console.log(stderr);
-                        });
+                        notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                     });
 
                     console.log('reportingDate : ' + reportingDate);
@@ -1461,13 +1416,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["readStatus"] = "Unread";
                         alertData["value"] = {}
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            //No push notification for inccident
                         });
                     });
 
@@ -1789,15 +1738,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     
                     if (alerts.count > 0) {
                         insertMany("Alert", alerts, function (insertedIds) {
-                            insertedIds.forEach(function (insertedId) {
-                                var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                                console.log("Trigger Alert notification: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
-                                    if (error) console.log(error);
-                                    if (stdout) console.log(stdout);
-                                    if (stderr) console.log(stderr);
-                                });
-                            }, this);
+                            //No push notification for DTC code
                         });
                     }
 
@@ -1828,13 +1769,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "batteryVolt": batteryVolt
                         }
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                         });
                     });
 
@@ -1868,13 +1803,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "peekValue": peekValue
                         }
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            //No push notification for inccident
                         });
                     });
 
@@ -1912,13 +1841,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "collisionValue": collisionValue
                         }
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                         });
                     });
 
@@ -1951,13 +1874,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["readStatus"] = "Unread";
                         alertData["value"] = {}
                         insert(mongodb, "Alert", alertData, function (insertedId) {
-                            var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                            console.log("Trigger Alert notification: " + cmd);
-                            exec(cmd, function (error, stdout, stderr) {
-                                if (error) console.log(error);
-                                if (stdout) console.log(stdout);
-                                if (stderr) console.log(stderr);
-                            });
+                            notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                         });
                     });
 
@@ -2165,15 +2082,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
 
             if (alerts.count > 0) {
                 insertMany("Alert", alerts, function (insertedIds) {
-                    insertedIds.forEach(function (insertedId) {
-                        var cmd = 'php ' + config.zte.artisanURL + ' notify ' + insertedId.toHexString();
-                        console.log("Trigger Alert notification: " + cmd);
-                        exec(cmd, function (error, stdout, stderr) {
-                            if (error) console.log(error);
-                            if (stdout) console.log(stdout);
-                            if (stderr) console.log(stderr);
-                        });
-                    }, this);
+                    //No push notification for DTC code
                 });
             }
 
@@ -2948,6 +2857,37 @@ function insertBundle(db, collection, data, callback) {
             console.log("Error when write to mongodb: " + err);
         }
         callback(result.insertedIds);
+    });
+}
+
+function notifyToDevice(deviceId, alertType, alertId, cacheEnable){
+    if(cacheEnable){
+        var cacheKey = deviceId + "-" + alertType;
+        var time = (new Date()).getTime();
+    
+        var oldTime = 0;
+        if(cachedDeviceAlert[cacheKey]){
+            oldTime = cachedDeviceAlert[cacheKey];
+        }
+    
+        if(time - oldTime >= 86400000){
+            //raise notification when old alert > 24h
+            notify(alertId);
+    
+            cachedDeviceAlert[cacheKey] = time
+        }
+    }else{
+        notify(alertId);
+    }
+}
+
+function notify(alertId){
+    var cmd = 'php ' + config.zte.artisanURL + ' notify ' + alertId;
+    console.log("Trigger Alert notification: " + cmd);
+    exec(cmd, function (error, stdout, stderr) {
+        if (error) console.log(error);
+        if (stdout) console.log(stdout);
+        if (stderr) console.log(stderr);
     });
 }
 
