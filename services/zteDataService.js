@@ -682,6 +682,18 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 //No push notification for DTC code
                             });
                         }
+
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                        alertData["alertTypeId"] = new MongoObjectId("59fc24c4f2b0a5a368fa3af0");
+                        alertData["alertType"] = "trip_start";
+                        alertData["reportTime"] = timeOfIgnitionOn;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {};
+
+                        insert(mongodb, "Alert", alertData, function (insertedId) {});
                     });
 
                     console.log('typeOfIgnitionOn : ' + typeOfIgnitionOn);
@@ -797,6 +809,18 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 //No push notification for DTC code
                             });
                         }
+
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
+                        alertData["alertTypeId"] = new MongoObjectId("59fc24cff2b0a5a368fa3af1");
+                        alertData["alertType"] = "trip_end";
+                        alertData["reportTime"] = timeOfIgnitionOff;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {};
+
+                        insert(mongodb, "Alert", alertData, function (insertedId) {});
                     });
 
                     console.log('typeOfIgnitionOff : ' + typeOfIgnitionOff);
