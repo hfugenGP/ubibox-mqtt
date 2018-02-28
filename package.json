@@ -4,6 +4,7 @@
   "description": "A sample application built that shows how MQTT could be used.",
   "main": "main.js",
   "dependencies": {
+    "crypto-js": "^3.1.9-1",
     "forEachAsync": "^3.0.0",
     "heat-index": "0.0.3",
     "ioredis": "^2.5.0",
