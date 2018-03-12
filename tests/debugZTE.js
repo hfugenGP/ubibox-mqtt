@@ -6,114 +6,81 @@ const redis = require("redis");
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const fs = require('fs');
-var CRC32 = require('crc-32');
-var ADLER32 = require('adler-32');
+// var CRC32 = require('crc-32');
+// var ADLER32 = require('adler-32');
 const adler32 = require('adler32');
 var HI = require('heat-index');
+
+const CryptoJS = require("crypto-js");
+
+const SimpleCrypto = require('../lib/simpleCrypto');
+var simpleCrypto = new SimpleCrypto();
 
 // var user = encodeURIComponent(config.zte.mongoUsername);
 // var password = encodeURIComponent(config.zte.mongoPassword);
 var common = new Common();
 
-var client = redis.createClient();
-var resKey = "timeout-";
-var topic = "";
-client.hmget("obdless/onGoing/trips", function (err, obj) {
-    var deviceArray = {};
-    console.log("############ Redis hmget obdless/onGoing/trips ############");
-    if (!err) {
-        console.log("############ Redis hmget success ############");
-        if (obj) {
-            deviceArray = JSON.parse(obj);
-        }
+var hexData = "5555005d9c672cf3f7ecbd0938363134373330333035393432313942d5aca37f0caacb7af226b2c0b7ceb253e5d67fb140794e01e323b15e9797cbcae6667e928e3eef741d3f6c24ff5918b9722ce5dcc7081cd8bb638ba5d4480aaaaa";
+var encryptionKey = "54d2a1c52701598cb583c58d90f23b280fa0c5b869a95289";
 
-        if (topic === "api/ztewelink/OBDless/Data/Alert") {
-            console.log("############ Trip_End: clear cache and stop trip ############");
-            deviceArray.pop(resKey);
-            client.del(resKey);
-        } else {
-            console.log("############ New message: add vo cache and set 120s expired ############");
-            deviceArray.push(resKey);
-            client.set(resKey, true);
-            client.expire(resKey, 120);
-        }
+// var messageLength = hexData.substring(4, 8);
+// var messageLengthDec = parseInt(messageLength, 16);
+// // var iv = hexData.substring(8, 24);
+// var deviceId = hexData.substring(8, 38);
+// var imei = common.chars_from_hex(deviceId);
+// var cryptedHex = hexData.substring(38, hexData.length - 4);
 
-        client.hmset("obdless/onGoing/trips", deviceArray);
+// var decryptedData = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(cryptedHex), 0, 0);
+// var decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
+// var fullDecryptedMessage = hexData.substring(0, 54) + decryptedHex + "aaaa";
+
+// var revertTest = "010393004402011102224d43555f4154494c5a45564d363230305356302e302e304230325f54313731323138174154494c5a455f564d363230305356302e302e30423032005a9ce35b71141537";
+// var cici = "2c266cc650aa391b2c611f9376e060b9c8d9f9654235cfc7dacdb4fa5a9d711754be49c5766fc04525e8f8e30b680fa37884e0a02fb0d9d5dacdb4fa5a9d711788802cbf74957b1441ebc8f7f628ca90";
+
+// var asd = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(decryptedHex), 1, 0);
+// var asdasd = common.hex_from_chars(asd).replace(/(\r\n|\n|\r)/gm, "");
+
+// var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(decryptedHex), encryptionKey, {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.ZeroPadding});
+// var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
+
+// var decryptedData1 = simpleCrypto.des(common.chars_from_hex(ciphertext), common.chars_from_hex(cryptedHex), 0, 0);
+// var decryptedHex1 = common.hex_from_chars(decryptedData1).replace(/(\r\n|\n|\r)/gm, "");
+// var fullDecryptedMessage1 = hexData.substring(0, 54) + decryptedHex1 + "aaaa";
+
+// console.log(ciphertext);
+
+    // Remove frame header (4), message length (4), device id (16) and frame end (4).
+    var messageLength = hexData.substring(4, 8);
+    var messageLengthDec = parseInt(messageLength, 16);
+    var iv = hexData.substring(8, 24);
+    var deviceId = hexData.substring(24, 54);
+    var imei = common.chars_from_hex(deviceId);
+    var cryptedHex = hexData.substring(54, hexData.length - 4);
+
+    var decryptedData = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
+    this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
+    var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
+
+    console.log('***************************Device Data***************************');
+    console.log('imei : ' + imei);
+    console.log('deviceId : ' + deviceId);
+    console.log('Decrypted Message : ' + fullDecryptedMessage);
+
+    var randomNoiseHex = this.decryptedHex.substring(0, 16);
+    var frameType = this.decryptedHex.substring(16, 18);
+    var frameId = this.decryptedHex.substring(18, 22);
+
+    var dataLengthHex = this.decryptedHex.substring(22, 26);
+    var dataLength = parseInt(dataLengthHex, 16);
+    var endOfEffectiveData = 26 + (dataLength * 2);
+    var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
+    var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
+
+    var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
+
+    var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
+    if (calculatedCheckSumHex.length == 6) {
+        calculatedCheckSumHex = '00' + calculatedCheckSumHex;
+    } else if (calculatedCheckSumHex.length == 7) {
+        calculatedCheckSumHex = '0' + calculatedCheckSumHex;
     }
-});
-
-var effectiveData = "02000859fa732a144e8a9b224b048d1606d15d02b00e028000000059fa732c144e8a9b223f048d2807814702600c024000000059fa732d144e869b2238048d3007f14002600c024000000059fa732f144e889b2228048d4208713b02600c024000000059fa7331144e869b2215048d5108913002600c024000000059fa7332144e889b220a048d5708712802600c024000000059fa7334144e849b21f2048d5d08911702600c024000000059fa7336144e869b21d9048d5f09310f02600c02400000005f4e3ef51eb4818d";
-var data = {};
-var numberOfPackage = parseInt(effectiveData.substring(4, 6), 16);
-console.log('numberOfPackage : ' + numberOfPackage);
-data["numberOfPackage"] = numberOfPackage;
-var i = 1;
-var start = 6;
-var end = 54;
-var gps = new Array();
-while (i <= numberOfPackage) {
-    var gpsData = formatGPS(effectiveData.substring(start, end), "123123", true);
-    console.log('gpsData ' + i + ' : ' + JSON.stringify(gpsData));
-    data["gpsData" + i] = gpsData;
-    gps.push(gpsData);
-    start = end;
-    end += 48;
-    i++;
-}
-
-
-function formatGPS(gpsValue, deviceId, isRouting) {
-    var common = new Common();
-    var gpsData = {};
-    var positionTime = common.dateToUTCText(common.date_from_hex(gpsValue.substring(0, 8)));
-    gpsData["positionTime"] = positionTime;
-    var statusFlags = Array.from(common.hex2bits(gpsValue.substring(8, 10)));
-    gpsData["positionSource"] = statusFlags[0] = '1' ? "GSM" : "GPS";
-    gpsData["dataValidity"] = statusFlags[1] = '1' ? "Last time" : "Real time";
-    gpsData["numberOfSatellites"] = parseInt("" + statusFlags[4] + statusFlags[5] + statusFlags[6] + statusFlags[7], 2);
-
-    var latType = 1; // North
-    if (statusFlags[3] == '0') {
-        latType = -1; //South
-    }
-
-    var lngType = -1; //West
-    if (statusFlags[2] == '0') {
-        lngType = 1; //East
-    }
-
-    var byte5t9 = common.hex2bits(gpsValue.substring(10, 20));
-    var height = parseInt(byte5t9.substring(0, 15), 2);
-    gpsData["height"] = height <= 10000 ? height : height - 10000;
-    var longitude = parseInt(byte5t9.substring(15, 40), 2) * 0.00001;
-    gpsData["longitude"] = longitude * lngType;
-
-    var latitude = parseInt(gpsValue.substring(20, 26), 16) * 0.00001;
-    gpsData["latitude"] = latitude * latType;
-    gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
-
-    var byte13t15 = common.hex2bits(gpsValue.substring(26, 32));
-    gpsData["gpsSpeed"] = parseInt(byte13t15.substring(0, 12), 2) / 10;
-    gpsData["heading"] = parseInt(byte13t15.substring(15, 24), 2);
-    if (gpsValue.length > 32) {
-        var byte16t20 = common.hex2bits(gpsValue.substring(32, 42));
-        gpsData["PDOP"] = parseInt(byte13t15.substring(0, 12), 2) / 10;
-        gpsData["HDOP"] = parseInt(byte13t15.substring(12, 24), 2) / 10;
-        gpsData["VDOP"] = parseInt(byte13t15.substring(14, 36), 2) / 10;
-    }
-
-    if (isRouting) {
-        gpsData["gpsType"] = "routing";
-        gpsData["tripId"] = null;
-    } else {
-        gpsData["gpsType"] = "reference";
-    }
-
-    if (deviceId) {
-        gpsData["deviceId"] = deviceId;
-    }
-
-    gpsData["status"] = "New";
-
-    return gpsData;
-}

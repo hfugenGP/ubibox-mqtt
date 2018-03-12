@@ -24,13 +24,13 @@ var mongodb;
 var redisClient;
 var cachedDeviceAlert;
 
-var ZTEDataService = function (db, redis, cache) {
+var ZTEDataServiceV2 = function (db, redis, cache) {
     mongodb = db;
     redisClient = redis;
     cachedDeviceAlert = cache;
 };
 
-ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
+ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
 
     if (!subcribedDevices["ID-" + deviceId]) {
@@ -257,17 +257,17 @@ ZTEDataService.prototype.generateMessageToDevice = function (subcribedDevices, d
     return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey);
 }
 
-ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
+ZTEDataServiceV2.prototype.preProcessData = function (hexData, subcribedDevices) {
     var common = new Common();
     var simpleCrypto = new SimpleCrypto();
 
     // Remove frame header (4), message length (4), device id (16) and frame end (4).
     var messageLength = hexData.substring(4, 8);
     var messageLengthDec = parseInt(messageLength, 16);
-    var iv = hexData.substring(8, 24);
-    var deviceId = hexData.substring(24, 54);
+
+    var deviceId = hexData.substring(8, 38);
     var imei = common.chars_from_hex(deviceId);
-    var cryptedHex = hexData.substring(54, hexData.length - 4);
+    var cryptedHex = hexData.substring(38, hexData.length - 4);
 
     if (!subcribedDevices["ID-" + deviceId]) {
         console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
@@ -276,7 +276,7 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
 
     this.encryptionKey = subcribedDevices["ID-" + deviceId];
 
-    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
+    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 0, common.chars_from_hex(iv));
     this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
     var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
 
@@ -303,7 +303,6 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
     // console.log('Crypted Hex : ' + cryptedHex);
     // console.log('Decrypted Hex : ' + this.decryptedHex);
     console.log('checksumHex : ' + checksumHex);
-    console.log('checksum check : ' + checksum);
 
     var receivedDate = new Date();
     var receivedDateText = common.dateToUTCText(receivedDate);
@@ -349,7 +348,7 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
     return deviceData;
 }
 
-ZTEDataService.prototype.processData = function (hexData, subcribedDevices, deviceData) {
+ZTEDataServiceV2.prototype.processData = function (hexData, subcribedDevices, deviceData) {
     var effectiveData = deviceData["EffectiveData"];
     var frameId = deviceData["MessageId"];
     var frameType = deviceData["MessageType"];
@@ -2613,7 +2612,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
     return data;
 }
 
-ZTEDataService.prototype.generateReply = function (hexData) {
+ZTEDataServiceV2.prototype.generateReply = function (hexData) {
     var common = new Common();
     var deviceId = hexData.substring(24, 54);
     var frameType = this.decryptedHex.substring(16, 18);
@@ -2916,4 +2915,4 @@ function notify(alertId){
     });
 }
 
-module.exports = ZTEDataService;
+module.exports = ZTEDataServiceV2;
