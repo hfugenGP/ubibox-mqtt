@@ -330,7 +330,8 @@ ZTEDataService.prototype.preProcessData = function (hexData, subcribedDevices) {
         return false;
     }
 
-    var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
+    var checksumBuff = Buffer.from(checksum, "hex");
+    var calculatedCheckSumHex = adler32.sum(checksumBuff).toString(16);
     if (calculatedCheckSumHex.length == 6) {
         calculatedCheckSumHex = '00' + calculatedCheckSumHex;
     } else if (calculatedCheckSumHex.length == 7) {
