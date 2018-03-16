@@ -23,6 +23,16 @@ var common = new Common();
 var hexData = "5555005d9c672cf3f7ecbd0938363134373330333035393432313942d5aca37f0caacb7af226b2c0b7ceb253e5d67fb140794e01e323b15e9797cbcae6667e928e3eef741d3f6c24ff5918b9722ce5dcc7081cd8bb638ba5d4480aaaaa";
 var encryptionKey = "54d2a1c52701598cb583c58d90f23b280fa0c5b869a95289";
 
+// var dateTime = parseInt('564EB453', 16);
+// var date = new Date(dateTime * 1000);
+
+var currentTime = new Date();
+var time = currentTime.getTime();
+var timeCut = parseInt(time / 1000);
+var occurTime = timeCut.toString(16);
+
+console.log(occurTime);
+
 // var messageLength = hexData.substring(4, 8);
 // var messageLengthDec = parseInt(messageLength, 16);
 // // var iv = hexData.substring(8, 24);
@@ -50,37 +60,37 @@ var encryptionKey = "54d2a1c52701598cb583c58d90f23b280fa0c5b869a95289";
 // console.log(ciphertext);
 
     // Remove frame header (4), message length (4), device id (16) and frame end (4).
-    var messageLength = hexData.substring(4, 8);
-    var messageLengthDec = parseInt(messageLength, 16);
-    var iv = hexData.substring(8, 24);
-    var deviceId = hexData.substring(24, 54);
-    var imei = common.chars_from_hex(deviceId);
-    var cryptedHex = hexData.substring(54, hexData.length - 4);
+    // var messageLength = hexData.substring(4, 8);
+    // var messageLengthDec = parseInt(messageLength, 16);
+    // var iv = hexData.substring(8, 24);
+    // var deviceId = hexData.substring(24, 54);
+    // var imei = common.chars_from_hex(deviceId);
+    // var cryptedHex = hexData.substring(54, hexData.length - 4);
 
-    var decryptedData = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
-    this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
-    var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
+    // var decryptedData = simpleCrypto.des(common.chars_from_hex(encryptionKey), common.chars_from_hex(cryptedHex), 0, 1, common.chars_from_hex(iv));
+    // this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
+    // var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
 
-    console.log('***************************Device Data***************************');
-    console.log('imei : ' + imei);
-    console.log('deviceId : ' + deviceId);
-    console.log('Decrypted Message : ' + fullDecryptedMessage);
+    // console.log('***************************Device Data***************************');
+    // console.log('imei : ' + imei);
+    // console.log('deviceId : ' + deviceId);
+    // console.log('Decrypted Message : ' + fullDecryptedMessage);
 
-    var randomNoiseHex = this.decryptedHex.substring(0, 16);
-    var frameType = this.decryptedHex.substring(16, 18);
-    var frameId = this.decryptedHex.substring(18, 22);
+    // var randomNoiseHex = this.decryptedHex.substring(0, 16);
+    // var frameType = this.decryptedHex.substring(16, 18);
+    // var frameId = this.decryptedHex.substring(18, 22);
 
-    var dataLengthHex = this.decryptedHex.substring(22, 26);
-    var dataLength = parseInt(dataLengthHex, 16);
-    var endOfEffectiveData = 26 + (dataLength * 2);
-    var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
-    var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
+    // var dataLengthHex = this.decryptedHex.substring(22, 26);
+    // var dataLength = parseInt(dataLengthHex, 16);
+    // var endOfEffectiveData = 26 + (dataLength * 2);
+    // var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
+    // var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
 
-    var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
+    // var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
 
-    var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
-    if (calculatedCheckSumHex.length == 6) {
-        calculatedCheckSumHex = '00' + calculatedCheckSumHex;
-    } else if (calculatedCheckSumHex.length == 7) {
-        calculatedCheckSumHex = '0' + calculatedCheckSumHex;
-    }
+    // var calculatedCheckSumHex = adler32.sum(Buffer.from(checksum, "hex")).toString(16);
+    // if (calculatedCheckSumHex.length == 6) {
+    //     calculatedCheckSumHex = '00' + calculatedCheckSumHex;
+    // } else if (calculatedCheckSumHex.length == 7) {
+    //     calculatedCheckSumHex = '0' + calculatedCheckSumHex;
+    // }
