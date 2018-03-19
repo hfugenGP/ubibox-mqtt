@@ -24,13 +24,13 @@ var mongodb;
 var redisClient;
 var cachedDeviceAlert;
 
-var ZTEDataServiceV2 = function (db, redis, cache) {
+var ZTEDataServiceV2 = function(db, redis, cache) {
     mongodb = db;
     redisClient = redis;
     cachedDeviceAlert = cache;
 };
 
-ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices, deviceId, frameId, requestType, params) {
+ZTEDataServiceV2.prototype.generateMessageToDevice = function(subcribedDevices, deviceId, frameId, requestType, params) {
     var common = new Common();
 
     if (!subcribedDevices["ID-" + deviceId]) {
@@ -56,11 +56,12 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices,
             break;
         case "02":
             //Set parameters
-            Object.keys(params).forEach(function (key, value) {
+            Object.keys(params).forEach(function(key, value) {
                 if (key == "0x02080000" ||
                     key == "0x02090000" ||
                     key == "0x020a0000" ||
-                    key == "0x03000000") {
+                    key == "0x03000000" ||
+                    key == "0x000a0000") {
                     return false;
                 }
 
@@ -101,17 +102,28 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices,
                     case "0x00090000":
                         mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
                         break;
-                    case "0x000a0000":
-                        if (params[key]) {
-                            mainMessage += "01";
-                        } else {
-                            mainMessage += "00";
-                        }
-                        break;
                     case "0x000b0000":
                         mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
                         break;
                     case "0x000c0000":
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
+                        break;
+                    case "0x000d0000":
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
+                        break;
+                    case "0x000e0000":
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
+                        break;
+                    case "0x000f0000":
+                        mainMessage += common.recorrectHexString(parseInt(params[key] * 10).toString(16), 4);
+                        break;
+                    case "0x00100000":
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
+                        break;
+                    case "0x00110000":
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
+                        break;
+                    case "0x00120000":
                         mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 4);
                         break;
                     case "0x02000000":
@@ -189,6 +201,9 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices,
                     case "0x020a0000":
                         //Only for inquiry
                         break;
+                    case "0x020d0000":
+                        mainMessage += common.recorrectHexString(params[key].toString(16), 2);
+                        break;
                     case "0x03000000":
                         //Only for inquiry
                         break;
@@ -197,13 +212,13 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices,
             break;
         case "03":
             //Inquire parameters
-            Object.keys(params).forEach(function (key, value) {
+            Object.keys(params).forEach(function(key, value) {
                 mainMessage += key.substring(2, key.length);
             });
             break;
         case "04":
             //Inquiry log
-            Object.keys(params).forEach(function (key, value) {
+            Object.keys(params).forEach(function(key, value) {
                 mainMessage += key.substring(2, key.length);
             });
             break;
@@ -212,7 +227,7 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices,
             break;
         case "06":
             //Set vehicle information
-            Object.keys(params).forEach(function (key, value) {
+            Object.keys(params).forEach(function(key, value) {
                 switch (key) {
                     case "vin":
                         mainMessage += common.chars_from_hex(params[key]);
@@ -257,7 +272,7 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function (subcribedDevices,
     return dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encryptionKey);
 }
 
-ZTEDataServiceV2.prototype.preProcessData = function (hexData, subcribedDevices) {
+ZTEDataServiceV2.prototype.preProcessData = function(hexData, subcribedDevices) {
     var common = new Common();
     var simpleCrypto = new SimpleCrypto();
 
@@ -315,7 +330,7 @@ ZTEDataServiceV2.prototype.preProcessData = function (hexData, subcribedDevices)
     };
 
     // Use connect method to connect to the Server
-    mongodb.collection('DeviceMessageLogsDebug').insertOne(deviceData, function (err, r) {
+    mongodb.collection('DeviceMessageLogsDebug').insertOne(deviceData, function(err, r) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
@@ -346,13 +361,13 @@ ZTEDataServiceV2.prototype.preProcessData = function (hexData, subcribedDevices)
     return deviceData;
 }
 
-ZTEDataServiceV2.prototype.processData = function (hexData, subcribedDevices, deviceData) {
+ZTEDataServiceV2.prototype.processData = function(hexData, subcribedDevices, deviceData) {
     var effectiveData = deviceData["EffectiveData"];
     var frameId = deviceData["MessageId"];
     var frameType = deviceData["MessageType"];
     var deviceId = deviceData["DeviceId"];
     var common = new Common();
-    
+
     switch (frameType) {
         case "11":
             deviceData["MajorDataTypeId"] = "99";
@@ -399,8 +414,8 @@ ZTEDataServiceV2.prototype.processData = function (hexData, subcribedDevices, de
             console.log("reportTime: " + data.reportTime);
 
             // Use connect method to connect to the Server
-            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
-                if(err){
+            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
+                if (err) {
                     console.log("Error when write to mongodb: " + err);
                     return false;
                 }
@@ -434,7 +449,7 @@ ZTEDataServiceV2.prototype.processData = function (hexData, subcribedDevices, de
             deviceData["Data"] = publishMessageHandle(this, deviceId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
-            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
+            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
                 if (err) {
                     console.log("Error when write to mongodb: " + err);
                     return false;
@@ -458,7 +473,7 @@ ZTEDataServiceV2.prototype.processData = function (hexData, subcribedDevices, de
             deviceData["Data"] = responseMessageHandle(deviceId, frameId, effectiveData, this.dataTypeMajor, this.dataTypeMinor);
 
             // Use connect method to connect to the Server
-            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function (err, r) {
+            mongodb.collection('DeviceMessageLogs').insertOne(deviceData, function(err, r) {
                 if (err) {
                     console.log("Error when write to mongodb: " + err);
                 }
@@ -526,10 +541,10 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var tripData = {};
                     tripData["deviceId"] = deviceId;
 
-                    insert(mongodb, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
                         tripData["ignitionOnTime"] = ignitionOnTime;
                         tripData["gpsWhenIgnitionOn"] = insertedId;
-                        insert(mongodb, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
+                        insert(mongodb, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
                             tripData["ignitionOffTime"] = ignitionOffTime;
                             tripData["gpsWhenIgnitionOff"] = insertedId;
                             tripData["drivingDistance"] = drivingDistance;
@@ -544,12 +559,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             tripData["totalFuelConsumption"] = totalFuelConsumption;
                             tripData["totalDrivingTime"] = totalDrivingTime;
                             tripData["status"] = "New";
-                            insert(mongodb, 'Trips', tripData, function (insertedId) {
+                            insert(mongodb, 'Trips', tripData, function(insertedId) {
                                 mongodb.collection('GPSData').updateMany({
                                     deviceId: deviceId,
                                     gpsType: "routing",
                                     tripId: null,
-                                    positionTime : {$gt:ignitionOnTime, $lt:ignitionOffTime}
+                                    positionTime: { $gt: ignitionOnTime, $lt: ignitionOffTime }
                                 }, {
                                     $set: {
                                         tripId: insertedId
@@ -561,7 +576,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                                 var cmd = 'php ' + config.zte.artisanURL + ' tripData ' + insertedId.toHexString();
                                 console.log("Trigger Trip Summary: " + cmd);
-                                exec(cmd, function (error, stdout, stderr) {
+                                exec(cmd, function(error, stdout, stderr) {
                                     if (error) console.log(error);
                                     if (stdout) console.log(stdout);
                                     if (stderr) console.log(stderr);
@@ -677,9 +692,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             end += 8;
                         }
                     }
-                    insert(mongodb, 'GPSData', gpsWhenIgnitionOn, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsWhenIgnitionOn, function(insertedId) {
                         historicalData["gpsPosition"] = insertedId;
-                        insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -694,7 +709,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             });
 
                             if (alerts.count > 0) {
-                                insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
+                                insertBundle(mongodb, "Alert", alerts, function(insertedIds) {
                                     //No push notification for DTC code
                                 });
                             }
@@ -709,7 +724,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {};
 
-                            insert(mongodb, "Alert", alertData, function (insertedId) {});
+                            insert(mongodb, "Alert", alertData, function(insertedId) {});
                         });
                     });
 
@@ -808,9 +823,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             end += 8;
                         }
                     }
-                    insert(mongodb, 'GPSData', gpsWhenIgnitionOff, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsWhenIgnitionOff, function(insertedId) {
                         historicalData["gpsPosition"] = insertedId;
-                        insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -824,7 +839,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             });
 
                             if (alerts.count > 0) {
-                                insertBundle(mongodb, "Alert", alerts, function (insertedIds) {
+                                insertBundle(mongodb, "Alert", alerts, function(insertedIds) {
                                     //No push notification for DTC code
                                 });
                             }
@@ -839,7 +854,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {};
 
-                            insert(mongodb, "Alert", alertData, function (insertedId) {});
+                            insert(mongodb, "Alert", alertData, function(insertedId) {});
                         });
                     });
 
@@ -857,7 +872,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -868,7 +883,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["status"] = "Pending";
                         alertData["readStatus"] = "Unread";
                         alertData["value"] = {}
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -886,7 +901,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -897,7 +912,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["status"] = "Pending";
                         alertData["readStatus"] = "Unread";
                         alertData["value"] = {}
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -926,7 +941,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["speedAfterAcc"] = speedAfterAcc;
                     data["accValue"] = accValue;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -941,7 +956,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "speedAfterAcc": speedAfterAcc,
                             "accValue": accValue
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -968,7 +983,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["speedAfterDec"] = speedAfterDec;
                     data["decValue"] = decValue;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -983,7 +998,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "speedAfterDec": speedAfterDec,
                             "decValue": decValue
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -1006,7 +1021,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["turn"] = turn;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -1019,7 +1034,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["value"] = {
                             "turn": turn
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -1045,7 +1060,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function (insertedId) {
+                    insertOne("Alert", alertData, function(insertedId) {
                         //No push notification for inccident
                     });
 
@@ -1068,7 +1083,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     alertData["gpsPosition"] = null;
                     alertData["value"] = {}
 
-                    insertOne("Alert", alertData, function (insertedId) {
+                    insertOne("Alert", alertData, function(insertedId) {
                         //No push notification for inccident
                     });
 
@@ -1089,8 +1104,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["startOverspeed"] = startOverspeed;
                     data["endOverspeed"] = endOverspeed;
                     data["gpsPosition"] = gpsPosition;
-                    
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var roadOverSpeedData = {
                             "deviceId": deviceId,
                             "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1049"),
@@ -1108,12 +1123,12 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "speedingEnd": endOverspeed
                             }
                         };
-    
-                        insert(mongodb, "Alert", roadOverSpeedData, function (insertedId) {
+
+                        insert(mongodb, "Alert", roadOverSpeedData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
-                    
+
                     console.log('occurTime : ' + occurTime);
                     console.log('*********************End Overspeed*********************');
                     break;
@@ -1139,7 +1154,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                 i++;
             }
             if (gps.length > 0) {
-                insertMany('GPSData', gps, function (insertedIds) {
+                insertMany('GPSData', gps, function(insertedIds) {
                     redisClient.publish("zteGPSData", JSON.stringify({
                         "deviceId": deviceId
                     }));
@@ -1172,7 +1187,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "vinValue": vinValue
                     };
 
-                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                         var deviceData = {};
                         deviceData["deviceId"] = deviceId;
                         deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1237,7 +1252,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     mongodb.collection('DeviceSetting').findOne({
                         deviceId: deviceId,
                         settingCode: "0x04000000"
-                    }, function (err, tempSetting) {
+                    }, function(err, tempSetting) {
                         console.log('******************Checking Overheat Alert******************');
                         console.log('engineCoolantTemperature: ' + engineCoolantTemperature);
                         if (engineCoolantTemperature != "N/A" && tempSetting != null && parseInt(tempSetting["value"]) < engineCoolantTemperature) {
@@ -1248,7 +1263,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 "deviceId": deviceId,
                                 "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
                                 "alertTypeId": new MongoObjectId("599cfb516b8f82252a0c4d25"),
-                                "alertType": "overheat", 
+                                "alertType": "overheat",
                                 "reportTime": reportTime,
                                 "gpsPosition": null,
                                 "status": "Pending",
@@ -1258,7 +1273,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                     "heatLimit": parseInt(tempSetting["value"])
                                 }
                             }
-                            insert(mongodb, "Alert", alertData, function (insertedId) {
+                            insert(mongodb, "Alert", alertData, function(insertedId) {
                                 notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                             });
                         }
@@ -1266,18 +1281,18 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         mongodb.collection('DeviceSetting').findOne({
                             deviceId: deviceId,
                             settingCode: "0x00060000"
-                        }, function (err, lowVoltage) {
+                        }, function(err, lowVoltage) {
                             console.log('******************Checking lowVoltage Alert******************');
                             console.log('batteryVolt: ' + batteryVolt);
                             if (batteryVolt != "N/A" && lowVoltage != null && parseInt(lowVoltage["value"]) > batteryVolt) {
                                 console.log('lowVoltage: ' + lowVoltage["value"]);
                                 data["batteryVoltStatus"] = "Warning";
-                            } else if(cachedDeviceAlert[deviceId+"-low_voltage"]){
+                            } else if (cachedDeviceAlert[deviceId + "-low_voltage"]) {
                                 var normalVoltAlert = {
                                     "deviceId": deviceId,
                                     "alertCategoryId": new MongoObjectId("5991411f0e8828a2ff3d1048"),
                                     "alertTypeId": new MongoObjectId("5a94f6ec853f6be6589852c2"),
-                                    "alertType": "normal_voltage", 
+                                    "alertType": "normal_voltage",
                                     "reportTime": reportTime,
                                     "gpsPosition": null,
                                     "status": "Pending",
@@ -1286,13 +1301,13 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                         "batteryVolt": batteryVolt
                                     }
                                 }
-                                insert(mongodb, "Alert", normalVoltAlert, function (insertedId) {
+                                insert(mongodb, "Alert", normalVoltAlert, function(insertedId) {
                                     notifyToDevice(deviceId, normalVoltAlert["alertType"], insertedId.toHexString(), true);
                                 });
                             }
 
                             console.log('******************Saving Vehicle Status******************');
-                            insert(mongodb, "VehicleHistoricalStatus", data, function (insertedId) {
+                            insert(mongodb, "VehicleHistoricalStatus", data, function(insertedId) {
                                 var vehicleData = {};
                                 vehicleData["deviceId"] = deviceId;
                                 vehicleData["reportTime"] = reportTime;
@@ -1401,7 +1416,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
                     data["sleepTime"] = sleepTime;
                     data["failureCode"] = failureCode;
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var historicalData = {};
                         historicalData["deviceId"] = deviceId;
                         historicalData["deviceDataTypeId"] = new MongoObjectId("59966b93d63375278131e63d");
@@ -1410,8 +1425,8 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         historicalData["value"] = {
                             "failureCode": failureCode
                         };
-    
-                        insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+
+                        insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1425,7 +1440,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                                 upsert: true
                             });
                         });
-    
+
                         // Set device as offline since it's sleeping
                         mongodb.collection('DeviceStage').findOneAndUpdate({
                             deviceId: deviceId
@@ -1437,7 +1452,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             upsert: true
                         });
                     });
-                    
+
 
                     console.log('sleepTime : ' + sleepTime);
                     console.log('failureCode : ' + failureCode);
@@ -1455,7 +1470,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["wakeUpVoltage"] = wakeUpVoltage;
                     data["wakeUpType"] = wakeUpType;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var historicalData = {};
                         historicalData["deviceId"] = deviceId;
                         historicalData["deviceDataTypeId"] = new MongoObjectId("59966ba0d63375278131e63e");
@@ -1466,7 +1481,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             "wakeUpType": wakeUpType
                         };
 
-                        insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                        insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                             var deviceData = {};
                             deviceData["deviceId"] = deviceId;
                             deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1496,7 +1511,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["timeNoLocation"] = timeNoLocation;
                     data["gpsPosition"] = gpsPosition;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -1507,7 +1522,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["status"] = "Pending";
                         alertData["readStatus"] = "Unread";
                         alertData["value"] = {}
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -1536,7 +1551,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "typeOfPowerOn": typeOfPowerOn
                     };
 
-                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                         var deviceData = {};
                         deviceData["deviceId"] = deviceId;
                         deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1572,7 +1587,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "upgradeState": upgradeState
                     };
 
-                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                         var deviceData = {};
                         deviceData["deviceId"] = deviceId;
                         deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1716,7 +1731,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "smsMessageEnd": smsMessageEnd
                     };
 
-                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                         var deviceData = {};
                         deviceData["deviceId"] = deviceId;
                         deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1799,7 +1814,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         "btMac": btMac
                     };
 
-                    insert(mongodb, "DeviceHistoricalData", historicalData, function (insertedId) {
+                    insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
                         var deviceData = {};
                         deviceData["deviceId"] = deviceId;
                         deviceData["deviceDataTypeId"] = historicalData["deviceDataTypeId"];
@@ -1842,10 +1857,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         var rpm = parseInt(package.substring(12, 16), 16);
                         var speed = parseInt(package.substring(16, 20), 16);
 
-                        var gpsData = formatGPS(effectiveData.substring(20, 52), deviceId, false, true);
+                        var gpsData = formatGPS(package.substring(20, 52), deviceId, false, true);
 
-                        //TODO
-                        insert(mongodb, 'GPSData', gpsData, function (insertedId) {
+                        insert(mongodb, 'GPSData', gpsData, function(insertedId) {
                             var alertData = {};
                             alertData["deviceId"] = deviceId;
                             alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
@@ -1856,13 +1870,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             alertData["status"] = "Pending";
                             alertData["readStatus"] = "Unread";
                             alertData["value"] = {
+                                timeInterval: timeInterval,
                                 xAxisAcc: xAxisAcc,
                                 yAxisAcc: yAxisAcc,
                                 zAxisAcc: zAxisAcc,
                                 rpm: rpm,
                                 speed: speed
                             }
-                            insert(mongodb, "Alert", alertData, function (insertedId) {
+                            insert(mongodb, "Alert", alertData, function(insertedId) {
                                 //No push notification for inccident
                             });
                         });
@@ -1875,7 +1890,74 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     console.log('*********************End Sensor data (Normal)*********************');
                     break;
                 case "0e":
-                    //TODO
+                    //Sensor data (EVENT)
+                    console.log('*********************Start Sensor data (EVENT)*********************');
+                    var reportingTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(4, 12)));
+                    data["reportingTime"] = reportingTime;
+                    var eventTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(12, 20)));
+                    var eventTimeMS = parseInt(effectiveData.substring(20, 22), 16);
+                    var collectionTime = common.dateToUTCText(common.date_from_hex(effectiveData.substring(22, 30)));
+                    var collectionTimeMS = parseInt(effectiveData.substring(30, 32), 16);
+
+                    var timeInterval = parseInt(effectiveData.substring(32, 40), 16);
+                    data["timeInterval"] = timeInterval;
+                    var eventType = effectiveData.substring(40, 42)
+
+                    var numberOfPackage = parseInt(effectiveData.substring(42, 44), 16);
+                    console.log('numberOfPackage : ' + numberOfPackage);
+                    data["numberOfPackage"] = numberOfPackage;
+                    var i = 1;
+                    var start = 44;
+                    var end = 64;
+                    var eventPakages = Array();
+                    while (i <= numberOfPackage) {
+                        var package = effectiveData.substring(start, end);
+                        var packageData = {};
+
+                        packageData.xAxisAcc = parseInt(package.substring(0, 4), 16) / 10;
+                        packageData.yAxisAcc = parseInt(package.substring(4, 8), 16) / 10;
+                        packageData.zAxisAcc = parseInt(package.substring(8, 12), 16) / 10;
+                        packageData.rpm = parseInt(package.substring(12, 16), 16);
+                        packageData.speed = parseInt(package.substring(16, 20), 16);
+
+                        eventPakages.push(packageData);
+
+                        start = end;
+                        end += 20;
+                        i++;
+                    }
+
+                    start = end;
+                    end += 48;
+                    var gpsData = formatGPS(effectiveData.substring(start, end), deviceId, false);
+
+                    insert(mongodb, 'GPSData', gpsData, function(insertedId) {
+                        var alertData = {};
+                        alertData["deviceId"] = deviceId;
+                        alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
+                        alertData["alertTypeId"] = new MongoObjectId("");
+                        alertData["alertType"] = "sensor_event";
+                        alertData["reportTime"] = reportingTime;
+                        alertData["gpsPosition"] = insertedId;
+                        alertData["status"] = "Pending";
+                        alertData["readStatus"] = "Unread";
+                        alertData["value"] = {
+                            eventTime: eventTime,
+                            eventTimeMS: eventTimeMS,
+                            collectionTime: collectionTime,
+                            collectionTimeMS: collectionTimeMS,
+                            timeInterval: timeInterval,
+                            eventType: eventType,
+                            pakages: eventPakages
+                        }
+
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
+                            //No push notification for inccident
+                        });
+
+                    });
+
+                    console.log('*********************End Sensor data (EVENT)*********************');
                     break;
             }
             break;
@@ -1955,9 +2037,9 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                             end += 8;
                         }
                     }
-                    
+
                     if (alerts.count > 0) {
-                        insertMany("Alert", alerts, function (insertedIds) {
+                        insertMany("Alert", alerts, function(insertedIds) {
                             //No push notification for DTC code
                         });
                     }
@@ -1975,7 +2057,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["batteryVolt"] = batteryVolt;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -1988,7 +2070,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["value"] = {
                             "batteryVolt": batteryVolt
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                         });
                     });
@@ -2009,7 +2091,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["peekValue"] = peekValue;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -2022,7 +2104,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["value"] = {
                             "peekValue": peekValue
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             //No push notification for inccident
                         });
                     });
@@ -2047,7 +2129,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["gpsPosition"] = gpsPosition;
                     data["collisionValue"] = collisionValue;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -2060,7 +2142,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["value"] = {
                             "collisionValue": collisionValue
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                         });
                     });
@@ -2083,7 +2165,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     data["occurTime"] = occurTime;
                     data["gpsPosition"] = gpsPosition;
 
-                    insert(mongodb, 'GPSData', gpsPosition, function (insertedId) {
+                    insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1049");
@@ -2096,7 +2178,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         alertData["value"] = {
                             "deviceStage": deviceStage
                         }
-                        insert(mongodb, "Alert", alertData, function (insertedId) {
+                        insert(mongodb, "Alert", alertData, function(insertedId) {
                             notifyToDevice(deviceId, alertData["alertType"], insertedId.toHexString(), true);
                         });
                     });
@@ -2311,7 +2393,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             }
 
             if (alerts.count > 0) {
-                insertMany("Alert", alerts, function (insertedIds) {
+                insertMany("Alert", alerts, function(insertedIds) {
                     //No push notification for DTC code
                 });
             }
@@ -2334,7 +2416,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
             }
 
             var cmd = 'php ' + config.zte.artisanURL + ' configuration:device-update-status ' + deviceId + ' ' + frameId + ' ' + result;
-            exec(cmd, function (error, stdout, stderr) {
+            exec(cmd, function(error, stdout, stderr) {
                 if (error) console.log(error);
                 if (stdout) console.log(stdout);
                 if (stderr) console.log(stderr);
@@ -2493,24 +2575,24 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         });
                         break;
                     case "0x000a0000":
-                        end += 2;
-                        if (effectiveData.substring(start, end) == "00") {
-                            data[paramNo] = "Not allowed to report the speed";
-                        } else if (effectiveData.substring(start, end) == "01") {
-                            data[paramNo] = "Allowed to report the speed";
-                        }
-                        mongodb.collection('DeviceSetting').findOneAndUpdate({
-                            deviceId: deviceId,
-                            settingCode: paramNo
-                        }, {
-                            deviceId: deviceId,
-                            name: "If allowed to report the speed",
-                            settingCode: paramNo,
-                            value: data[paramNo],
-                            status: 'Latest'
-                        }, {
-                            upsert: true
-                        });
+                        // end += 2;
+                        // if (effectiveData.substring(start, end) == "00") {
+                        //     data[paramNo] = "Not allowed to report the speed";
+                        // } else if (effectiveData.substring(start, end) == "01") {
+                        //     data[paramNo] = "Allowed to report the speed";
+                        // }
+                        // mongodb.collection('DeviceSetting').findOneAndUpdate({
+                        //     deviceId: deviceId,
+                        //     settingCode: paramNo
+                        // }, {
+                        //     deviceId: deviceId,
+                        //     name: "If allowed to report the speed",
+                        //     settingCode: paramNo,
+                        //     value: data[paramNo],
+                        //     status: 'Latest'
+                        // }, {
+                        //     upsert: true
+                        // });
                         break;
                     case "0x000b0000":
                         end += 4;
@@ -2544,11 +2626,112 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             upsert: true
                         });
                         break;
+                    case "0x000d0000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wakeup DISTURBANCE info report time",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x000e0000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Wakeup timer",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x000f0000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Car Emissions",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00100000":
+                        end += 4;
+                        if (effectiveData.substring(start, end) == "0000") {
+                            data[paramNo] = "Enabled";
+                        } else {
+                            data[paramNo] = "Disabled";
+                        }
+
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Enable or disable Functions",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00110000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16) / 10;
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Sensor Event data sampling frequency",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
+                    case "0x00120000":
+                        end += 4;
+                        data[paramNo] = parseInt(effectiveData.substring(start, end), 16);
+                        mongodb.collection('DeviceSetting').findOneAndUpdate({
+                            deviceId: deviceId,
+                            settingCode: paramNo
+                        }, {
+                            deviceId: deviceId,
+                            name: "Overspeed",
+                            settingCode: paramNo,
+                            value: data[paramNo],
+                            status: 'Latest'
+                        }, {
+                            upsert: true
+                        });
+                        break;
                     case "0x02000000":
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2567,7 +2750,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2586,7 +2769,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2605,7 +2788,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2624,7 +2807,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2643,7 +2826,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2662,7 +2845,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                         end += 2;
                         var count = parseInt(effectiveData.substring(start, end), 16);
                         start = end;
-                        end += count*2;
+                        end += count * 2;
                         data[paramNo] = common.chars_from_hex(effectiveData.substring(start, end));
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
@@ -2750,21 +2933,41 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
                             upsert: true
                         });
                         break;
-                    case "0x03000000":
+                    case "0x020d0000":
                         end += 2;
-                        data[paramNo] = effectiveData.substring(start, end);
+                        if (effectiveData.substring(start, end) == "00") {
+                            data[paramNo] = "Reboot the device immediately";
+                        } else {
+                            data[paramNo] = "Reboot the device after ignition off";
+                        }
                         mongodb.collection('DeviceSetting').findOneAndUpdate({
                             deviceId: deviceId,
                             settingCode: paramNo
                         }, {
                             deviceId: deviceId,
-                            name: "The current status of the accelerator self-learning",
+                            name: "Wifi on / Off",
                             settingCode: paramNo,
                             value: data[paramNo],
                             status: 'Latest'
                         }, {
                             upsert: true
                         });
+                        break;
+                    case "0x03000000":
+                        // end += 2;
+                        // data[paramNo] = effectiveData.substring(start, end);
+                        // mongodb.collection('DeviceSetting').findOneAndUpdate({
+                        //     deviceId: deviceId,
+                        //     settingCode: paramNo
+                        // }, {
+                        //     deviceId: deviceId,
+                        //     name: "The current status of the accelerator self-learning",
+                        //     settingCode: paramNo,
+                        //     value: data[paramNo],
+                        //     status: 'Latest'
+                        // }, {
+                        //     upsert: true
+                        // });
                         break;
                 }
                 if (end >= effectiveData.length) {
@@ -2818,7 +3021,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
     return data;
 }
 
-ZTEDataServiceV2.prototype.generateReply = function (hexData) {
+ZTEDataServiceV2.prototype.generateReply = function(hexData) {
     var common = new Common();
     var deviceId = hexData.substring(24, 54);
     var frameType = this.decryptedHex.substring(16, 18);
@@ -2911,7 +3114,7 @@ ZTEDataServiceV2.prototype.generateReply = function (hexData) {
     return dataPacking(deviceId, returnFrameType, frameId, dataLength, mainMessage, this.encryptionKey);
 }
 
-function getNotifyDeviceForNewFWMessage(){
+function getNotifyDeviceForNewFWMessage() {
     var common = new Common();
 
     //Notify new fw available to upgrade
@@ -2972,7 +3175,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
 
     var key = CryptoJS.enc.Hex.parse(encryptionKey);
 
-    var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.ZeroPadding});
+    var encrypted = CryptoJS.TripleDES.encrypt(CryptoJS.enc.Hex.parse(tobeEncrypted), key, { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.ZeroPadding });
     var ciphertext = CryptoJS.enc.Hex.stringify(encrypted.ciphertext);
 
     console.log('frameID : ' + frameId);
@@ -3015,12 +3218,12 @@ function formatGPS(gpsValue, deviceId, isRouting, simpleGPS) {
 
     var byte13t15 = common.hex2bits(gpsValue.substring(26, 32));
 
-    if(simpleGPS){
+    if (simpleGPS) {
         gpsData["hacc"] = parseInt(byte13t15.substring(0, 15), 2);
-    }else{
+    } else {
         gpsData["gpsSpeed"] = parseInt(byte13t15.substring(0, 12), 2) / 10;
     }
-    
+
     gpsData["heading"] = parseInt(byte13t15.substring(15, 24), 2);
     if (gpsValue.length > 32) {
         var byte16t20 = common.hex2bits(gpsValue.substring(32, 42));
@@ -3058,7 +3261,7 @@ function formatDrivingDistance(drivingDistance) {
 }
 
 function insertMany(collection, data, callback) {
-    mongodb.collection(collection).insertMany(data, function (err, result) {
+    mongodb.collection(collection).insertMany(data, function(err, result) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
@@ -3067,7 +3270,7 @@ function insertMany(collection, data, callback) {
 }
 
 function insertOne(collection, data, callback) {
-    mongodb.collection(collection).insertOne(data, function (err, result) {
+    mongodb.collection(collection).insertOne(data, function(err, result) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
@@ -3076,7 +3279,7 @@ function insertOne(collection, data, callback) {
 }
 
 function insert(db, collection, data, callback) {
-    db.collection(collection).insertOne(data, function (err, result) {
+    db.collection(collection).insertOne(data, function(err, result) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
@@ -3085,7 +3288,7 @@ function insert(db, collection, data, callback) {
 }
 
 function insertBundle(db, collection, data, callback) {
-    db.collection(collection).insertMany(data, function (err, result) {
+    db.collection(collection).insertMany(data, function(err, result) {
         if (err) {
             console.log("Error when write to mongodb: " + err);
         }
@@ -3093,31 +3296,31 @@ function insertBundle(db, collection, data, callback) {
     });
 }
 
-function notifyToDevice(deviceId, alertType, alertId, cacheEnable){
-    if(cacheEnable){
+function notifyToDevice(deviceId, alertType, alertId, cacheEnable) {
+    if (cacheEnable) {
         var cacheKey = deviceId + "-" + alertType;
         var time = (new Date()).getTime();
-    
+
         var oldTime = 0;
-        if(cachedDeviceAlert[cacheKey]){
+        if (cachedDeviceAlert[cacheKey]) {
             oldTime = cachedDeviceAlert[cacheKey];
         }
-    
-        if(time - oldTime >= 86400000){
+
+        if (time - oldTime >= 86400000) {
             //raise notification when old alert > 24h
             notify(alertId);
-    
+
             cachedDeviceAlert[cacheKey] = time
         }
-    }else{
+    } else {
         notify(alertId);
     }
 }
 
-function notify(alertId){
+function notify(alertId) {
     var cmd = 'php ' + config.zte.artisanURL + ' notify ' + alertId;
     console.log("Trigger Alert notification: " + cmd);
-    exec(cmd, function (error, stdout, stderr) {
+    exec(cmd, function(error, stdout, stderr) {
         if (error) console.log(error);
         if (stdout) console.log(stdout);
         if (stderr) console.log(stderr);
