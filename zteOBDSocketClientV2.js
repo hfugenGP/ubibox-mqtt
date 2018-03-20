@@ -93,8 +93,6 @@ function mongoConnected(err, db){
                 if (messageCallback) {
                     if (connectingDevices.hasOwnProperty(deviceId) &&
                         connectingDevices[deviceId] != undefined) {
-                        // deviceListLock.readLock(function() {
-                        //     console.log('Device List readLock');
 
                         var buffer = Buffer.from(messageCallback, "hex");
                         var sock = connectingDevices[deviceId];
@@ -106,13 +104,7 @@ function mongoConnected(err, db){
                             }
                             console.log('Message already sent to Device');
                         });
-
-                        //     console.log('Device List unlocked');
-                        //     deviceListLock.unlock();
-                        // });
                     } else {
-                        // pendingMessageLock.writeLock(function() {
-                        //     console.log('Pending Message writeLock');
                         if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
                             pendingDeviceMessages[deviceId] == undefined) {
                             pendingDeviceMessages[deviceId] = new Array();
@@ -121,9 +113,6 @@ function mongoConnected(err, db){
                         pendingDeviceMessages[deviceId].push(messageCallback);
                         console.log('Device is offline, message pushed to queue');
                         console.log('Queue: ' + pendingDeviceMessages[deviceId]);
-                        //     console.log('Pending Message unlocked');
-                        //     pendingMessageLock.unlock();
-                        // });
                     }
                 }
                 break;
@@ -193,13 +182,8 @@ function handleDeviceConnetion(sock) {
 
         var deviceId = hexData.substring(24, 54);
 
-        // deviceListLock.readLock(function() {
-        //     console.log('Device List readLock');
         deviceAddress[sock.remoteAddress + ':' + sock.remotePort] = deviceId;
         connectingDevices[deviceId] = sock;
-        // console.log('Device List unlocked');
-        //     deviceListLock.unlock();
-        // });
 
         var deviceData = zteDataService.preProcessData(hexData, subcribedDevices);
 
@@ -260,8 +244,6 @@ function handleDeviceConnetion(sock) {
         console.log('');
         console.log('');
 
-        // pendingMessageLock.readLock(function() {
-        //     console.log('Pending Message readLock');
         if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
             pendingDeviceMessages[deviceId] != undefined) {
             var pendingMessages = pendingDeviceMessages[deviceId];
@@ -285,9 +267,6 @@ function handleDeviceConnetion(sock) {
         if(cachedFrameId.length >= 1000){
             cachedFrameId.splice(0, 10);
         }
-        //     console.log('Pending Message unlocked');
-        //     pendingMessageLock.unlock();
-        // });
     });
 
     // Add a 'close' event handler to this instance of socket
@@ -298,12 +277,7 @@ function handleDeviceConnetion(sock) {
         if(deviceId)
         {
             var receivedDateText = common.dateToUTCText(new Date());
-            // deviceListLock.writeLock(function() {
-            //     console.log('Device List writeLock');
             connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-            //     console.log('Device List writeLock');
-            //     deviceListLock.unlock();F
-            // });
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
         }
     });
@@ -315,12 +289,7 @@ function handleDeviceConnetion(sock) {
         if(deviceId)
         {
             var receivedDateText = common.dateToUTCText(new Date());
-            // deviceListLock.writeLock(function() {
-            //     console.log('Device List writeLock');
             connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-            //     console.log('Device List writeLock');
-            //     deviceListLock.unlock();F
-            // });
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
         }
     });

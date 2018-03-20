@@ -8,6 +8,7 @@ const SimpleCrypto = require('./lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 const ZTEDataService = require('./services/zteDataService');
+const ZTEDataServiceV2 = require('./services/zteDataServiceV2');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const redis = require("redis");
@@ -25,6 +26,7 @@ var url = f(config.zte.mongoUrl, user, password, config.zte.mongoAuthMechanism);
 var connectingDevices = {};
 var deviceAddress = {};
 var subcribedDevices = new Array();
+var subcribedDevicesV2 = new Array();
 var pendingDeviceMessages = {};
 var cachedFrameId = new Array();
 var cachedDeviceAlert = new Array();
@@ -65,6 +67,7 @@ function mongoConnected(err, db){
     });
 
     var zteDataSenderService = new ZTEDataService(mongodb, redisClient, cachedDeviceAlert);
+    var zteDataSenderServiceV2 = new ZTEDataServiceV2(mongodb, redisClient, cachedDeviceAlert);
 
     var fabrick_client = fabrick_Broker.connect();
 
@@ -93,8 +96,6 @@ function mongoConnected(err, db){
                 if (messageCallback) {
                     if (connectingDevices.hasOwnProperty(deviceId) &&
                         connectingDevices[deviceId] != undefined) {
-                        // deviceListLock.readLock(function() {
-                        //     console.log('Device List readLock');
 
                         var buffer = Buffer.from(messageCallback, "hex");
                         var sock = connectingDevices[deviceId];
@@ -106,13 +107,7 @@ function mongoConnected(err, db){
                             }
                             console.log('Message already sent to Device');
                         });
-
-                        //     console.log('Device List unlocked');
-                        //     deviceListLock.unlock();
-                        // });
                     } else {
-                        // pendingMessageLock.writeLock(function() {
-                        //     console.log('Pending Message writeLock');
                         if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
                             pendingDeviceMessages[deviceId] == undefined) {
                             pendingDeviceMessages[deviceId] = new Array();
@@ -121,9 +116,6 @@ function mongoConnected(err, db){
                         pendingDeviceMessages[deviceId].push(messageCallback);
                         console.log('Device is offline, message pushed to queue');
                         console.log('Queue: ' + pendingDeviceMessages[deviceId]);
-                        //     console.log('Pending Message unlocked');
-                        //     pendingMessageLock.unlock();
-                        // });
                     }
                 }
                 break;
@@ -139,6 +131,51 @@ function mongoConnected(err, db){
                 });
                 
                 console.log(subcribedDevices);
+                break;
+
+            case 'config/ztewelink/portal/Device/V2/Message':
+                console.log(data);
+                var deviceId = data["deviceId"];
+                var messageCallback = zteDataSenderServiceV2.generateMessageToDevice(subcribedDevicesV2, deviceId, data["frameId"], data["requestType"], data["parameters"]);
+
+                if (messageCallback) {
+                    if (connectingDevices.hasOwnProperty(deviceId) &&
+                        connectingDevices[deviceId] != undefined) {
+
+                        var buffer = Buffer.from(messageCallback, "hex");
+                        var sock = connectingDevices[deviceId];
+                        // Write the data back to the socket, the client will receive it as data from the server
+                        sock.write(buffer, function(err) {
+                            if (err) {
+                                console.log('Sock write error : ' + err);
+                                console.log('*****************************************************************');
+                            }
+                            console.log('Message already sent to Device');
+                        });
+                    } else {
+                        if (!pendingDeviceMessages.hasOwnProperty(deviceId) ||
+                            pendingDeviceMessages[deviceId] == undefined) {
+                            pendingDeviceMessages[deviceId] = new Array();
+                        }
+
+                        pendingDeviceMessages[deviceId].push(messageCallback);
+                        console.log('Device is offline, message pushed to queue');
+                        console.log('Queue: ' + pendingDeviceMessages[deviceId]);
+                    }
+                }
+                break;
+            case 'config/ztewelink/portal/Devices/V2':
+                // console.log(json_object);
+                while (subcribedDevicesV2.length) {
+                    subcribedDevicesV2.pop();
+                }
+                data.forEach(function(element) {
+                    var deviceId = element['device_id'].toLowerCase();
+                    subcribedDevicesV2['ID-' + deviceId] = element['encryption_key'];
+                    mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
+                });
+                
+                console.log(subcribedDevicesV2);
                 break;
             default:
                 console.log('No handler for topic %s', topic);
@@ -193,13 +230,8 @@ function handleDeviceConnetion(sock) {
 
         var deviceId = hexData.substring(24, 54);
 
-        // deviceListLock.readLock(function() {
-        //     console.log('Device List readLock');
         deviceAddress[sock.remoteAddress + ':' + sock.remotePort] = deviceId;
         connectingDevices[deviceId] = sock;
-        // console.log('Device List unlocked');
-        //     deviceListLock.unlock();
-        // });
 
         var deviceData = zteDataService.preProcessData(hexData, subcribedDevices);
 
@@ -219,25 +251,35 @@ function handleDeviceConnetion(sock) {
         }
 
         cachedFrameId[frameIdCachedKey] = true;
-
-        if(deviceData["MessageType"] == '0e'){
+        var receivedDateText = common.dateToUTCText(new Date());
+        if(deviceData.MessageType == '0e'){
             //Set to offline if this is disconnected frame
-            var receivedDateText = common.dateToUTCText(new Date());
-
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline", lastUpdated: receivedDateText } }, { upsert: true });
         }else{
             //Set to online if this is any other frame
-            var receivedDateText = common.dateToUTCText(new Date());
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
         }
-        if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
-            console.log('Fail to process data, return now without callback...');
-            return;
+
+        var isV1 = false;
+        if (subcribedDevices["ID-" + deviceId]) {
+            isV1 = true;
+            if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
+                console.log('Fail to process data, return now without callback...');
+                return;
+            }
+        }else if (subcribedDevicesV2["ID-" + deviceId]){
+            if (!zteDataServiceV2.processData(hexData, subcribedDevicesV2, deviceData)) {
+                console.log('Fail to process data, return now without callback...');
+                return;
+            }
+        }else{
+            console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+            return false;
         }
 
         console.log('************************End data received************************');
         console.log('************************Start data reply*************************');
-        var messageCallback = zteDataService.generateReply(hexData);
+        var messageCallback = isV1 ? zteDataService.generateReply(hexData) : zteDataServiceV2.generateReply(hexData);
         if (!messageCallback) {
             console.log('************************End data reply************************');
             console.log('');
@@ -260,8 +302,6 @@ function handleDeviceConnetion(sock) {
         console.log('');
         console.log('');
 
-        // pendingMessageLock.readLock(function() {
-        //     console.log('Pending Message readLock');
         if (pendingDeviceMessages.hasOwnProperty(deviceId) &&
             pendingDeviceMessages[deviceId] != undefined) {
             var pendingMessages = pendingDeviceMessages[deviceId];
@@ -285,9 +325,6 @@ function handleDeviceConnetion(sock) {
         if(cachedFrameId.length >= 1000){
             cachedFrameId.splice(0, 10);
         }
-        //     console.log('Pending Message unlocked');
-        //     pendingMessageLock.unlock();
-        // });
     });
 
     // Add a 'close' event handler to this instance of socket
@@ -298,12 +335,7 @@ function handleDeviceConnetion(sock) {
         if(deviceId)
         {
             var receivedDateText = common.dateToUTCText(new Date());
-            // deviceListLock.writeLock(function() {
-            //     console.log('Device List writeLock');
             connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-            //     console.log('Device List writeLock');
-            //     deviceListLock.unlock();F
-            // });
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
         }
     });
@@ -315,12 +347,7 @@ function handleDeviceConnetion(sock) {
         if(deviceId)
         {
             var receivedDateText = common.dateToUTCText(new Date());
-            // deviceListLock.writeLock(function() {
-            //     console.log('Device List writeLock');
             connectingDevices[deviceAddress[sock.remoteAddress + ':' + sock.remotePort]] = undefined;
-            //     console.log('Device List writeLock');
-            //     deviceListLock.unlock();F
-            // });
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Offline" } }, { upsert: true });
         }
     });
