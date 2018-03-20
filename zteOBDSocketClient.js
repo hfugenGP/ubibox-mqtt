@@ -1,5 +1,3 @@
-'use strict'
-
 const Broker = require('./lib/broker');
 const net = require('net');
 const Common = require('./lib/common');
