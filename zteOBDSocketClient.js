@@ -6,7 +6,7 @@ const SimpleCrypto = require('./lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
 const ZTEDataService = require('./services/zteDataService');
-const ZTEDataServiceV_2 = require('./services/zteDataServiceV2');
+// const ZTEDataServiceV_2 = require('./services/zteDataServiceV2');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const redis = require("redis");
@@ -65,7 +65,7 @@ function mongoConnected(err, db){
     });
 
     var zteDataSenderService = new ZTEDataService(mongodb, redisClient, cachedDeviceAlert);
-    var zteDataSenderServiceV2 = new ZTEDataServiceV_2(mongodb, redisClient, cachedDeviceAlert);
+    // var zteDataSenderServiceV2 = new ZTEDataServiceV_2(mongodb, redisClient, cachedDeviceAlert);
 
     var fabrick_client = fabrick_Broker.connect();
 
@@ -216,7 +216,7 @@ function handleDeviceConnetion(sock) {
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
         var zteDataService = new ZTEDataService(mongodb, redisClient, cachedDeviceAlert);
-        var zteDataServiceV2 = new ZTEDataServiceV_2(mongodb, redisClient, cachedDeviceAlert);
+        // var zteDataServiceV2 = new ZTEDataServiceV_2(mongodb, redisClient, cachedDeviceAlert);
         var buff = new Buffer(data, 'utf8');
         var hexData = buff.toString('hex');
         var common = new Common();
@@ -234,6 +234,8 @@ function handleDeviceConnetion(sock) {
             isV1 = true;
         }else if (subcribedDevicesV2["ID-" + deviceIdV2]){
             deviceId = deviceIdV2;
+            console.log('Error: ^^^^^^^ Currently now support V2 devices : ' + deviceId + ' ^^^^^^^');
+            return false;
         }else{
             console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
             return false;
