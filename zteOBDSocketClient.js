@@ -218,7 +218,7 @@ function handleDeviceConnetion(sock) {
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
         var zteDataService = new ZTEDataService(mongodb, redisClient, cachedDeviceAlert);
-
+        var zteDataServiceV2 = new ZTEDataServiceV2(mongodb, redisClient, cachedDeviceAlert);
         var buff = new Buffer(data, 'utf8');
         var hexData = buff.toString('hex');
         var common = new Common();
