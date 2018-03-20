@@ -229,11 +229,22 @@ function handleDeviceConnetion(sock) {
         console.log('DATA : ' + hexData);
 
         var deviceId = hexData.substring(24, 54);
+        var deviceIdV2 = hexData.substring(8, 38);
+
+        var isV1 = false;
+        if (subcribedDevices["ID-" + deviceId]) {
+            isV1 = true;
+        }else if (subcribedDevicesV2["ID-" + deviceIdV2]){
+            deviceId = deviceIdV2;
+        }else{
+            console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
+            return false;
+        }
 
         deviceAddress[sock.remoteAddress + ':' + sock.remotePort] = deviceId;
         connectingDevices[deviceId] = sock;
 
-        var deviceData = zteDataService.preProcessData(hexData, subcribedDevices);
+        var deviceData = isV1 ? zteDataService.preProcessData(hexData, subcribedDevices) : zteDataServiceV2.preProcessData(hexData, subcribedDevicesV2);
 
         if(!deviceData){
             console.log('Fail to process data, return now without callback...');
@@ -260,21 +271,16 @@ function handleDeviceConnetion(sock) {
             mongodb.collection('DeviceStage').findOneAndUpdate({ deviceId: deviceId }, { $set: { status: "Online", lastUpdated: receivedDateText } }, { upsert: true });
         }
 
-        var isV1 = false;
-        if (subcribedDevices["ID-" + deviceId]) {
-            isV1 = true;
+        if(isV1){
             if (!zteDataService.processData(hexData, subcribedDevices, deviceData)) {
                 console.log('Fail to process data, return now without callback...');
                 return;
             }
-        }else if (subcribedDevicesV2["ID-" + deviceId]){
+        }else{
             if (!zteDataServiceV2.processData(hexData, subcribedDevicesV2, deviceData)) {
                 console.log('Fail to process data, return now without callback...');
                 return;
             }
-        }else{
-            console.log('Error: ^^^^^^^ No support device with deviceId : ' + deviceId + ' ^^^^^^^');
-            return false;
         }
 
         console.log('************************End data received************************');

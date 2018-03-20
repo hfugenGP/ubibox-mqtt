@@ -1,3 +1,5 @@
+"use strict";
+
 var _ = require('lodash');
 const Common = require('../lib/common');
 const config = require('../config/conf');
@@ -3021,7 +3023,7 @@ function responseMessageHandle(deviceId, frameId, effectiveData, dataTypeMajor, 
 
 ZTEDataServiceV2.prototype.generateReply = function(hexData) {
     var common = new Common();
-    var deviceId = hexData.substring(24, 54);
+    var deviceId = hexData.substring(8, 38);
     var frameType = this.decryptedHex.substring(16, 18);
     var frameId = this.decryptedHex.substring(18, 22);
 
