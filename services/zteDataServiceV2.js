@@ -1,5 +1,3 @@
-"use strict";
-
 var _ = require('lodash');
 const Common = require('../lib/common');
 const config = require('../config/conf');

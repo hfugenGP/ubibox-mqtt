@@ -37,6 +37,7 @@ var zte_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
 
 var mongodb;
 var cachedDeviceAlert = new Array();
+var redisClient = redis.createClient();
 
 MongoClient.connect(url, {  
     poolSize: 50
@@ -146,8 +147,7 @@ function mongoConnected(err, db){
     
                 if (gps.length > 0) {
                     insertBundle(mongodb, "GPSData", gps, function (insertedIds) {
-                        var client = redis.createClient();
-                        client.publish("zteGPSData", JSON.stringify({
+                        redisClient.publish("zteGPSData", JSON.stringify({
                             "deviceId": json_object["deviceId"]
                         }));
                     });
