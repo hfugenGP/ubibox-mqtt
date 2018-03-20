@@ -35,7 +35,7 @@ var fabrick_gateway = {
     id: "Fabrick ZTE Sockets Client " + config.zteBroker.idKey,
     host: config.zteBroker.host,
     port: config.zteBroker.port,
-    topics: { 'config/ztewelink/portal/Device/Message': 1, 'config/ztewelink/portal/Devices': 1 }
+    topics: { 'config/ztewelink/portal/Device/Message': 1, 'config/ztewelink/portal/Devices': 1, 'config/ztewelink/portal/Device/V2/Message': 1, 'config/ztewelink/portal/Devices/V2': 1 }
 };
 
 var fabrick_Broker = new Broker(fabrick_gateway, fabrick_gateway.host, {
