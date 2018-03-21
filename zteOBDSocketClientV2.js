@@ -7,7 +7,7 @@ const config = require('./config/conf');
 const SimpleCrypto = require('./lib/simpleCrypto');
 const CryptoJS = require("crypto-js");
 const adler32 = require('adler32');
-// const ZTEDataServiceV3 = require('./services/zteDataServiceV2');
+const ZTEDataServiceV2 = require('./services/zteDataServiceV2');
 const f = require('util').format;
 const MongoClient = require('mongodb').MongoClient;
 const redis = require("redis");
@@ -64,7 +64,7 @@ function mongoConnected(err, db){
         console.log('#################Server listening on ' + ':' + config.zte.PORT + '#################');
     });
 
-    var zteDataSenderService = new ZTEDataServiceV3(mongodb, redisClient, cachedDeviceAlert);
+    var zteDataSenderService = new ZTEDataServiceV2(mongodb, redisClient, cachedDeviceAlert);
 
     var fabrick_client = fabrick_Broker.connect();
 
@@ -169,7 +169,7 @@ function handleDeviceConnetion(sock) {
 
     // Add a 'data' event handler to this instance of socket
     sock.on('data', function(data) {
-        var zteDataService = new ZTEDataServiceV3(mongodb, redisClient, cachedDeviceAlert);
+        var zteDataService = new ZTEDataServiceV2(mongodb, redisClient, cachedDeviceAlert);
 
         var buff = new Buffer(data, 'utf8');
         var hexData = buff.toString('hex');

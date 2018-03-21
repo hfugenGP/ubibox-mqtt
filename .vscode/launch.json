@@ -14,9 +14,10 @@
             // "program": "${workspaceRoot}\\fabrickDashboardSubcriber.js",
             // "program": "${workspaceRoot}\\fabrickGIoTClient.js",
             // "program": "${workspaceRoot}\\notify.js",
-            "program": "${workspaceRoot}\\tests\\debugZTE.js",
+            // "program": "${workspaceRoot}\\tests\\debugZTE.js",
             // "program": "${workspaceRoot}\\socketsClient.js",
-
+            "program": "${workspaceRoot}\\zteOBDSocketClient.js",
+            
             "cwd": "${workspaceRoot}"
         },
         {

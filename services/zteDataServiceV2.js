@@ -1850,14 +1850,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var end = 74;
 
                     while (i <= numberOfPackage) {
-                        var package = effectiveData.substring(start, end);
-                        var xAxisAcc = parseInt(package.substring(0, 4), 16) / 10;
-                        var yAxisAcc = parseInt(package.substring(4, 8), 16) / 10;
-                        var zAxisAcc = parseInt(package.substring(8, 12), 16) / 10;
-                        var rpm = parseInt(package.substring(12, 16), 16);
-                        var speed = parseInt(package.substring(16, 20), 16);
+                        var packageData = effectiveData.substring(start, end);
+                        var xAxisAcc = parseInt(packageData.substring(0, 4), 16) / 10;
+                        var yAxisAcc = parseInt(packageData.substring(4, 8), 16) / 10;
+                        var zAxisAcc = parseInt(packageData.substring(8, 12), 16) / 10;
+                        var rpm = parseInt(packageData.substring(12, 16), 16);
+                        var speed = parseInt(packageData.substring(16, 20), 16);
 
-                        var gpsData = formatGPS(package.substring(20, 52), deviceId, false, true);
+                        var gpsData = formatGPS(packageData.substring(20, 52), deviceId, false, true);
 
                         insert(mongodb, 'GPSData', gpsData, function(insertedId) {
                             var alertData = {};
@@ -1911,14 +1911,14 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var end = 64;
                     var eventPakages = Array();
                     while (i <= numberOfPackage) {
-                        var package = effectiveData.substring(start, end);
+                        var packageString = effectiveData.substring(start, end);
                         var packageData = {};
 
-                        packageData.xAxisAcc = parseInt(package.substring(0, 4), 16) / 10;
-                        packageData.yAxisAcc = parseInt(package.substring(4, 8), 16) / 10;
-                        packageData.zAxisAcc = parseInt(package.substring(8, 12), 16) / 10;
-                        packageData.rpm = parseInt(package.substring(12, 16), 16);
-                        packageData.speed = parseInt(package.substring(16, 20), 16);
+                        packageData.xAxisAcc = parseInt(packageString.substring(0, 4), 16) / 10;
+                        packageData.yAxisAcc = parseInt(packageString.substring(4, 8), 16) / 10;
+                        packageData.zAxisAcc = parseInt(packageString.substring(8, 12), 16) / 10;
+                        packageData.rpm = parseInt(packageString.substring(12, 16), 16);
+                        packageData.speed = parseInt(packageString.substring(16, 20), 16);
 
                         eventPakages.push(packageData);
 
