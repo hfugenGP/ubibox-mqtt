@@ -328,8 +328,8 @@ function handleDeviceConnetion(sock) {
             });
         }
 
-        if(cachedFrameId.length >= 1000){
-            cachedFrameId.splice(0, 10);
+        if(cachedFrameId.length >= 10000){
+            cachedFrameId.splice(0, 1000);
         }
     });
 
