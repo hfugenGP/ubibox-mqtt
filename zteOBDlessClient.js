@@ -159,28 +159,33 @@ function processMessageData(topic, json_object){
             var gps = new Array();
             _.each(json_object["gpsData"], function (gpsPoint) {
                 var gpsData = {};
-                gpsData["positionTime"] = common.dateToUTCText(gpsPoint["reportTime"]);
-                gpsData["positionSource"] = "GPS";
-                gpsData["height"] = gpsPoint["height"];
-                gpsData["longitude"] = gpsPoint["longitude"];
-                gpsData["latitude"] = gpsPoint["latitude"];
-                gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
-                gpsData["gpsSpeed"] = gpsPoint["gpsSpeed"];
-                gpsData["heading"] = gpsPoint["heading"];
-                gpsData["PDOP"] = gpsPoint["PDOP"];
-                gpsData["HDOP"] = gpsPoint["HDOP"];
-                gpsData["VDOP"] = gpsPoint["VDOP"];
-                gpsData["gpsType"] = "routing";
-                gpsData["tripId"] = null;
-                gpsData["deviceId"] = json_object["deviceId"];
-                gpsData["status"] = "New";
-                gpsData["address"] = "";
-                if(json_object.deviceStatus){
-                    gpsData.drivingDistance = json_object.deviceStatus.drivingDistance;
-                    gpsData.maxSpeed = json_object.deviceStatus.maxSpeed;
-                }
+                try {
+                    gpsData.positionTime = common.dateToUTCText(gpsPoint.reportTime);
+                    gpsData.positionSource = "GPS";
+                    gpsData.height = gpsPoint.height;
+                    gpsData.longitude = gpsPoint.longitude;
+                    gpsData.latitude = gpsPoint.latitude;
+                    gpsData.latlng = gpsData.latitude + "," + gpsData.longitude;
+                    gpsData.gpsSpeed = gpsPoint.gpsSpeed;
+                    gpsData.heading = gpsPoint.heading;
+                    gpsData.PDOP = gpsPoint.PDOP;
+                    gpsData.HDOP = gpsPoint.HDOP;
+                    gpsData.VDOP = gpsPoint.VDOP;
+                    gpsData.gpsType = "routing";
+                    gpsData.tripId = null;
+                    gpsData.deviceId = json_object.deviceId;
+                    gpsData.status = "New";
+                    gpsData.address = "";
+                    if(json_object.deviceStatus){
+                        gpsData.drivingDistance = json_object.deviceStatus.drivingDistance;
+                        gpsData.maxSpeed = json_object.deviceStatus.maxSpeed;
+                    }
 
-                gps.push(gpsData);
+                    gps.push(gpsData);
+                } catch (e) {
+                    console.log(e);
+                    return;
+                }
             });
 
             if (gps.length > 0) {
