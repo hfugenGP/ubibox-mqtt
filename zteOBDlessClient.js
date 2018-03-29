@@ -199,36 +199,46 @@ function processMessageData(topic, json_object){
             break;
         case 'api/ztewelink/OBDless/Data/TripSummary':
             var gpsWhenIgnitionOn = {};
-            gpsWhenIgnitionOn["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOn"]["reportTime"]);
-            gpsWhenIgnitionOn["positionSource"] = "GPS";
-            gpsWhenIgnitionOn["height"] = json_object["gpsWhenIgnitionOn"]["height"];
-            gpsWhenIgnitionOn["longitude"] = json_object["gpsWhenIgnitionOn"]["longitude"];
-            gpsWhenIgnitionOn["latitude"] = json_object["gpsWhenIgnitionOn"]["latitude"];
-            gpsWhenIgnitionOn["latlng"] = gpsWhenIgnitionOn["latitude"] + "," + gpsWhenIgnitionOn["longitude"];
-            gpsWhenIgnitionOn["gpsSpeed"] = json_object["gpsWhenIgnitionOn"]["gpsSpeed"];
-            gpsWhenIgnitionOn["heading"] = json_object["gpsWhenIgnitionOn"]["heading"];
-            gpsWhenIgnitionOn["PDOP"] = json_object["gpsWhenIgnitionOn"]["PDOP"];
-            gpsWhenIgnitionOn["HDOP"] = json_object["gpsWhenIgnitionOn"]["HDOP"];
-            gpsWhenIgnitionOn["VDOP"] = json_object["gpsWhenIgnitionOn"]["VDOP"];
-            gpsWhenIgnitionOn["gpsType"] = "reference";
-            gpsWhenIgnitionOn["deviceId"] = json_object["deviceId"];
-            gpsWhenIgnitionOn["status"] = "New";
+            try {
+                gpsWhenIgnitionOn["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOn"]["reportTime"]);
+                gpsWhenIgnitionOn["positionSource"] = "GPS";
+                gpsWhenIgnitionOn["height"] = json_object["gpsWhenIgnitionOn"]["height"];
+                gpsWhenIgnitionOn["longitude"] = json_object["gpsWhenIgnitionOn"]["longitude"];
+                gpsWhenIgnitionOn["latitude"] = json_object["gpsWhenIgnitionOn"]["latitude"];
+                gpsWhenIgnitionOn["latlng"] = gpsWhenIgnitionOn["latitude"] + "," + gpsWhenIgnitionOn["longitude"];
+                gpsWhenIgnitionOn["gpsSpeed"] = json_object["gpsWhenIgnitionOn"]["gpsSpeed"];
+                gpsWhenIgnitionOn["heading"] = json_object["gpsWhenIgnitionOn"]["heading"];
+                gpsWhenIgnitionOn["PDOP"] = json_object["gpsWhenIgnitionOn"]["PDOP"];
+                gpsWhenIgnitionOn["HDOP"] = json_object["gpsWhenIgnitionOn"]["HDOP"];
+                gpsWhenIgnitionOn["VDOP"] = json_object["gpsWhenIgnitionOn"]["VDOP"];
+                gpsWhenIgnitionOn["gpsType"] = "reference";
+                gpsWhenIgnitionOn["deviceId"] = json_object["deviceId"];
+                gpsWhenIgnitionOn["status"] = "New";
+            } catch (e) {
+                console.log(e);
+                return;
+            }
 
             var gpsWhenIgnitionOff = {};
-            gpsWhenIgnitionOff["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOff"]["reportTime"]);
-            gpsWhenIgnitionOff["positionSource"] = "GPS";
-            gpsWhenIgnitionOff["height"] = json_object["gpsWhenIgnitionOff"]["height"];
-            gpsWhenIgnitionOff["longitude"] = json_object["gpsWhenIgnitionOff"]["longitude"];
-            gpsWhenIgnitionOff["latitude"] = json_object["gpsWhenIgnitionOff"]["latitude"];
-            gpsWhenIgnitionOff["latlng"] = gpsWhenIgnitionOff["latitude"] + "," + gpsWhenIgnitionOff["longitude"];
-            gpsWhenIgnitionOff["gpsSpeed"] = json_object["gpsWhenIgnitionOff"]["gpsSpeed"];
-            gpsWhenIgnitionOff["heading"] = json_object["gpsWhenIgnitionOff"]["heading"];
-            gpsWhenIgnitionOff["PDOP"] = json_object["gpsWhenIgnitionOff"]["PDOP"];
-            gpsWhenIgnitionOff["HDOP"] = json_object["gpsWhenIgnitionOff"]["HDOP"];
-            gpsWhenIgnitionOff["VDOP"] = json_object["gpsWhenIgnitionOff"]["VDOP"];
-            gpsWhenIgnitionOff["gpsType"] = "reference";
-            gpsWhenIgnitionOff["deviceId"] = json_object["deviceId"];
-            gpsWhenIgnitionOff["status"] = "New";
+            try {
+                gpsWhenIgnitionOff["positionTime"] = common.dateToUTCText(json_object["gpsWhenIgnitionOff"]["reportTime"]);
+                gpsWhenIgnitionOff["positionSource"] = "GPS";
+                gpsWhenIgnitionOff["height"] = json_object["gpsWhenIgnitionOff"]["height"];
+                gpsWhenIgnitionOff["longitude"] = json_object["gpsWhenIgnitionOff"]["longitude"];
+                gpsWhenIgnitionOff["latitude"] = json_object["gpsWhenIgnitionOff"]["latitude"];
+                gpsWhenIgnitionOff["latlng"] = gpsWhenIgnitionOff["latitude"] + "," + gpsWhenIgnitionOff["longitude"];
+                gpsWhenIgnitionOff["gpsSpeed"] = json_object["gpsWhenIgnitionOff"]["gpsSpeed"];
+                gpsWhenIgnitionOff["heading"] = json_object["gpsWhenIgnitionOff"]["heading"];
+                gpsWhenIgnitionOff["PDOP"] = json_object["gpsWhenIgnitionOff"]["PDOP"];
+                gpsWhenIgnitionOff["HDOP"] = json_object["gpsWhenIgnitionOff"]["HDOP"];
+                gpsWhenIgnitionOff["VDOP"] = json_object["gpsWhenIgnitionOff"]["VDOP"];
+                gpsWhenIgnitionOff["gpsType"] = "reference";
+                gpsWhenIgnitionOff["deviceId"] = json_object["deviceId"];
+                gpsWhenIgnitionOff["status"] = "New";
+            } catch (e) {
+                console.log(e);
+                return;
+            }
 
             var tripData = {};
             tripData["deviceId"] = json_object["deviceId"];
@@ -278,21 +288,26 @@ function processMessageData(topic, json_object){
             break;
         case 'api/ztewelink/OBDless/Data/Alert':
             var gpsData = {};
-            gpsData["positionTime"] = common.dateToUTCText(json_object["reportGPS"]["reportTime"]);
-            gpsData["positionSource"] = "GPS";
-            gpsData["height"] = json_object["reportGPS"]["height"];
-            gpsData["longitude"] = json_object["reportGPS"]["longitude"];
-            gpsData["latitude"] = json_object["reportGPS"]["latitude"];
-            gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
-            gpsData["gpsSpeed"] = json_object["reportGPS"]["gpsSpeed"];
-            gpsData["heading"] = json_object["reportGPS"]["heading"];
-            gpsData["PDOP"] = json_object["reportGPS"]["PDOP"];
-            gpsData["HDOP"] = json_object["reportGPS"]["HDOP"];
-            gpsData["VDOP"] = json_object["reportGPS"]["VDOP"];
-            gpsData["gpsType"] = "reference";
-            gpsData["deviceId"] = json_object["deviceId"];
-            gpsData["status"] = "New";
-
+            try {
+                gpsData["positionTime"] = common.dateToUTCText(json_object["reportGPS"]["reportTime"]);
+                gpsData["positionSource"] = "GPS";
+                gpsData["height"] = json_object["reportGPS"]["height"];
+                gpsData["longitude"] = json_object["reportGPS"]["longitude"];
+                gpsData["latitude"] = json_object["reportGPS"]["latitude"];
+                gpsData["latlng"] = gpsData["latitude"] + "," + gpsData["longitude"];
+                gpsData["gpsSpeed"] = json_object["reportGPS"]["gpsSpeed"];
+                gpsData["heading"] = json_object["reportGPS"]["heading"];
+                gpsData["PDOP"] = json_object["reportGPS"]["PDOP"];
+                gpsData["HDOP"] = json_object["reportGPS"]["HDOP"];
+                gpsData["VDOP"] = json_object["reportGPS"]["VDOP"];
+                gpsData["gpsType"] = "reference";
+                gpsData["deviceId"] = json_object["deviceId"];
+                gpsData["status"] = "New";
+            } catch (e) {
+                console.log(e);
+                return;
+            }
+            
             insert(mongodb, "GPSData", gpsData, function (insertedId) {
                 var alertData = {};
                 alertData["deviceId"] = json_object["deviceId"];
