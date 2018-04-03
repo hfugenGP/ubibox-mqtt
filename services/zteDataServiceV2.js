@@ -290,7 +290,7 @@ ZTEDataServiceV2.prototype.preProcessData = function(hexData, subcribedDevices) 
 
     this.encryptionKey = subcribedDevices["ID-" + deviceId];
 
-    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 0, common.chars_from_hex(iv));
+    var decryptedData = simpleCrypto.des(common.chars_from_hex(this.encryptionKey), common.chars_from_hex(cryptedHex), 0, 0);
     this.decryptedHex = common.hex_from_chars(decryptedData).replace(/(\r\n|\n|\r)/gm, "");
     var fullDecryptedMessage = hexData.substring(0, 54) + this.decryptedHex + config.zte.frameEnd;
 
