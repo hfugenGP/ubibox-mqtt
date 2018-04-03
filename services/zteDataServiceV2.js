@@ -308,7 +308,7 @@ ZTEDataServiceV2.prototype.preProcessData = function(hexData, subcribedDevices) 
     var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
     var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
 
-    var checksum = messageLength + iv + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
+    var checksum = messageLength + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
