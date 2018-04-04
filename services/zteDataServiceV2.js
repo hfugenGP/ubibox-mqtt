@@ -299,16 +299,16 @@ ZTEDataServiceV2.prototype.preProcessData = function(hexData, subcribedDevices) 
     console.log('deviceId : ' + deviceId);
     console.log('Decrypted Message : ' + fullDecryptedMessage);
 
-    var randomNoiseHex = this.decryptedHex.substring(0, 16);
-    var frameType = this.decryptedHex.substring(16, 18);
-    var frameId = this.decryptedHex.substring(18, 22);
-    var dataLengthHex = this.decryptedHex.substring(22, 26);
+    // var randomNoiseHex = this.decryptedHex.substring(0, 16);
+    var frameType = this.decryptedHex.substring(0, 2);
+    var frameId = this.decryptedHex.substring(2, 6);
+    var dataLengthHex = this.decryptedHex.substring(6, 10);
     var dataLength = parseInt(dataLengthHex, 16);
-    var endOfEffectiveData = 26 + (dataLength * 2);
-    var effectiveData = this.decryptedHex.substring(26, endOfEffectiveData);
+    var endOfEffectiveData = 10 + (dataLength * 2);
+    var effectiveData = this.decryptedHex.substring(10, endOfEffectiveData);
     var checksumHex = this.decryptedHex.substring(endOfEffectiveData, endOfEffectiveData + 8);
 
-    var checksum = messageLength + deviceId + randomNoiseHex + frameType + frameId + dataLengthHex + effectiveData;
+    var checksum = messageLength + deviceId + frameType + frameId + dataLengthHex + effectiveData;
 
     console.log('frameType : ' + frameType);
     console.log('frameId : ' + frameId);
@@ -3133,8 +3133,8 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     var randomNoiseText = CryptoJS.enc.Utf16.stringify(randomNoise);
     var randomNoiseHex = common.hex_from_chars(randomNoiseText);
 
-    var tobeEncrypted = randomNoiseHex;
-    tobeEncrypted += frameType;
+    // var tobeEncrypted = randomNoiseHex;
+    var tobeEncrypted = frameType;
     tobeEncrypted += frameId;
     tobeEncrypted += dataLength;
     tobeEncrypted += mainMessage;
@@ -3143,7 +3143,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
     var messageLength = (config.zte.frameHeader.length + //4
         4 + //message length itself
         deviceId.length + //30
-        randomNoiseHex.length + //16
+        // randomNoiseHex.length + //16
         frameType.length + //2
         frameId.length + //4
         dataLength.length + //4
@@ -3158,7 +3158,7 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
 
     var messageLengthHex = common.recorrectHexString(messageLength.toString(16), 4);
 
-    var checksum = messageLengthHex + deviceId + randomNoiseHex + frameType + frameId + dataLength + mainMessage;
+    var checksum = messageLengthHex + deviceId + frameType + frameId + dataLength + mainMessage;
     // console.log('++++++++++++++++++++++++++++++++++++++++++++++++++');
     // console.log('messageLengthHex : ' + messageLengthHex);
     // console.log('deviceId : ' + deviceId);
@@ -3180,10 +3180,10 @@ function dataPacking(deviceId, frameType, frameId, dataLength, mainMessage, encr
 
     console.log('frameID : ' + frameId);
 
-    var beforeEncrypted = config.zte.frameHeader + messageLengthHex + ivHex + deviceId + tobeEncrypted + config.zte.frameEnd;
+    var beforeEncrypted = config.zte.frameHeader + messageLengthHex + deviceId + tobeEncrypted + config.zte.frameEnd;
     console.log('Response message: ' + beforeEncrypted);
 
-    return config.zte.frameHeader + messageLengthHex + ivHex + deviceId + ciphertext + config.zte.frameEnd;
+    return config.zte.frameHeader + messageLengthHex + deviceId + ciphertext + config.zte.frameEnd;
 }
 
 function formatGPS(gpsValue, deviceId, isRouting, simpleGPS) {
