@@ -381,6 +381,7 @@ ZTEDataServiceV2.prototype.processData = function(hexData, subcribedDevices, dev
             //1040 = 0001 0000 0100 0000 = V1.1.0
             data["hardwareVersion"] = "V" + parseInt(protocolVersionData.substring(0, 4), 2) + "." + parseInt(protocolVersionData.substring(4, 10), 2) + "." + parseInt(protocolVersionData.substring(10, 16), 2);
 
+
             var lengthOfSoftwareVersionMCU = parseInt(common.hex2bits(effectiveData.substring(8, 10)).substring(2, 8), 2);
             var start = 10;
             var end = start + lengthOfSoftwareVersionMCU * 2;
@@ -3034,7 +3035,7 @@ ZTEDataServiceV2.prototype.generateReply = function(hexData) {
     var returnFrameType = "0d";
 
     switch (frameType) {
-        case '11':
+        case '01':
             // Return connect with connack
             returnFrameType = "02";
             break;
