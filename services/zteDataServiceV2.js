@@ -410,7 +410,7 @@ ZTEDataServiceV2.prototype.processData = function(hexData, subcribedDevices, dev
             console.log("hardwareVersion: " + data.hardwareVersion);
             console.log("mcuVersion: " + data.mcuVersion);
             console.log("modemVersion: " + data.modemVersion);
-            console.log("modemVersion: " + data.firmwareVersion);
+            console.log("firmwareVersion: " + data.firmwareVersion);
             console.log("reportTime: " + data.reportTime);
 
             // Use connect method to connect to the Server
