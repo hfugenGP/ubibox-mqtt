@@ -369,7 +369,7 @@ ZTEDataServiceV2.prototype.processData = function(hexData, subcribedDevices, dev
     var common = new Common();
 
     switch (frameType) {
-        case "11":
+        case "01":
             deviceData["MajorDataTypeId"] = "99";
             deviceData["MinorDataTypeId"] = "99";
             var data = {};
