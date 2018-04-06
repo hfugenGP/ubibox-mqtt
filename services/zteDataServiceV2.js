@@ -394,12 +394,13 @@ ZTEDataServiceV2.prototype.processData = function(hexData, subcribedDevices, dev
             end += lengthOfSoftwareVersionModem * 2;
             data["modemVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
 
-            start = end;
-            end += 2;
-            var lengthOfFirmwareVersion = parseInt(common.hex2bits(effectiveData.substring(start, end)).substring(2, 8), 2);
-            start = end;
-            end += lengthOfSoftwareVersionModem * 2;
-            data["firmwareVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
+            // start = end;
+            // end += 2;
+            // var lengthOfFirmwareVersion = parseInt(common.hex2bits(effectiveData.substring(start, end)).substring(2, 8), 2);
+            // start = end;
+            // end += lengthOfSoftwareVersionModem * 2;
+            // data["firmwareVersion"] = common.chars_from_hex(effectiveData.substring(start, end));
+            data["firmwareVersion"] = "N/A";
 
             start = end;
             end += end + 8;
