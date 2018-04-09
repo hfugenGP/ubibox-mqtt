@@ -1417,7 +1417,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                     var gpsPosition = formatGPS(effectiveData.substring(14, 62), deviceId, false);
 
                     data["sleepTime"] = sleepTime;
-                    data["failureCode"] = failureCode;
+                    data["sleepVoltage"] = sleepVoltage;
                     insert(mongodb, 'GPSData', gpsPosition, function(insertedId) {
                         var historicalData = {};
                         historicalData["deviceId"] = deviceId;
@@ -1425,7 +1425,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         historicalData["reportTime"] = sleepTime;
                         historicalData["gpsPosition"] = insertedId;
                         historicalData["value"] = {
-                            "failureCode": failureCode
+                            "sleepVoltage": sleepVoltage
                         };
 
                         insert(mongodb, "DeviceHistoricalData", historicalData, function(insertedId) {
