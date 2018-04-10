@@ -1937,7 +1937,7 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
                         var alertData = {};
                         alertData["deviceId"] = deviceId;
                         alertData["alertCategoryId"] = new MongoObjectId("5991411f0e8828a2ff3d1048");
-                        alertData["alertTypeId"] = new MongoObjectId("");
+                        alertData["alertTypeId"] = new MongoObjectId("5acc23d3c0e09e3415030236");
                         alertData["alertType"] = "sensor_event";
                         alertData["reportTime"] = reportingTime;
                         alertData["gpsPosition"] = insertedId;
