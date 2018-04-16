@@ -1457,7 +1457,6 @@ function publishMessageHandle(that, deviceId, effectiveData, dataTypeMajor, data
 
 
                     console.log('sleepTime : ' + sleepTime);
-                    console.log('failureCode : ' + failureCode);
                     console.log('*********************End Sleep*********************');
                     break;
                 case "03":
