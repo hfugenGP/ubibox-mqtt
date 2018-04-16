@@ -265,7 +265,7 @@ function processMessageData(topic, json_object){
                             deviceId: json_object["deviceId"],
                             gpsType: "routing",
                             tripId: null,
-                            positionTime : {$gt:json_object["ignitionOnTime"], $lt:json_object["ignitionOffTime"]}
+                            positionTime : {$gte:json_object["ignitionOnTime"], $lte:json_object["ignitionOffTime"]}
                         }, {
                             $set: {
                                 tripId: insertedId
