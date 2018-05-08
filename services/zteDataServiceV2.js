@@ -88,7 +88,7 @@ ZTEDataServiceV2.prototype.generateMessageToDevice = function(subcribedDevices, 
                         mainMessage += common.recorrectHexString(params[key].toString(16), 4);
                         break;
                     case "0x00050000":
-                        mainMessage += common.recorrectHexString(params[key].toString(16), 2);
+                        mainMessage += common.recorrectHexString(parseInt(params[key]).toString(16), 2);
                         break;
                     case "0x00060000":
                         mainMessage += common.recorrectHexString((parseFloat(params[key]) * 10).toString(16), 2);
